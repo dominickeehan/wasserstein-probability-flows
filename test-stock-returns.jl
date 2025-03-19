@@ -97,11 +97,11 @@ training_T = length(training_data)
 testing_data = extracted_data[training_testing_split+1:end]
 testing_T = length(testing_data)
 
-parameter_tuning_window = 1*12
+parameter_tuning_window = 2*12
 
 windowing_parameters = round.(Int, LinRange(1,training_testing_split-parameter_tuning_window,51))
 SES_parameters = LinRange(0.001,0.9,51)
-WPF_parameters = LinRange(0,2500,51)
+WPF_parameters = LinRange(0,2000,20)
 
 using ProgressBars, IterTools
 using Statistics, StatsBase
@@ -139,7 +139,51 @@ function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_p
     for i in eachindex(realised_costs); wealth *= 1-realised_costs[i]; end
     display("Cost: $μ ± $s, Wealth: $wealth")
     
-    display(plot(parameters, average_parameter_costs_in_previous_stages[end], labels=nothing))
+    default() # Reset plot defaults.
+
+    gr(size = (600,400))
+    
+    font_family = "Computer Modern"
+    primary_font = Plots.font(font_family, pointsize = 17)
+    secondary_font = Plots.font(font_family, pointsize = 11)
+    legend_font = Plots.font(font_family, pointsize = 16)
+    
+    default(framestyle = :box,
+            grid = true,
+            #gridlinewidth = 1.0,
+            gridalpha = 0.075,
+            #minorgrid = true,
+            #minorgridlinewidth = 1.0, 
+            #minorgridalpha = 0.075,
+            #minorgridlinestyle = :dash,
+            tick_direction = :in,
+            xminorticks = 0, 
+            yminorticks = 0,
+            fontfamily = font_family,
+            guidefont = primary_font,
+            tickfont = secondary_font,
+            legendfont = legend_font)
+    
+    plt = plot(parameters, 
+            average_parameter_costs_in_previous_stages[end], #vec(sum(parameter_costs[end-(parameter_tuning_window-1):end,:], dims=1))/(parameter_tuning_window),
+            ribbon = sem.([parameter_costs[end-(parameter_tuning_window-1):end,parameter] for parameter in eachindex(parameters)]),
+            xlabel = "\$λ\$", 
+            ylabel = "Expected cost",
+            legend = nothing,
+            legendfonthalign = :center,
+            color = palette(:tab10)[1],
+            alpha = 1,
+            linestyle = :dash,
+            linewidth = 1,
+            fillalpha = .1,
+            topmargin = 0pt, 
+            rightmargin = 0pt,
+            bottommargin = 3pt, 
+            leftmargin = 3pt)
+    
+    display(plt);
+
+    if !(save_cost_plot_as === nothing); savefig(plt, save_cost_plot_as); end
 
     return realised_costs, parameters[argmin(average_parameter_costs_in_previous_stages[end])]
 
@@ -148,6 +192,7 @@ end
 d(i,j,ξ_i,ξ_j) = 0
 include("weights.jl")
 SAA_costs, _ = train_and_test_out_of_sample(length(extracted_data), windowing_weights)
+
 windowing_costs, _ = train_and_test_out_of_sample(windowing_parameters, windowing_weights)
 μ = mean(windowing_costs) + ρ*unweighted_cvar(windowing_costs) - mean(SAA_costs) - ρ*unweighted_cvar(SAA_costs)
 s = sem(windowing_costs - SAA_costs)
@@ -159,6 +204,7 @@ SES_costs, _ = train_and_test_out_of_sample(SES_parameters, SES_weights) # ceil(
 s = sem(SES_costs - SAA_costs)
 display("SES - SAA: $μ ± $s")
 
+
 d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 1)
 include("weights.jl")
 WPF_costs, WPF_parameter = train_and_test_out_of_sample(WPF_parameters, WPF_weights)
@@ -166,6 +212,92 @@ WPF_costs, WPF_parameter = train_and_test_out_of_sample(WPF_parameters, WPF_weig
 μ = mean(WPF_costs) + ρ*unweighted_cvar(WPF_costs) - mean(SAA_costs) - ρ*unweighted_cvar(SAA_costs)
 s = sem(WPF_costs - SAA_costs)
 display("WPF - SAA: $μ ± $s")
+
+
+
+d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 2) # ifelse(i == j, 0, norm(ξ_i - ξ_j, 2))# + 0.001) # 0.005
+include("weights.jl")
+WPF_costs, WPF_parameter = train_and_test_out_of_sample(WPF_parameters, WPF_weights; save_cost_plot_as = "figures/stock-returns-WPF_{1+s}-parameter-costs.pdf")
+
+μ = mean(WPF_costs) + ρ*unweighted_cvar(WPF_costs) - mean(SAA_costs) - ρ*unweighted_cvar(SAA_costs)
+s = sem(WPF_costs - SAA_costs)
+display("WPF - SAA: $μ ± $s")
+
+weights = WPF_weights([[extracted_data[i], extracted_data[i+1]] for i in 1:length(extracted_data)-1], WPF_parameter)
+
+default() # Reset plot defaults.
+
+gr(size = (700,515+3.5))
+
+font_family = "Computer Modern"
+primary_font = Plots.font(font_family, pointsize = 17)
+secondary_font = Plots.font(font_family, pointsize = 11)
+legend_font = Plots.font(font_family, pointsize = 11)
+
+default(framestyle = :box,
+        grid = true,
+        #gridlinewidth = 1.0,
+        gridalpha = 0.075,
+        #minorgrid = true,
+        #minorgridlinewidth = 1.0, 
+        #minorgridalpha = 0.075,
+        #minorgridlinestyle = :dash,
+        tick_direction = :in,
+        xminorticks = 0, 
+        yminorticks = 0,
+        fontfamily = font_family,
+        guidefont = primary_font,
+        tickfont = secondary_font,
+        legendfont = legend_font)
+
+colors = [palette(:tab10)[1] palette(:tab10)[2] palette(:tab10)[3] palette(:tab10)[4] palette(:tab10)[5] palette(:tab10)[6] palette(:tab10)[7] palette(:tab10)[8] palette(:tab10)[9] palette(:tab10)[10] palette(:tab10)[1] palette(:tab10)[2] palette(:tab10)[3] palette(:tab10)[4]]
+linestyles = [:solid :solid :solid :solid :solid :solid :solid :solid :solid :solid :dash :dash :dash :dash]
+
+plt_extracted_data = plot(1:10*12+1, 
+                        wealth, 
+                        xformatter = :none,
+                        #xlims = (1-6,10*12+6),
+                        ylims = (0,11.5),
+                        ylabel = "Net wealth",
+                        labels = nothing,
+                        legend = nothing,
+                        #legendfonthalign = :center,
+                        color = colors,
+                        linestyle = linestyles,
+                        linewidth = 1,
+                        topmargin = 0pt, 
+                        rightmargin = 0pt,
+                        bottommargin = 0pt, 
+                        leftmargin = 5pt) 
+
+A = 2:10*12
+WPF_parameter = round(Int,WPF_parameter)
+println("\$λ\$ = $WPF_parameter")
+
+plt_probabilities = plot(A[weights .>= 1e-3], 
+                weights[weights .>= 1e-3],
+                xlabel = "Time (year)",
+                xticks = (1:12:10*12+1, ["2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024"]),
+                #xlims = (1-6,10*12+6),
+                ylabel = "Probability", # at \$λ=$WPF_parameter\$",
+                seriestype=:sticks,
+                linestyle=:solid,
+                linewidth = 1,
+                seriescolor = palette(:tab10)[8],
+                marker = nothing,
+                markersize = 2.0,
+                markercolor = palette(:tab10)[8],
+                markerstrokecolor = :black,
+                markerstrokewidth = 0.5,
+                label = nothing,
+                topmargin = 0pt, 
+                rightmargin = 0pt,
+                bottommargin = 3.5pt, 
+                leftmargin = 0pt)
+
+figure = plot(plt_extracted_data, plt_probabilities, layout=@layout([a; b]))
+display(figure)
+savefig(figure, "figures/stock-returns-WPF_{1+s}-assigned-probability-to-historical-observations.pdf")
 
 #=
 d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 2)

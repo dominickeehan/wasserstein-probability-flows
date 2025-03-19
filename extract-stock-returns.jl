@@ -67,7 +67,7 @@ if do_plots == true
             leftmargin = 12.5pt)
     
     display(plt)
-    #savefig(plt, "figures/dairy-prices.pdf")
+    savefig(plt, "figures/stock-returns.pdf")
 
 
 end

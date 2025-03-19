@@ -47,7 +47,7 @@ parameter_tuning_window = 3*12
 
 windowing_parameters = round.(Int, LinRange(10,training_testing_split-parameter_tuning_window,51))
 SES_parameters = LinRange(0.001,0.9,51)
-WPF_parameters = LinRange(15,150,16) #LinRange(0,150,51) #LinRange(75,1000,6) #LinRange(100,3000,60)
+WPF_parameters = LinRange(0,150,21) #LinRange(0,150,51) #LinRange(75,1000,6) #LinRange(100,3000,60)
 
 using ProgressBars, IterTools
 using Statistics, StatsBase
