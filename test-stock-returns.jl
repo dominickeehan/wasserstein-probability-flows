@@ -101,7 +101,7 @@ parameter_tuning_window = 2*12
 
 windowing_parameters = round.(Int, LinRange(1,training_testing_split-parameter_tuning_window,51))
 SES_parameters = LinRange(0.001,0.9,51)
-WPF_parameters = LinRange(0,2000,20)
+WPF_parameters = LinRange(0,500,51)
 
 using ProgressBars, IterTools
 using Statistics, StatsBase
@@ -214,8 +214,7 @@ s = sem(WPF_costs - SAA_costs)
 display("WPF - SAA: $μ ± $s")
 
 
-
-d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 2) # ifelse(i == j, 0, norm(ξ_i - ξ_j, 2))# + 0.001) # 0.005
+d(i,j,ξ_i,ξ_j) = ifelse(i == j, 0, norm(ξ_i - ξ_j, 1) + 0.001) # 0.001
 include("weights.jl")
 WPF_costs, WPF_parameter = train_and_test_out_of_sample(WPF_parameters, WPF_weights; save_cost_plot_as = "figures/stock-returns-WPF_{1+s}-parameter-costs.pdf")
 
@@ -278,7 +277,7 @@ plt_probabilities = plot(A[weights .>= 1e-3],
                 weights[weights .>= 1e-3],
                 xlabel = "Time (year)",
                 xticks = (1:12:10*12+1, ["2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024"]),
-                #xlims = (1-6,10*12+6),
+                xlims = (1-4,10*12+4),
                 ylabel = "Probability", # at \$λ=$WPF_parameter\$",
                 seriestype=:sticks,
                 linestyle=:solid,
@@ -299,7 +298,8 @@ figure = plot(plt_extracted_data, plt_probabilities, layout=@layout([a; b]))
 display(figure)
 savefig(figure, "figures/stock-returns-WPF_{1+s}-assigned-probability-to-historical-observations.pdf")
 
-#=
+WPF_parameters = LinRange(0,1500,51)
+
 d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 2)
 include("weights.jl")
 WPF_costs, WPF_parameter = train_and_test_out_of_sample(WPF_parameters, WPF_weights)
@@ -316,4 +316,4 @@ WPF_costs, WPF_parameter = train_and_test_out_of_sample(WPF_parameters, WPF_weig
 μ = mean(WPF_costs) + ρ*unweighted_cvar(WPF_costs) - mean(SAA_costs) - ρ*unweighted_cvar(SAA_costs)
 s = sem(WPF_costs - SAA_costs)
 display("WPF - SAA: $μ ± $s")
-=#
+

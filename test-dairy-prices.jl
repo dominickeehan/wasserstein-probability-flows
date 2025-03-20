@@ -161,7 +161,7 @@ s = sem(WPF_costs - SAA_costs)
 display("WPF - SAA: $μ ± $s")
 =#
 
-d(i,j,ξ_i,ξ_j) = ifelse(i == j, 0, norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1))# + 0.001) # 0.005
+d(i,j,ξ_i,ξ_j) = ifelse(i == j, 0, norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1))# + 0.001) # 0.001 ?
 include("weights.jl")
 WPF_costs, WPF_parameter = train_and_test_out_of_sample(WPF_parameters, WPF_weights; save_cost_plot_as = "figures/dairy-prices-WPF_{1+s}-parameter-costs.pdf")
 
