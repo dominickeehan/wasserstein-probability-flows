@@ -9,7 +9,7 @@ portfolio_optimizer = optimizer_with_attributes(COPT.Optimizer, "Logging" => 0, 
 #env = Gurobi.Env()  
 #portfolio_optimizer = optimizer_with_attributes(() -> Gurobi.Optimizer(env), "OutputFlag" => 0)
 
-ρ = 0.05 # Risk aversion parameter.
+ρ = 10 # Risk aversion parameter.
 α = 0.2 # CVaR (dis)-confidence level (in (0, 1]). 1 = Expectation.
 
 function solve_risk_averse_portfolio(sample_returns, sample_weights)
@@ -42,17 +42,15 @@ function solve_risk_averse_portfolio(sample_returns, sample_weights)
 
     # Objective function
     @objective(model, Min,
-        - sum(sample_weights[i]*dot(x, sample_returns[i]) for i in 1:N)
+        - sum(sample_weights[i]*dot(x, sample_returns[i]) for i in 1:N) + ρ * τ + ρ * sum(sample_weights[i]*(1/α)*z[i] for i in 1:N)
     )
 
-    # Risk constraint
-    for i in 1:N
-        @constraint(model, τ + sum(sample_weights[i]*(1/α)*z[i] for i in 1:N) <= ρ)
-    end
+    
 
     # CVaR constraints
     for i in 1:N
         @constraint(model, z[i] >= -dot(x, sample_returns[i]) - τ)
+        #@constraint(model, z[i] >= 0)
     end
 
     # Solve the model
@@ -101,11 +99,11 @@ training_T = length(training_data)
 testing_data = extracted_data[training_testing_split+1:end]
 testing_T = length(testing_data)
 
-parameter_tuning_window = 1*12
+parameter_tuning_window = 2*12
 
 windowing_parameters = round.(Int, LinRange(1,training_testing_split-parameter_tuning_window,51))
-SES_parameters = LinRange(0.001,1.0,51)
-WPF_parameters = LinRange(0,200,10)
+SES_parameters = LinRange(0.001,0.9,51)
+WPF_parameters = LinRange(0,1000,30)
 
 using ProgressBars, IterTools
 using Statistics, StatsBase
@@ -132,11 +130,11 @@ function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_p
 
     average_parameter_costs_in_previous_stages = [zeros(length(parameters)) for _ in 1:testing_T]
     for t in 1:testing_T
-        average_parameter_costs_in_previous_stages[t] = vec(mean(parameter_costs[training_T+(t-1)-(parameter_tuning_window-1):training_T+(t-1),:], dims=1))
+        average_parameter_costs_in_previous_stages[t] = vec(mean(parameter_costs[training_T+(t-1)-(parameter_tuning_window-1):training_T+(t-1),:], dims=1)) + ρ*[unweighted_cvar(parameter_costs[training_T+(t-1)-(parameter_tuning_window-1):training_T+(t-1),i]) for i in eachindex(parameters)]
     end
 
     realised_costs = [parameter_costs_in_testing_stages[t,argmin(average_parameter_costs_in_previous_stages[t])] for t in 1:testing_T] 
-    μ = mean(realised_costs)
+    μ = mean(realised_costs) + ρ*unweighted_cvar(realised_costs)
     s = sem(realised_costs)
 
     wealth = 1
@@ -172,7 +170,7 @@ function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_p
             average_parameter_costs_in_previous_stages[end], #vec(sum(parameter_costs[end-(parameter_tuning_window-1):end,:], dims=1))/(parameter_tuning_window),
             ribbon = sem.([parameter_costs[end-(parameter_tuning_window-1):end,parameter_index] for parameter_index in eachindex(parameters)]),
             xlabel = "\$λ\$", 
-            ylabel = "Expected cost",
+            ylabel = "Risk-adjusted expected cost",
             legend = nothing,
             legendfonthalign = :center,
             color = palette(:tab10)[1],
@@ -197,18 +195,16 @@ d(i,j,ξ_i,ξ_j) = 0
 include("weights.jl")
 SAA_costs, _ = train_and_test_out_of_sample(length(extracted_data), windowing_weights)
 
-#=
 windowing_costs, _ = train_and_test_out_of_sample(windowing_parameters, windowing_weights)
-μ = mean(windowing_costs) - mean(SAA_costs)
+μ = mean(windowing_costs) + ρ*unweighted_cvar(windowing_costs) - mean(SAA_costs) - ρ*unweighted_cvar(SAA_costs)
 s = sem(windowing_costs - SAA_costs)
 display("Windowing - SAA: $μ ± $s")
 
 SES_costs, _ = train_and_test_out_of_sample(SES_parameters, SES_weights) # ceil(Int,0.7*training_testing_split)-1
 
-μ = mean(SES_costs) - mean(SAA_costs)
+μ = mean(SES_costs) + ρ*unweighted_cvar(SES_costs) - mean(SAA_costs) - ρ*unweighted_cvar(SAA_costs)
 s = sem(SES_costs - SAA_costs)
 display("SES - SAA: $μ ± $s")
-=#
 
 #=
 d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 1)
@@ -225,7 +221,7 @@ d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 1) #ifelse(i == j, 0, norm(ξ_i - ξ_j, 1) 
 include("weights.jl")
 WPF_costs, WPF_parameter = train_and_test_out_of_sample(WPF_parameters, WPF_weights; save_cost_plot_as = "figures/stock-returns-WPF_{1+s}-parameter-costs.pdf")
 
-μ = mean(WPF_costs) - mean(SAA_costs)
+μ = mean(WPF_costs) + ρ*unweighted_cvar(WPF_costs) - mean(SAA_costs) - ρ*unweighted_cvar(SAA_costs)
 s = sem(WPF_costs - SAA_costs)
 display("WPF - SAA: $μ ± $s")
 
@@ -304,7 +300,6 @@ plt_probabilities = plot(A[weights .>= 1e-3],
 figure = plot(plt_extracted_data, plt_probabilities, layout=@layout([a; b]))
 display(figure)
 savefig(figure, "figures/stock-returns-WPF_{1+s}-assigned-probability-to-historical-observations.pdf")
-
 
 #=
 d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 2)
