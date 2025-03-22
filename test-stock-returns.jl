@@ -9,7 +9,7 @@ portfolio_optimizer = optimizer_with_attributes(COPT.Optimizer, "Logging" => 0, 
 #env = Gurobi.Env()  
 #portfolio_optimizer = optimizer_with_attributes(() -> Gurobi.Optimizer(env), "OutputFlag" => 0)
 
-ρ = 0.9 # Risk aversion parameter.
+ρ = 0.1 # 1 - risk aversion parameter.
 α = 0.05 # CVaR (dis)-confidence level (in (0, 1]). 1 = Expectation.
 
 function solve_risk_averse_portfolio(sample_returns, sample_weights)
@@ -18,7 +18,7 @@ function solve_risk_averse_portfolio(sample_returns, sample_weights)
 
     Inputs:
     - 
-    - ρ: Risk aversion parameter (non-negative scalar).
+    - (1-ρ): Risk aversion parameter (non-negative scalar).
     - α: CVaR confidence level (in (0, 1]).
     Outputs:
     - x: Optimal portfolio weights (vector of size m).
@@ -42,7 +42,7 @@ function solve_risk_averse_portfolio(sample_returns, sample_weights)
 
     # Objective function
     @objective(model, Min,
-        - (1-ρ)*sum(sample_weights[i]*dot(x, sample_returns[i]) for i in 1:N) + ρ * τ + ρ * sum(sample_weights[i]*(1/α)*z[i] for i in 1:N)
+        - ρ*sum(sample_weights[i]*dot(x, sample_returns[i]) for i in 1:N) + (1-ρ) * τ + (1-ρ) * sum(sample_weights[i]*(1/α)*z[i] for i in 1:N)
     )
 
     
@@ -98,21 +98,21 @@ training_T = length(training_data)
 testing_data = extracted_data[training_testing_split+1:end]
 testing_T = length(testing_data)
 
-parameter_tuning_window = 1*12
+parameter_tuning_window = 3*12
 
-windowing_parameters = round.(Int, LinRange(1,training_testing_split-parameter_tuning_window,51))
-SES_parameters = LinRange(0.001,0.9,51)
-WPF_parameters = LinRange(0,750,51)
+windowing_parameters = round.(Int, LinRange(1,length(extracted_data),11))
+SES_parameters = LinRange(0.0001,1.0,11)
+WPF_parameters = LinRange(0,500,11)
 
 using ProgressBars, IterTools
 using Statistics, StatsBase
 using Plots, Measures
-function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_plot_as = nothing)
+function train_and_test_out_of_sample(parameters, weights; save_cost_plot_as = nothing)
 
     parameter_costs_in_training_stages = zeros((training_T,length(parameters)))
     Threads.@threads for (t,i) in ProgressBar(collect(IterTools.product(training_T:-1:1, eachindex(parameters))))  
         local samples = [warm_up_data; training_data[1:t-1]]
-        local sample_weights = solve_for_weights(samples, parameters[i])
+        local sample_weights = weights(samples, parameters[i])
         local x = solve_risk_averse_portfolio(samples, sample_weights)
         parameter_costs_in_training_stages[t,i] = -portfolio_return(x, training_data[t])
     end
@@ -120,7 +120,7 @@ function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_p
     parameter_costs_in_testing_stages = zeros((testing_T,length(parameters)))
     Threads.@threads for (t,i) in ProgressBar(collect(IterTools.product(testing_T:-1:1, eachindex(parameters))))  
         local samples = [warm_up_data; training_data; testing_data[1:t-1]]
-        local sample_weights = solve_for_weights(samples, parameters[i])
+        local sample_weights = weights(samples, parameters[i])
         local x = solve_risk_averse_portfolio(samples, sample_weights)
         parameter_costs_in_testing_stages[t,i] = -portfolio_return(x, testing_data[t])
     end
@@ -129,11 +129,11 @@ function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_p
 
     average_parameter_costs_in_previous_stages = [zeros(length(parameters)) for _ in 1:testing_T]
     for t in 1:testing_T
-        average_parameter_costs_in_previous_stages[t] = (1-ρ)*vec(mean(parameter_costs[training_T+(t-1)-(parameter_tuning_window-1):training_T+(t-1),:], dims=1)) + ρ*[unweighted_cvar(parameter_costs[training_T+(t-1)-(parameter_tuning_window-1):training_T+(t-1),i]) for i in eachindex(parameters)]
+        average_parameter_costs_in_previous_stages[t] = ρ*vec(mean(parameter_costs[training_T+(t-1)-(parameter_tuning_window-1):training_T+(t-1),:], dims=1)) + (1-ρ)*[unweighted_cvar(parameter_costs[training_T+(t-1)-(parameter_tuning_window-1):training_T+(t-1),i]) for i in eachindex(parameters)]
     end
 
     realised_costs = [parameter_costs_in_testing_stages[t,argmin(average_parameter_costs_in_previous_stages[t])] for t in 1:testing_T] 
-    μ = (1-ρ)*mean(realised_costs) + ρ*unweighted_cvar(realised_costs)
+    μ = ρ*mean(realised_costs) + (1-ρ)*unweighted_cvar(realised_costs)
     s = sem(realised_costs)
 
     wealth = 1
@@ -192,41 +192,45 @@ end
 
 d(i,j,ξ_i,ξ_j) = 0
 include("weights.jl")
-SAA_costs, _ = train_and_test_out_of_sample(length(extracted_data), windowing_weights)
+SAA_realised_costs, _ = train_and_test_out_of_sample(length(extracted_data), windowing_weights)
+SAA_risk_adjusted_expected_cost = ρ*mean(SAA_realised_costs) + (1-ρ)*unweighted_cvar(SAA_realised_costs)
+
+digits=6
+function extract_results(parameters, weights; save_cost_plot_as = nothing)
+    if save_cost_plot_as === nothing
+        realised_costs, optimal_parameter = train_and_test_out_of_sample(parameters, weights)
+    else
+        realised_costs, optimal_parameter = train_and_test_out_of_sample(parameters, weights; save_cost_plot_as = save_cost_plot_as)
+    end
+    risk_adjusted_expected_cost = round(ρ*mean(realised_costs) + (1-ρ)*unweighted_cvar(realised_costs), digits=digits-1)
+    difference = round(risk_adjusted_expected_cost - SAA_risk_adjusted_expected_cost, digits=digits)
+    difference_pairwise_se = round(sem(realised_costs - SAA_realised_costs), digits=digits)
+    display("difference to SAA: $difference ± $difference_pairwise_se")
+    
+    return risk_adjusted_expected_cost, difference, difference_pairwise_se, optimal_parameter
+end
 
 #=
-windowing_costs, _ = train_and_test_out_of_sample(windowing_parameters, windowing_weights)
-μ = mean(windowing_costs) + ρ*unweighted_cvar(windowing_costs) - mean(SAA_costs) - ρ*unweighted_cvar(SAA_costs)
-s = sem(windowing_costs - SAA_costs)
-display("Windowing - SAA: $μ ± $s")
+windowing_risk_adjusted_expected_cost, windowing_difference, windowing_difference_pairwise_se, _ = 
+    extract_results(windowing_parameters, windowing_weights)
 
-SES_costs, _ = train_and_test_out_of_sample(SES_parameters, SES_weights) # ceil(Int,0.7*training_testing_split)-1
+SES_risk_adjusted_expected_cost, SES_difference, SES_difference_pairwise_se, _ = 
+    extract_results(SES_parameters, SES_weights)
 
-μ = mean(SES_costs) + ρ*unweighted_cvar(SES_costs) - mean(SAA_costs) - ρ*unweighted_cvar(SAA_costs)
-s = sem(SES_costs - SAA_costs)
-display("SES - SAA: $μ ± $s")
-=#
 
-#=
 d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 1)
 include("weights.jl")
-WPF_costs, WPF_parameter = train_and_test_out_of_sample(WPF_parameters, WPF_weights)
-
-μ = mean(WPF_costs) + ρ*unweighted_cvar(WPF_costs) - mean(SAA_costs) - ρ*unweighted_cvar(SAA_costs)
-s = sem(WPF_costs - SAA_costs)
-display("WPF - SAA: $μ ± $s")
+WPF1_risk_adjusted_expected_cost, WPF1_difference, WPF1_difference_pairwise_se, _ = 
+    extract_results(WPF_parameters, WPF_weights)
 =#
 
 
-d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 1) #ifelse(i == j, 0, norm(ξ_i - ξ_j, 1) + 0.001) # 0.001
+d(i,j,ξ_i,ξ_j) = ifelse(i == j, 0, 1.0*norm(ξ_i - ξ_j, 1)+0.0001) # 0.0001
 include("weights.jl")
-WPF_costs, WPF_parameter = train_and_test_out_of_sample(WPF_parameters, WPF_weights; save_cost_plot_as = "figures/stock-returns-WPF_{1+s}-parameter-costs.pdf")
+WPF1s_risk_adjusted_expected_cost, WPF1s_difference, WPF1s_difference_pairwise_se, WPF1s_parameter = 
+    extract_results(WPF_parameters, WPF_weights; save_cost_plot_as = "figures/stock-returns-WPF1s-parameter-costs.pdf")
 
-μ = (1-ρ)*mean(WPF_costs) + ρ*unweighted_cvar(WPF_costs) - (1-ρ)*mean(SAA_costs) - ρ*unweighted_cvar(SAA_costs)
-s = sem(WPF_costs - SAA_costs)
-display("WPF - SAA: $μ ± $s")
-
-weights = WPF_weights([[extracted_data[i], extracted_data[i+1]] for i in 1:length(extracted_data)-1], WPF_parameter)
+WPF1s_sample_weights = WPF_weights(extracted_data, WPF1s_parameter)
 
 default() # Reset plot defaults.
 
@@ -256,31 +260,33 @@ default(framestyle = :box,
 colors = [palette(:tab10)[1] palette(:tab10)[2] palette(:tab10)[3] palette(:tab10)[4] palette(:tab10)[5] palette(:tab10)[6] palette(:tab10)[7] palette(:tab10)[8] palette(:tab10)[9] palette(:tab10)[10] palette(:tab10)[1] palette(:tab10)[2] palette(:tab10)[3] palette(:tab10)[4]]
 linestyles = [:solid :solid :solid :solid :solid :solid :solid :solid :solid :solid :dash :dash :dash :dash]
 
-plt_extracted_data = plot(1:10*12+1, 
-                        wealth, 
+plt_extracted_data = plot(1:10*12, 
+                        100*stack(extracted_data)'[:,[1,2,11]], 
                         xformatter = :none,
                         #xlims = (1-6,10*12+6),
-                        ylims = (0,11.5),
-                        ylabel = "Net wealth",
+                        xlims = (1-4,10*12+4),
+                        #ylims = (0,11.5),
+                        ylabel = "Return (%)",
                         labels = nothing,
                         legend = nothing,
+                        linetype = :stepmid,
                         #legendfonthalign = :center,
-                        color = colors,
-                        linestyle = linestyles,
+                        color = permutedims(colors[[1,2,11]]),
+                        linestyle = permutedims(linestyles[[1,2,11]]),
                         linewidth = 1,
                         topmargin = 0pt, 
                         rightmargin = 0pt,
                         bottommargin = 0pt, 
                         leftmargin = 5pt) 
 
-A = 2:10*12
-WPF_parameter = round(Int,WPF_parameter)
+sample_indices = 1:10*12
+WPF1s_parameter = round(Int,WPF1s_parameter)
 println("\$λ\$ = $WPF_parameter")
 
-plt_probabilities = plot(A[weights .>= 1e-3], 
-                weights[weights .>= 1e-3],
+plt_probabilities = plot(sample_indices[WPF1s_sample_weights .>= 1e-3], 
+                WPF1s_sample_weights[WPF1s_sample_weights .>= 1e-3],
                 xlabel = "Time (year)",
-                xticks = (1:12:10*12+1, ["2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024"]),
+                xticks = (1:12:10*12, ["2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024"]),
                 xlims = (1-4,10*12+4),
                 ylabel = "Probability", # at \$λ=$WPF_parameter\$",
                 seriestype=:sticks,
@@ -296,27 +302,27 @@ plt_probabilities = plot(A[weights .>= 1e-3],
                 topmargin = 0pt, 
                 rightmargin = 0pt,
                 bottommargin = 3.5pt, 
-                leftmargin = 0pt)
+                leftmargin = 2.5pt)
 
 figure = plot(plt_extracted_data, plt_probabilities, layout=@layout([a; b]))
 display(figure)
-savefig(figure, "figures/stock-returns-WPF_{1+s}-assigned-probability-to-historical-observations.pdf")
+savefig(figure, "figures/stock-returns-WPF1s-assigned-probability-to-historical-observations.pdf")
+
+
 
 #=
 d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 2)
 include("weights.jl")
-WPF_costs, WPF_parameter = train_and_test_out_of_sample(WPF_parameters, WPF_weights)
-
-μ = mean(WPF_costs) + ρ*unweighted_cvar(WPF_costs) - mean(SAA_costs) - ρ*unweighted_cvar(SAA_costs)
-s = sem(WPF_costs - SAA_costs)
-display("WPF - SAA: $μ ± $s")
-
+WPF2_risk_adjusted_expected_cost, WPF2_difference, WPF2_difference_pairwise_se, _ = 
+    extract_results(WPF_parameters, WPF_weights)
 
 d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, Inf)
 include("weights.jl")
-WPF_costs, WPF_parameter = train_and_test_out_of_sample(WPF_parameters, WPF_weights)
+WPFInfty_risk_adjusted_expected_cost, WPFInfty_difference, WPFInfty_difference_pairwise_se, _ = 
+    extract_results(WPF_parameters, WPF_weights)
 
-μ = mean(WPF_costs) + ρ*unweighted_cvar(WPF_costs) - mean(SAA_costs) - ρ*unweighted_cvar(SAA_costs)
-s = sem(WPF_costs - SAA_costs)
-display("WPF - SAA: $μ ± $s")
+SAA_risk_adjusted_expected_cost = round(SAA_risk_adjusted_expected_cost, digits=digits)
+println("& \$$SAA_risk_adjusted_expected_cost\$ & \$$windowing_risk_adjusted_expected_cost\$ & \$$SES_risk_adjusted_expected_cost\$ & \$$WPF1_risk_adjusted_expected_cost\$ & \$$WPF1s_risk_adjusted_expected_cost\$ & \$$WPF2_risk_adjusted_expected_cost\$ & \$$WPFInfty_risk_adjusted_expected_cost\$")
+println("& \$\$ & \\makecell{\$\\kern8.5167pt $windowing_difference\$\\\\\\small\$\\pm$windowing_difference_pairwise_se\$} & \\makecell{\$\\kern8.5167pt$SES_difference\$\\\\\\small{\$\\pm$SES_difference_pairwise_se\$}} & \\makecell{\$\\kern8.5167pt$WPF1_difference\$\\\\\\small{\$\\pm$WPF1_difference_pairwise_se\$}} & \\makecell{\$$WPF1s_difference\$\\\\\\small{\$\\pm$WPF1s_difference_pairwise_se\$}} & \\makecell{\$$WPF2_difference\$\\\\\\small{\$\\pm$WPF2_difference_pairwise_se\$}} & \\makecell{\$$WPFInfty_difference\$\\\\\\small{\$\\pm$WPFInfty_difference_pairwise_se\$}}")
+
 =#

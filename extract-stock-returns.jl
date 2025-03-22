@@ -54,7 +54,7 @@ if do_plots == true
             xticks = (1:12:10*12+1, ["2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024"]),
             xlims = (1-4,10*12+4),
             ylims = (0,11.5),
-            ylabel = "Net wealth",
+            ylabel = "Wealth",
             labels = labels,
             legend = :outerright,
             #legendfonthalign = :center,

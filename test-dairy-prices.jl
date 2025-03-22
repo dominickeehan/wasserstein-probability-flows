@@ -45,9 +45,9 @@ testing_T = length(testing_data)
 
 parameter_tuning_window = 3*12
 
-windowing_parameters = round.(Int, LinRange(10,training_testing_split-parameter_tuning_window,51))
-SES_parameters = LinRange(0.001,0.9,51)
-WPF_parameters = LinRange(0,150,21) #LinRange(0,150,51) #LinRange(75,1000,6) #LinRange(100,3000,60)
+windowing_parameters = round.(Int, LinRange(10,length(extracted_data),11))
+SES_parameters = LinRange(0.0001,0.9,11)
+WPF_parameters = LinRange(0,150,11)
 
 using ProgressBars, IterTools
 using Statistics, StatsBase
@@ -84,7 +84,7 @@ function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_p
     realised_costs = [parameter_costs_in_testing_stages[t,argmin(total_parameter_costs_in_previous_stages[t])] for t in 1:testing_T] 
     μ = mean(realised_costs)
     s = sem(realised_costs)
-    display("Realised out-of-sample cost: $μ ± $s")
+    display("Cost: $μ ± $s")
 
     default() # Reset plot defaults.
 
@@ -136,40 +136,49 @@ function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_p
 
 end
 
+
 d(i,j,ξ_i,ξ_j) = 0
 include("weights.jl")
-SAA_costs, _ = train_and_test_out_of_sample(length(extracted_data), windowing_weights)
-windowing_costs, _ = train_and_test_out_of_sample(windowing_parameters, windowing_weights)
-μ = mean(windowing_costs - SAA_costs)
-s = sem(windowing_costs - SAA_costs)
-display("Windowing - SAA: $μ ± $s")
+SAA_realised_costs, _ = train_and_test_out_of_sample(length(extracted_data), windowing_weights)
+SAA_risk_adjusted_expected_cost = mean(SAA_realised_costs)
 
-SES_costs, _ = train_and_test_out_of_sample(SES_parameters, SES_weights) # ceil(Int,0.7*training_testing_split)-1
+digits=6
+function extract_results(parameters, weights; save_cost_plot_as = nothing)
+    if save_cost_plot_as === nothing
+        realised_costs, optimal_parameter = train_and_test_out_of_sample(parameters, weights)
+    else
+        realised_costs, optimal_parameter = train_and_test_out_of_sample(parameters, weights; save_cost_plot_as = save_cost_plot_as)
+    end
+    risk_adjusted_expected_cost = round(mean(realised_costs), digits=digits)
+    difference = round(risk_adjusted_expected_cost - SAA_risk_adjusted_expected_cost, digits=digits)
+    difference_pairwise_se = round(sem(realised_costs - SAA_realised_costs), digits=digits)
+    display("difference to SAA: $difference ± $difference_pairwise_se")
+    
+    return risk_adjusted_expected_cost, difference, difference_pairwise_se, optimal_parameter
+end
 
-μ = mean(SES_costs - SAA_costs)
-s = sem(SES_costs - SAA_costs)
-display("SES - SAA: $μ ± $s")
+
+windowing_risk_adjusted_expected_cost, windowing_difference, windowing_difference_pairwise_se, _ = 
+    extract_results(windowing_parameters, windowing_weights)
+
+SES_risk_adjusted_expected_cost, SES_difference, SES_difference_pairwise_se, _ = 
+    extract_results(SES_parameters, SES_weights)
 
 
-#=
+    
 d(i,j,ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)
 include("weights.jl")
-WPF_costs, WPF_parameter = train_and_test_out_of_sample(WPF_parameters, WPF_weights)
+WPF1_risk_adjusted_expected_cost, WPF1_difference, WPF1_difference_pairwise_se, _ = 
+    extract_results(WPF_parameters, WPF_weights)
 
-μ = mean(WPF_costs - SAA_costs)
-s = sem(WPF_costs - SAA_costs)
-display("WPF - SAA: $μ ± $s")
-=#
 
-d(i,j,ξ_i,ξ_j) = ifelse(i == j, 0, norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1))# + 0.001) # 0.001 ?
+
+d(i,j,ξ_i,ξ_j) = ifelse(i == j, 0, 1.05*(norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)) + 0.01)
 include("weights.jl")
-WPF_costs, WPF_parameter = train_and_test_out_of_sample(WPF_parameters, WPF_weights; save_cost_plot_as = "figures/dairy-prices-WPF_{1+s}-parameter-costs.pdf")
+WPF1s_risk_adjusted_expected_cost, WPF1s_difference, WPF1s_difference_pairwise_se, WPF1s_parameter = 
+    extract_results(WPF_parameters, WPF_weights; save_cost_plot_as = "figures/dairy-prices-WPF1s-parameter-costs.pdf")
 
-μ = mean(WPF_costs - SAA_costs)
-s = sem(WPF_costs - SAA_costs)
-display("WPF - SAA: $μ ± $s")
-
-weights = WPF_weights([[extracted_data[i], extracted_data[i+1]] for i in 1:length(extracted_data)-1], WPF_parameter)
+WPF1s_sample_weights = WPF_weights([[extracted_data[i], extracted_data[i+1]] for i in 1:length(extracted_data)-1], WPF1s_parameter)
 
 default() # Reset plot defaults.
 
@@ -212,12 +221,12 @@ plt_extracted_data = plot(1:14*1*12,
         bottommargin = 0pt, 
         leftmargin = 5pt)
 
-A = 2:14*1*12
-WPF_parameter = round(Int,WPF_parameter)
+sample_indices = 2:14*1*12
+WPF1s_parameter = round(Int,WPF1s_parameter)
 println("\$λ\$ = $WPF_parameter")
 
-plt_probabilities = plot(A[weights .>= 1e-3], 
-                weights[weights .>= 1e-3],
+plt_probabilities = plot(sample_indices[WPF1s_sample_weights .>= 1e-3], 
+                WPF1s_sample_weights[WPF1s_sample_weights .>= 1e-3],
                 xlabel = "Time (year)",
                 xticks = (1*6+1:1*12:14*1*12, ["2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024"]),
                 xlims = (-5,14*1*12+6),
@@ -239,22 +248,19 @@ plt_probabilities = plot(A[weights .>= 1e-3],
 
 figure = plot(plt_extracted_data, plt_probabilities, layout=@layout([a; b]))
 display(figure)
-savefig(figure, "figures/dairy-prices-WPF_{1+s}-assigned-probability-to-historical-observations.pdf")
+savefig(figure, "figures/dairy-prices-WPF1s-assigned-probability-to-historical-observations.pdf")
 
-#=
+
 d(i,j,ξ_i,ξ_j) = sqrt(norm(ξ_i[1] - ξ_j[1], 2)^2 + norm(ξ_i[2] - ξ_j[2], 2)^2)
 include("weights.jl")
-WPF_costs, WPF_parameter = train_and_test_out_of_sample(WPF_parameters, WPF_weights)
-
-μ = mean(WPF_costs - SAA_costs)
-s = sem(WPF_costs - SAA_costs)
-display("WPF - SAA: $μ ± $s")
+WPF2_risk_adjusted_expected_cost, WPF2_difference, WPF2_difference_pairwise_se, _ = 
+    extract_results(WPF_parameters, WPF_weights)
 
 d(i,j,ξ_i,ξ_j) = max(norm(ξ_i[1] - ξ_j[1], Inf), norm(ξ_i[2] - ξ_j[2], Inf))
 include("weights.jl")
-WPF_costs, WPF_parameter = train_and_test_out_of_sample(WPF_parameters, WPF_weights)
+WPFInfty_risk_adjusted_expected_cost, WPFInfty_difference, WPFInfty_difference_pairwise_se, _ = 
+    extract_results(WPF_parameters, WPF_weights)
 
-μ = mean(WPF_costs - SAA_costs)
-s = sem(WPF_costs - SAA_costs)
-display("WPF - SAA: $μ ± $s")
-=#
+SAA_risk_adjusted_expected_cost = round(SAA_risk_adjusted_expected_cost, digits=digits)
+println("& \$$SAA_risk_adjusted_expected_cost\$ & \$$windowing_risk_adjusted_expected_cost\$ & \$$SES_risk_adjusted_expected_cost\$ & \$$WPF1_risk_adjusted_expected_cost\$ & \$$WPF1s_risk_adjusted_expected_cost\$ & \$$WPF2_risk_adjusted_expected_cost\$ & \$$WPFInfty_risk_adjusted_expected_cost\$")
+println("& \$\$ & \\makecell{\$\\kern8.5167pt $windowing_difference\$\\\\\\small\$\\pm$windowing_difference_pairwise_se\$} & \\makecell{\$\\kern8.5167pt$SES_difference\$\\\\\\small{\$\\pm$SES_difference_pairwise_se\$}} & \\makecell{\$\\kern8.5167pt$WPF1_difference\$\\\\\\small{\$\\pm$WPF1_difference_pairwise_se\$}} & \\makecell{\$$WPF1s_difference\$\\\\\\small{\$\\pm$WPF1s_difference_pairwise_se\$}} & \\makecell{\$$WPF2_difference\$\\\\\\small{\$\\pm$WPF2_difference_pairwise_se\$}} & \\makecell{\$$WPFInfty_difference\$\\\\\\small{\$\\pm$WPFInfty_difference_pairwise_se\$}}")
