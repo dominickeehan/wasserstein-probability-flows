@@ -101,7 +101,7 @@ testing_T = length(testing_data)
 parameter_tuning_window = 3*12
 
 windowing_parameters = round.(Int, LinRange(1,length(extracted_data),11))
-SES_parameters = LinRange(0.0001,1.0,11)
+SES_parameters = LinRange(0.0001,0.2,11)
 WPF_parameters = LinRange(0,500,11)
 
 using ProgressBars, IterTools

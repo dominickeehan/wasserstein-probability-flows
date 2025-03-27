@@ -35,8 +35,10 @@ end
 
 loss_function(x,ξ) = (norm(x-ξ, 2))^2
 
+#extracted_data = extracted_data[1:round(Int,0.8*length(extracted_data))]
+
 training_testing_split = ceil(Int,0.7*length(extracted_data))
-warm_up_period = ceil(Int,0.5*training_testing_split)-1 # Needs to be small enough to allow parameter_tuning_window after.
+warm_up_period = ceil(Int,0.6*training_testing_split)-1 # Needs to be small enough to allow parameter_tuning_window after.
 warm_up_data = extracted_data[1:warm_up_period]
 training_data = extracted_data[warm_up_period+1:training_testing_split]
 training_T = length(training_data)
@@ -46,8 +48,8 @@ testing_T = length(testing_data)
 parameter_tuning_window = 3*12
 
 windowing_parameters = round.(Int, LinRange(10,length(extracted_data),11))
-SES_parameters = LinRange(0.0001,0.9,11)
-WPF_parameters = LinRange(0,150,11)
+SES_parameters = LinRange(0.0001,0.1,51) # LinRange(0.0001,0.1,11)
+WPF_parameters = LinRange(0,150,51) # LinRange(0,150,11)
 
 using ProgressBars, IterTools
 using Statistics, StatsBase
@@ -82,6 +84,7 @@ function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_p
     end
 
     realised_costs = [parameter_costs_in_testing_stages[t,argmin(total_parameter_costs_in_previous_stages[t])] for t in 1:testing_T] 
+    #realised_costs = [parameter_costs_in_testing_stages[t,argmin(total_parameter_costs_in_previous_stages[1])] for t in 1:testing_T] 
     μ = mean(realised_costs)
     s = sem(realised_costs)
     display("Cost: $μ ± $s")
@@ -165,14 +168,14 @@ SES_risk_adjusted_expected_cost, SES_difference, SES_difference_pairwise_se, _ =
     extract_results(SES_parameters, SES_weights)
 
 
-    
+
 d(i,j,ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)
 include("weights.jl")
 WPF1_risk_adjusted_expected_cost, WPF1_difference, WPF1_difference_pairwise_se, _ = 
     extract_results(WPF_parameters, WPF_weights)
 
 
-
+#=
 d(i,j,ξ_i,ξ_j) = ifelse(i == j, 0, 1.05*(norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)) + 0.01)
 include("weights.jl")
 WPF1s_risk_adjusted_expected_cost, WPF1s_difference, WPF1s_difference_pairwise_se, WPF1s_parameter = 
@@ -264,3 +267,6 @@ WPFInfty_risk_adjusted_expected_cost, WPFInfty_difference, WPFInfty_difference_p
 SAA_risk_adjusted_expected_cost = round(SAA_risk_adjusted_expected_cost, digits=digits)
 println("& \$$SAA_risk_adjusted_expected_cost\$ & \$$windowing_risk_adjusted_expected_cost\$ & \$$SES_risk_adjusted_expected_cost\$ & \$$WPF1_risk_adjusted_expected_cost\$ & \$$WPF1s_risk_adjusted_expected_cost\$ & \$$WPF2_risk_adjusted_expected_cost\$ & \$$WPFInfty_risk_adjusted_expected_cost\$")
 println("& \$\$ & \\makecell{\$\\kern8.5167pt $windowing_difference\$\\\\\\small\$\\pm$windowing_difference_pairwise_se\$} & \\makecell{\$\\kern8.5167pt$SES_difference\$\\\\\\small{\$\\pm$SES_difference_pairwise_se\$}} & \\makecell{\$\\kern8.5167pt$WPF1_difference\$\\\\\\small{\$\\pm$WPF1_difference_pairwise_se\$}} & \\makecell{\$$WPF1s_difference\$\\\\\\small{\$\\pm$WPF1s_difference_pairwise_se\$}} & \\makecell{\$$WPF2_difference\$\\\\\\small{\$\\pm$WPF2_difference_pairwise_se\$}} & \\makecell{\$$WPFInfty_difference\$\\\\\\small{\$\\pm$WPFInfty_difference_pairwise_se\$}}")
+
+
+=#
