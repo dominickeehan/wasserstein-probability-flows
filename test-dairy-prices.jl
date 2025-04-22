@@ -47,9 +47,9 @@ testing_T = length(testing_data)
 
 parameter_tuning_window = 3*12
 
-windowing_parameters = round.(Int, LinRange(10,length(extracted_data),11))
-SES_parameters = LinRange(0.0001,0.1,51) # LinRange(0.0001,0.1,11)
-WPF_parameters = LinRange(0,150,51) # LinRange(0,150,11)
+windowing_parameters = round.(Int, LinRange(10,length(extracted_data),50))
+SES_parameters = LinRange(0.0001,0.2,50) # LinRange(0.0001,0.1,11)
+WPF_parameters = LinRange(10,150,50) # LinRange(0,150,11)
 
 using ProgressBars, IterTools
 using Statistics, StatsBase
@@ -166,8 +166,6 @@ windowing_risk_adjusted_expected_cost, windowing_difference, windowing_differenc
 
 SES_risk_adjusted_expected_cost, SES_difference, SES_difference_pairwise_se, _ = 
     extract_results(SES_parameters, SES_weights)
-
-
 
 d(i,j,ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)
 include("weights.jl")

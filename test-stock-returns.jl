@@ -98,11 +98,11 @@ training_T = length(training_data)
 testing_data = extracted_data[training_testing_split+1:end]
 testing_T = length(testing_data)
 
-parameter_tuning_window = 3*12
+parameter_tuning_window = 2*12
 
-windowing_parameters = round.(Int, LinRange(1,length(extracted_data),11))
-SES_parameters = LinRange(0.0001,0.2,11)
-WPF_parameters = LinRange(0,500,11)
+windowing_parameters = round.(Int, LinRange(10,length(extracted_data),10))
+SES_parameters = LinRange(0.0001,0.2,10)
+WPF_parameters = LinRange(50,500,10)
 
 using ProgressBars, IterTools
 using Statistics, StatsBase
@@ -224,8 +224,8 @@ WPF1_risk_adjusted_expected_cost, WPF1_difference, WPF1_difference_pairwise_se, 
     extract_results(WPF_parameters, WPF_weights)
 
 
-
-d(i,j,ξ_i,ξ_j) = ifelse(i == j, 0, 1.0*norm(ξ_i - ξ_j, 1)+0.0001)
+#=
+d(i,j,ξ_i,ξ_j) = ifelse(i == j, 0, 1.0*norm(ξ_i - ξ_j, 1)+0.001)
 include("weights.jl")
 WPF1s_risk_adjusted_expected_cost, WPF1s_difference, WPF1s_difference_pairwise_se, WPF1s_parameter = 
     extract_results(WPF_parameters, WPF_weights; save_cost_plot_as = "figures/stock-returns-WPF1s-parameter-costs.pdf")
@@ -257,11 +257,11 @@ default(framestyle = :box,
         tickfont = secondary_font,
         legendfont = legend_font)
 
-colors = [palette(:tab10)[1] palette(:tab10)[2] palette(:tab10)[3] palette(:tab10)[4] palette(:tab10)[5] palette(:tab10)[6] palette(:tab10)[7] palette(:tab10)[8] palette(:tab10)[9] palette(:tab10)[10] palette(:tab10)[1] palette(:tab10)[2] palette(:tab10)[3] palette(:tab10)[4]]
-linestyles = [:solid :solid :solid :solid :solid :solid :solid :solid :solid :solid :dash :dash :dash :dash]
+colors = [palette(:tab10)[1] palette(:tab10)[2] palette(:tab10)[3] palette(:tab10)[4] palette(:tab10)[5] palette(:tab10)[6] palette(:tab10)[7] palette(:tab10)[8] palette(:tab10)[9] palette(:tab10)[10]]
+linestyles = [:solid :solid :solid :solid :solid :solid :solid :solid :solid :solid]
 
 plt_extracted_data = plot(1:10*12, 
-                        100*stack(extracted_data)'[:,[1,2,11]], 
+                        100*stack(extracted_data)'[:,:], 
                         xformatter = :none,
                         #xlims = (1-6,10*12+6),
                         xlims = (1-4,10*12+4),
@@ -269,10 +269,14 @@ plt_extracted_data = plot(1:10*12,
                         ylabel = "Return (%)",
                         labels = nothing,
                         legend = nothing,
+                        #markershape = :circle,
+                        #markersize = 2,
+                        #markeroutlinecolor = :black,
+                        #markeroutlinewidth = 1pt,
                         linetype = :stepmid,
                         #legendfonthalign = :center,
-                        color = permutedims(colors[[1,2,11]]),
-                        linestyle = permutedims(linestyles[[1,2,11]]),
+                        color = permutedims(colors[:]),
+                        linestyle = permutedims(linestyles[:]),
                         linewidth = 1,
                         topmargin = 0pt, 
                         rightmargin = 0pt,
@@ -281,7 +285,7 @@ plt_extracted_data = plot(1:10*12,
 
 sample_indices = 1:10*12
 WPF1s_parameter = round(Int,WPF1s_parameter)
-println("\$λ\$ = $WPF_parameter")
+println("\$λ\$ = $WPF1s_parameter")
 
 plt_probabilities = plot(sample_indices[WPF1s_sample_weights .>= 1e-3], 
                 WPF1s_sample_weights[WPF1s_sample_weights .>= 1e-3],
@@ -307,9 +311,12 @@ plt_probabilities = plot(sample_indices[WPF1s_sample_weights .>= 1e-3],
 figure = plot(plt_extracted_data, plt_probabilities, layout=@layout([a; b]))
 display(figure)
 savefig(figure, "figures/stock-returns-WPF1s-assigned-probability-to-historical-observations.pdf")
+=#
 
 
 
+
+#=
 
 d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 2)
 include("weights.jl")
@@ -325,3 +332,4 @@ SAA_risk_adjusted_expected_cost = round(SAA_risk_adjusted_expected_cost, digits=
 println("& \$$SAA_risk_adjusted_expected_cost\$ & \$$windowing_risk_adjusted_expected_cost\$ & \$$SES_risk_adjusted_expected_cost\$ & \$$WPF1_risk_adjusted_expected_cost\$ & \$$WPF1s_risk_adjusted_expected_cost\$ & \$$WPF2_risk_adjusted_expected_cost\$ & \$$WPFInfty_risk_adjusted_expected_cost\$")
 println("& \$\$ & \\makecell{\$\\kern8.5167pt $windowing_difference\$\\\\\\small\$\\pm$windowing_difference_pairwise_se\$} & \\makecell{\$\\kern8.5167pt$SES_difference\$\\\\\\small{\$\\pm$SES_difference_pairwise_se\$}} & \\makecell{\$\\kern8.5167pt$WPF1_difference\$\\\\\\small{\$\\pm$WPF1_difference_pairwise_se\$}} & \\makecell{\$$WPF1s_difference\$\\\\\\small{\$\\pm$WPF1s_difference_pairwise_se\$}} & \\makecell{\$$WPF2_difference\$\\\\\\small{\$\\pm$WPF2_difference_pairwise_se\$}} & \\makecell{\$$WPFInfty_difference\$\\\\\\small{\$\\pm$WPFInfty_difference_pairwise_se\$}}")
 
+=#
