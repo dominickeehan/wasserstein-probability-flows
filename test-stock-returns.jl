@@ -90,6 +90,8 @@ end
 
 portfolio_return(portfolio, realised_return) = dot(portfolio, realised_return)
 
+#extracted_data = extracted_data[1:96]
+
 training_testing_split = ceil(Int,0.7*length(extracted_data))
 warm_up_period = ceil(Int,0.5*training_testing_split)-1 # Needs to be small enough to allow parameter_tuning_window after.
 warm_up_data = extracted_data[1:warm_up_period]
@@ -100,9 +102,9 @@ testing_T = length(testing_data)
 
 parameter_tuning_window = 2*12
 
-windowing_parameters = round.(Int, LinRange(10,length(extracted_data),10))
-SES_parameters = LinRange(0.0001,0.2,10)
-WPF_parameters = LinRange(50,500,10)
+windowing_parameters = round.(Int, LinRange(1,length(extracted_data),10))
+SES_parameters = LinRange(0.0001,1.0,10)
+WPF_parameters = LinRange(5,500,10) #LinRange(50,500,20)
 
 using ProgressBars, IterTools
 using Statistics, StatsBase
@@ -217,14 +219,14 @@ windowing_risk_adjusted_expected_cost, windowing_difference, windowing_differenc
 SES_risk_adjusted_expected_cost, SES_difference, SES_difference_pairwise_se, _ = 
     extract_results(SES_parameters, SES_weights)
 
-
+#=
 d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 1)
 include("weights.jl")
 WPF1_risk_adjusted_expected_cost, WPF1_difference, WPF1_difference_pairwise_se, _ = 
     extract_results(WPF_parameters, WPF_weights)
+=#
 
 
-#=
 d(i,j,ξ_i,ξ_j) = ifelse(i == j, 0, 1.0*norm(ξ_i - ξ_j, 1)+0.001)
 include("weights.jl")
 WPF1s_risk_adjusted_expected_cost, WPF1s_difference, WPF1s_difference_pairwise_se, WPF1s_parameter = 
@@ -261,7 +263,7 @@ colors = [palette(:tab10)[1] palette(:tab10)[2] palette(:tab10)[3] palette(:tab1
 linestyles = [:solid :solid :solid :solid :solid :solid :solid :solid :solid :solid]
 
 plt_extracted_data = plot(1:10*12, 
-                        100*stack(extracted_data)'[:,:], 
+                        100*stack(extracted_data)', 
                         xformatter = :none,
                         #xlims = (1-6,10*12+6),
                         xlims = (1-4,10*12+4),
@@ -275,13 +277,32 @@ plt_extracted_data = plot(1:10*12,
                         #markeroutlinewidth = 1pt,
                         linetype = :stepmid,
                         #legendfonthalign = :center,
-                        color = permutedims(colors[:]),
-                        linestyle = permutedims(linestyles[:]),
+                        color = colors,
+                        #linestyle = palette(:tab10)[8], #permutedims(linestyles[:]),
+                        #alpha = 0.2,
                         linewidth = 1,
                         topmargin = 0pt, 
                         rightmargin = 0pt,
                         bottommargin = 0pt, 
                         leftmargin = 5pt) 
+
+
+                    #plot!(1:10*12, 
+                    #    vec(mean(100*stack(extracted_data)', dims=2)), 
+                    #    xformatter = :none,
+                        #xlims = (1-6,10*12+6),
+                    #    xlims = (1-4,10*12+4),
+                        #ylims = (0,11.5),
+                        #label = "Average",
+                    #    linetype = :stepmid,
+                    #    color = palette(:tab10)[8],
+                        #linestyle = :dash,
+                    #    alpha = 0.0,
+                    #    linewidth = 1,
+                    #    topmargin = 0pt, 
+                    #    rightmargin = 0pt,
+                    #    bottommargin = 0pt, 
+                    #    leftmargin = 5pt) 
 
 sample_indices = 1:10*12
 WPF1s_parameter = round(Int,WPF1s_parameter)
@@ -311,7 +332,7 @@ plt_probabilities = plot(sample_indices[WPF1s_sample_weights .>= 1e-3],
 figure = plot(plt_extracted_data, plt_probabilities, layout=@layout([a; b]))
 display(figure)
 savefig(figure, "figures/stock-returns-WPF1s-assigned-probability-to-historical-observations.pdf")
-=#
+
 
 
 
