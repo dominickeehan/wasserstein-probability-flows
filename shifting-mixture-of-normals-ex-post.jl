@@ -9,10 +9,10 @@ newsvendor_order(ξ, weights) = quantile(ξ, Weights(weights), Cu/(Co+Cu))
 Random.seed!(42)
 
 weight_shift_distribution = Normal(0,0.2)
-mean_shift_distribution = MvNormal([0, 0], [1000 701; 701 1410])
+mean_shift_distribution = MvNormal([0, 0], [1000 710; 710 1410])
 sd_shift_distribution = MvNormal([0, 0], [100 71; 71 141])
 
-repetitions = 100
+repetitions = 1000
 history_length = 60
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
@@ -26,8 +26,6 @@ for repetition in 1:repetitions
                                                                    Normal(means[1], sds[1]),
                                                                    Normal(means[2], sds[2])], [weight, 1-weight])), 0)
 
-        #display(weight)
-
         means = means + rand(mean_shift_distribution)
         sds = max.(sds + rand(sd_shift_distribution), [0, 0])
         weight = min(max(weight + rand(weight_shift_distribution), 0), 1)        
@@ -35,53 +33,39 @@ for repetition in 1:repetitions
 end
 
 
-using ProgressBars
-function train_and_test(solve_for_weights, weight_parameters)
+using ProgressBars, IterTools
+function parameter_fit(solve_for_weights, weight_parameters)
 
-    costs = zeros(repetitions)
-    weight_parameters_to_test = zeros(repetitions)
+    costs = [zeros(length(weight_parameters)) for _ in 1:repetitions]
 
-    println("training and testing method...")
-
-    Threads.@threads for repetition in ProgressBar(1:repetitions)
-        training_costs = [zeros(length(weight_parameters)) for _ in history_length-30+1:history_length]
-            for weight_parameter_index in eachindex(weight_parameters)
-                    
-                for t in history_length-30+1:history_length
-                demand_samples = demand_sequences[repetition][1:t-1]
-                demand_sample_weights = solve_for_weights(demand_samples, weight_parameters[weight_parameter_index])
-                order = newsvendor_order(demand_samples, demand_sample_weights)
-                training_costs[t-(history_length-30)][weight_parameter_index] = newsvendor_loss(order, demand_sequences[repetition][t])
-                end
-            end
-
-        weight_parameter_index = argmin(mean(training_costs))
+    Threads.@threads for (weight_parameter_index, repetition) in ProgressBar(collect(IterTools.product(eachindex(weight_parameters), 1:repetitions)))
         demand_samples = demand_sequences[repetition][1:history_length]
         demand_sample_weights = solve_for_weights(demand_samples, weight_parameters[weight_parameter_index])
         order = newsvendor_order(demand_samples, demand_sample_weights)
-        costs[repetition] = newsvendor_loss(order, demand_sequences[repetition][history_length+1])
+        costs[repetition][weight_parameter_index] = newsvendor_loss(order, demand_sequences[repetition][history_length+1])
     end
 
-    return mean(costs), sem(costs)
+    weight_parameter_index = argmin(mean(costs))
+    minimal_costs = [costs[repetition][weight_parameter_index] for repetition in 1:repetitions]
+
+    display(mean(costs))
+
+    digits = 4
+
+    return round(mean(minimal_costs), digits=digits), round(sem(minimal_costs), digits=digits), round(weight_parameters[weight_parameter_index], digits=digits)
 end
 
 using LinearAlgebra
-d(i,j,ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1)
+d(i,j,ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) #ifelse(i == j, 0, norm(ξ_i[1] - ξ_j[1], 1)+1)
 include("weights.jl")
 
-display([train_and_test(windowing_weights, history_length)])
+display([parameter_fit(windowing_weights, history_length)])
 
-display([train_and_test(SES_weights, LinRange(0.0001,0.3,10))])
+display([parameter_fit(windowing_weights, 1)])
 
-display([train_and_test(WPF_weights, LinRange(10,150,10))])
+display([parameter_fit(SES_weights, 0.2)]) #LinRange(0.0001,1.0,5))])
 
-
-
-#windowing_parameters = round.(Int, LinRange(10,history_length,7))
-#train_and_test(ambiguity_radii, windowing_weights, windowing_parameters)
-
-#smoothing_parameters = LinRange(0.02,0.2,7)
-#train_and_test(ambiguity_radii, smoothing_weights, smoothing_parameters)
+display([parameter_fit(WPF_weights, LinRange(0.001,0.01,10))]) # [0.001, 0.0025, 0.005, 0.0075, 0.01])])
 
 
 
