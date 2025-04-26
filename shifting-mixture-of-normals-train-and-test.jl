@@ -8,12 +8,12 @@ newsvendor_order(ξ, weights) = quantile(ξ, Weights(weights), Cu/(Co+Cu))
 
 Random.seed!(42)
 
-weight_shift_distribution = Normal(0,0.2)
-mean_shift_distribution = MvNormal([0, 0], [1000 701; 701 1410])
-sd_shift_distribution = MvNormal([0, 0], [100 71; 71 141])
+weight_shift_distribution = Normal(0,0.0)
+mean_shift_distribution = MvNormal([0, 0], [1000 0.1; 0.1 0.1])
+sd_shift_distribution = MvNormal([0, 0], [100 0.1; 0.1 0.1])
 
 repetitions = 100
-history_length = 60
+history_length = 100
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 for repetition in 1:repetitions
@@ -26,13 +26,12 @@ for repetition in 1:repetitions
                                                                    Normal(means[1], sds[1]),
                                                                    Normal(means[2], sds[2])], [weight, 1-weight])), 0)
 
-        #display(weight)
-
         means = means + rand(mean_shift_distribution)
         sds = max.(sds + rand(sd_shift_distribution), [0, 0])
         weight = min(max(weight + rand(weight_shift_distribution), 0), 1)        
     end
 end
+
 
 
 using ProgressBars
@@ -71,9 +70,11 @@ include("weights.jl")
 
 display([train_and_test(windowing_weights, history_length)])
 
-display([train_and_test(SES_weights, LinRange(0.0001,0.3,10))])
+display([train_and_test(windowing_weights, 1)])
 
-display([train_and_test(WPF_weights, LinRange(10,150,10))])
+display([train_and_test(SES_weights, LinRange(0.01,0.3,10))])
+
+#display([train_and_test(WPF_weights, LinRange(0.01,0.1,10))])
 
 
 

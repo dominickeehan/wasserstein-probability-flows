@@ -90,17 +90,17 @@ end
 
 portfolio_return(portfolio, realised_return) = dot(portfolio, realised_return)
 
-#extracted_data = extracted_data[1:96]
+#extracted_data = extracted_data[1:108]
 
 training_testing_split = ceil(Int,0.7*length(extracted_data))
-warm_up_period = ceil(Int,0.5*training_testing_split)-1 # Needs to be small enough to allow parameter_tuning_window after.
+warm_up_period = ceil(Int,0.25*training_testing_split)-1 # Needs to be small enough to allow parameter_tuning_window after.
 warm_up_data = extracted_data[1:warm_up_period]
 training_data = extracted_data[warm_up_period+1:training_testing_split]
 training_T = length(training_data)
 testing_data = extracted_data[training_testing_split+1:end]
 testing_T = length(testing_data)
 
-parameter_tuning_window = 2*12
+parameter_tuning_window = 1*12
 
 windowing_parameters = round.(Int, LinRange(1,length(extracted_data),10))
 SES_parameters = LinRange(0.0001,1.0,10)
@@ -134,7 +134,7 @@ function train_and_test_out_of_sample(parameters, weights; save_cost_plot_as = n
         average_parameter_costs_in_previous_stages[t] = ρ*vec(mean(parameter_costs[training_T+(t-1)-(parameter_tuning_window-1):training_T+(t-1),:], dims=1)) + (1-ρ)*[unweighted_cvar(parameter_costs[training_T+(t-1)-(parameter_tuning_window-1):training_T+(t-1),i]) for i in eachindex(parameters)]
     end
 
-    realised_costs = [parameter_costs_in_testing_stages[t,argmin(average_parameter_costs_in_previous_stages[t])] for t in 1:testing_T] 
+    realised_costs = [parameter_costs_in_testing_stages[t,argmin(average_parameter_costs_in_previous_stages[t])] for t in 1:testing_T]
     μ = ρ*mean(realised_costs) + (1-ρ)*unweighted_cvar(realised_costs)
     s = sem(realised_costs)
 

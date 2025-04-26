@@ -8,12 +8,12 @@ newsvendor_order(ξ, weights) = quantile(ξ, Weights(weights), Cu/(Co+Cu))
 
 Random.seed!(42)
 
-weight_shift_distribution = Normal(0,0.2)
-mean_shift_distribution = MvNormal([0, 0], [1000 710; 710 1410])
-sd_shift_distribution = MvNormal([0, 0], [100 71; 71 141])
+weight_shift_distribution = Normal(0,0.0)
+mean_shift_distribution = MvNormal([0, 0], [1000 0.1; 0.1 0.1])
+sd_shift_distribution = MvNormal([0, 0], [100 0.1; 0.1 0.1])
 
 repetitions = 1000
-history_length = 60
+history_length = 100
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 for repetition in 1:repetitions
@@ -48,7 +48,7 @@ function parameter_fit(solve_for_weights, weight_parameters)
     weight_parameter_index = argmin(mean(costs))
     minimal_costs = [costs[repetition][weight_parameter_index] for repetition in 1:repetitions]
 
-    display(mean(costs))
+    println(mean(costs))
 
     digits = 4
 
@@ -56,25 +56,25 @@ function parameter_fit(solve_for_weights, weight_parameters)
 end
 
 using LinearAlgebra
-d(i,j,ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) #ifelse(i == j, 0, norm(ξ_i[1] - ξ_j[1], 1)+1)
+d(i,j,ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) #ifelse(i == j, 0, norm(ξ_i[1] - ξ_j[1], 1)+0)
 include("weights.jl")
 
 display([parameter_fit(windowing_weights, history_length)])
 
 display([parameter_fit(windowing_weights, 1)])
 
-display([parameter_fit(SES_weights, 0.2)]) #LinRange(0.0001,1.0,5))])
+display([parameter_fit(SES_weights, LinRange(0.01,0.3,30))])
 
-display([parameter_fit(WPF_weights, LinRange(0.001,0.01,10))]) # [0.001, 0.0025, 0.005, 0.0075, 0.01])])
-
-
-
+display([parameter_fit(WPF_weights, LinRange(0.01,0.1,3))])
+#display([parameter_fit(WPF_weights, 0.04)])
 
 
 
 
 
-if false
+
+
+if true
 
     using Plots, Measures
 
