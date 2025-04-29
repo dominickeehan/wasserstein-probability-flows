@@ -8,28 +8,31 @@ newsvendor_order(ξ, weights) = quantile(ξ, Weights(weights), Cu/(Co+Cu))
 
 Random.seed!(42)
 
-weight_shift_distribution = Normal(0, 0.0)
-mean_shift_distribution = MvNormal([0, 0], [100 0.1; 0.1 0.1])
-sd_shift_distribution = MvNormal([0, 0], [0.1 0.01; 0.01 0.01])
+#weight_shift_distribution = Normal(0, 0.0)
+mean_shift_distribution = MvNormal([0, 0, 0], [300 0.1 0.1; 0.1 300 0.1; 0.1 0.1 300])
+sd_shift_distribution = MvNormal([0, 0, 0], [1 0.01 0.01; 0.01 1 0.01; 0.01 0.01 1])
 
-repetitions = 1
+repetitions = 300
 history_length = 100
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
-demand_distributions = [[MixtureModel(Normal[Normal(0, 0), Normal(0, 0)], [.5, .5]) for _ in 1:history_length+1] for _ in 1:repetitions]
+#demand_distributions = [[MixtureModel(Normal[Normal(0, 0), Normal(0, 0), Normal(0, 0)], [.333, .333, .333]) for _ in 1:history_length+1] for _ in 1:repetitions]
+demand_distributions = [[MixtureModel(Normal[Normal(0, 0), Normal(0, 0), Normal(0, 0)]) for _ in 1:history_length+1] for _ in 1:repetitions]
+
 
 for repetition in 1:repetitions
-    means = [1000, 2000] #[rand(Uniform(500,1500)), rand(Uniform(1000,3000))]
-    sds = [100, 141] #[rand(Uniform(0,100)), rand(Uniform(0,141))]
-    weight = 0.9 #rand(Uniform(0,1))
+    means = [1000, 2000, 3000] #[rand(Uniform(500,1500)), rand(Uniform(1000,3000))]
+    sds = [100, 100, 100] #[rand(Uniform(0,100)), rand(Uniform(0,141))]
+    #weight = 0.5 #rand(Uniform(0,1))
 
     for t in 1:history_length+1
-        demand_distributions[repetition][t] = MixtureModel(Normal[Normal(means[1], sds[1]), Normal(means[2], sds[2])], [weight, 1-weight])
-        demand_sequences[repetition][t] = max(rand(demand_distributions[repetition][t]), 0)
+        demand_distributions[repetition][t] = MixtureModel(Normal[Normal(means[1], sds[1]), Normal(means[2], sds[2]), Normal(means[3], sds[3])])
+        #demand_sequences[repetition][t] = max(rand(demand_distributions[repetition][t]), 0)
+        demand_sequences[repetition][t] = rand(demand_distributions[repetition][t])
 
         means = means + rand(mean_shift_distribution)
-        sds = max.(sds + rand(sd_shift_distribution), [0, 0])
-        weight = min(max(weight + rand(weight_shift_distribution), 0), 1)        
+        #sds = max.(sds + rand(sd_shift_distribution), [0, 0, 0])
+        #weight = min(max(weight + rand(weight_shift_distribution), 0), 1)        
     end
 end
 
@@ -52,13 +55,13 @@ function parameter_fit(solve_for_weights, weight_parameters)
 
     println(mean(costs))
 
-    if true
+    if false
 
         plt_1 = plot()
         for repetition in 1:repetitions
         
-            ξ_range = LinRange(0,3000,300)
-            plot!(ξ_range, [pdf(demand_distributions[repetition][end-1], ξ) for ξ in ξ_range], labels = nothing, xlims = (0,3000))
+            ξ_range = LinRange(0,4000,100)
+            plot!(ξ_range, [pdf(demand_distributions[repetition][end-1], ξ) for ξ in ξ_range], labels = nothing, xlims = (0,4000))
         end
 
         #display(plt)
@@ -70,7 +73,7 @@ function parameter_fit(solve_for_weights, weight_parameters)
             demand_sample_weights = solve_for_weights(demand_samples, weight_parameters[weight_parameter_index])
 
 #            plot!(demand_samples, demand_sample_weights, seriestype = :sticks, labels = nothing, xlims = (0,3000))
-            stephist!(demand_samples, weights=demand_sample_weights, alpha=1., normalize=:pdf, labels=nothing, bins=15, xlims=(0,3000))
+            stephist!(demand_samples, weights=demand_sample_weights, alpha=1., normalize=:pdf, labels=nothing, bins=15, xlims=(0,4000))
         end
 
         display(plot(plt_1, plt_2, layout=@layout([a;b])))
@@ -89,11 +92,15 @@ include("weights.jl")
 
 #display([parameter_fit(windowing_weights, 1)])
 
-#display([parameter_fit(SES_weights, LinRange(0.01,0.3,30))])
-display([parameter_fit(SES_weights, 0.04)])
+display([parameter_fit(SES_weights, [[0.00001; 0.0001; 0.001]; LinRange(0.01,1.0,100)])])
+#display([parameter_fit(SES_weights, 0.25)])
 
-#display([parameter_fit(WPF_weights, [LinRange(0.01,0.1,3); LinRange(0.55,1,2)])])
-display([parameter_fit(WPF_weights, 0.1)])
+
+#display([parameter_fit(WPF_weights, [0.1, 1, 10, 100, 1000])])
+#display([parameter_fit(WPF_weights, [LinRange(0.1,1,3); LinRange(5.5,10,2); LinRange(55,100,2);])])
+#display([parameter_fit(WPF_weights, [LinRange(0.01,0.1,5); LinRange(0.1,1,5)])])
+display([parameter_fit(WPF_weights, LinRange(0.01,0.1,10))])
+#display([parameter_fit(WPF_weights, 50)])
 
 
 
