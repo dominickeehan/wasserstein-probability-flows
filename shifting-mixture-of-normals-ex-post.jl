@@ -12,7 +12,7 @@ weight_shift_distribution = Normal(0, 0.0)
 mean_shift_distribution = MvNormal([0, 0], [100 0.1; 0.1 0.1])
 sd_shift_distribution = MvNormal([0, 0], [0.1 0.01; 0.01 0.01])
 
-repetitions = 300
+repetitions = 1
 history_length = 100
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
@@ -33,7 +33,7 @@ for repetition in 1:repetitions
     end
 end
 
-
+using Plots
 using ProgressBars, IterTools
 function parameter_fit(solve_for_weights, weight_parameters)
 
@@ -85,13 +85,14 @@ using LinearAlgebra
 d(i,j,ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) #ifelse(i == j, 0, norm(ξ_i[1] - ξ_j[1], 1)+0)
 include("weights.jl")
 
-display([parameter_fit(windowing_weights, history_length)])
+#display([parameter_fit(windowing_weights, history_length)])
 
-display([parameter_fit(windowing_weights, 1)])
+#display([parameter_fit(windowing_weights, 1)])
 
-display([parameter_fit(SES_weights, LinRange(0.01,0.3,30))])
+#display([parameter_fit(SES_weights, LinRange(0.01,0.3,30))])
+display([parameter_fit(SES_weights, 0.04)])
 
-#display([parameter_fit(WPF_weights, [LinRange(0.01,0.1,3); LinRange(0.2,1,3)])])
+#display([parameter_fit(WPF_weights, [LinRange(0.01,0.1,3); LinRange(0.55,1,2)])])
 display([parameter_fit(WPF_weights, 0.1)])
 
 
