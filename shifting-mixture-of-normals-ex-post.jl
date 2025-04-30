@@ -12,7 +12,7 @@ Random.seed!(42)
 mean_shift_distribution = MvNormal([0, 0, 0], [300 0.1 0.1; 0.1 300 0.1; 0.1 0.1 300])
 sd_shift_distribution = MvNormal([0, 0, 0], [1 0.01 0.01; 0.01 1 0.01; 0.01 0.01 1])
 
-repetitions = 300
+repetitions = 3000
 history_length = 100
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
@@ -97,10 +97,10 @@ display([parameter_fit(SES_weights, [[0.00001; 0.0001; 0.001]; LinRange(0.01,1.0
 
 
 #display([parameter_fit(WPF_weights, [0.1, 1, 10, 100, 1000])])
-#display([parameter_fit(WPF_weights, [LinRange(0.1,1,3); LinRange(5.5,10,2); LinRange(55,100,2);])])
-#display([parameter_fit(WPF_weights, [LinRange(0.01,0.1,5); LinRange(0.1,1,5)])])
+
+#display([parameter_fit(WPF_weights, [LinRange(.01,.1,3); LinRange(.55,1,2); LinRange(5.5,10,2);])])
 display([parameter_fit(WPF_weights, LinRange(0.01,0.1,10))])
-#display([parameter_fit(WPF_weights, 50)])
+#display([parameter_fit(WPF_weights, 0.06)])
 
 
 
