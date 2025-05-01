@@ -1,6 +1,6 @@
 using Random, Statistics, StatsBase, Distributions
 
-Cu = 3 # Cost of underage.
+Cu = 4 # Cost of underage.
 Co = 1 # Cost of overage.
 
 newsvendor_loss(x,ξ) = Cu*max(ξ-x,0) + Co*max(x-ξ,0)
@@ -8,30 +8,33 @@ newsvendor_order(ξ, weights) = quantile(ξ, Weights(weights), Cu/(Co+Cu))
 
 Random.seed!(42)
 
-#weight_shift_distribution = Normal(0, 0.0)
-mean_shift_distribution = MvNormal([0, 0, 0], [300 0.1 0.1; 0.1 300 0.1; 0.1 0.1 300])
-sd_shift_distribution = MvNormal([0, 0, 0], [1 0.01 0.01; 0.01 1 0.01; 0.01 0.01 1])
+using LinearAlgebra
 
-repetitions = 3000
+N = 2
+
+#weight_shift_distribution = Normal(0, 0.0)
+mean_shift_distribution = MvNormal(zeros(N), [10000 0; 0 1000]) # I
+sd_shift_distribution = MvNormal(zeros(N), I)
+
+repetitions = 100
 history_length = 100
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
-#demand_distributions = [[MixtureModel(Normal[Normal(0, 0), Normal(0, 0), Normal(0, 0)], [.333, .333, .333]) for _ in 1:history_length+1] for _ in 1:repetitions]
-demand_distributions = [[MixtureModel(Normal[Normal(0, 0), Normal(0, 0), Normal(0, 0)]) for _ in 1:history_length+1] for _ in 1:repetitions]
+demand_distributions = [[MixtureModel(Normal[Normal(0, 0) for _ in 1:N]) for _ in 1:history_length+1] for _ in 1:repetitions]
 
 
 for repetition in 1:repetitions
-    means = [1000, 2000, 3000] #[rand(Uniform(500,1500)), rand(Uniform(1000,3000))]
-    sds = [100, 100, 100] #[rand(Uniform(0,100)), rand(Uniform(0,141))]
+    means = [1000, 2000] # [i*1000 for i in 1:N]
+    sds = [100, 300] #100*ones(N)
     #weight = 0.5 #rand(Uniform(0,1))
 
     for t in 1:history_length+1
-        demand_distributions[repetition][t] = MixtureModel(Normal[Normal(means[1], sds[1]), Normal(means[2], sds[2]), Normal(means[3], sds[3])])
+        demand_distributions[repetition][t] = MixtureModel(Normal[Normal(means[i], sds[i]) for i in 1:N])
         #demand_sequences[repetition][t] = max(rand(demand_distributions[repetition][t]), 0)
         demand_sequences[repetition][t] = rand(demand_distributions[repetition][t])
 
         means = means + rand(mean_shift_distribution)
-        #sds = max.(sds + rand(sd_shift_distribution), [0, 0, 0])
+        sds = max.(sds + rand(sd_shift_distribution), zeros(N))
         #weight = min(max(weight + rand(weight_shift_distribution), 0), 1)        
     end
 end
@@ -43,9 +46,9 @@ function parameter_fit(solve_for_weights, weight_parameters)
     costs = [zeros(length(weight_parameters)) for _ in 1:repetitions]
 
     Threads.@threads for (weight_parameter_index, repetition) in ProgressBar(collect(IterTools.product(eachindex(weight_parameters), 1:repetitions)))
-        demand_samples = demand_sequences[repetition][1:history_length]
-        demand_sample_weights = solve_for_weights(demand_samples, weight_parameters[weight_parameter_index])
-        order = newsvendor_order(demand_samples, demand_sample_weights)
+        local demand_samples = demand_sequences[repetition][1:history_length]
+        local demand_sample_weights = solve_for_weights(demand_samples, weight_parameters[weight_parameter_index])
+        local order = newsvendor_order(demand_samples, demand_sample_weights)
         costs[repetition][weight_parameter_index] = newsvendor_loss(order, demand_sequences[repetition][history_length+1])
 
     end
@@ -53,15 +56,17 @@ function parameter_fit(solve_for_weights, weight_parameters)
     weight_parameter_index = argmin(mean(costs))
     minimal_costs = [costs[repetition][weight_parameter_index] for repetition in 1:repetitions]
 
-    println(mean(costs))
+    println(mean(minimal_costs))
 
-    if false
+    display(plot(weight_parameters, mean(costs)))
+
+    if true
 
         plt_1 = plot()
         for repetition in 1:repetitions
         
-            ξ_range = LinRange(0,4000,100)
-            plot!(ξ_range, [pdf(demand_distributions[repetition][end-1], ξ) for ξ in ξ_range], labels = nothing, xlims = (0,4000))
+            ξ_range = LinRange(0,(N+1)*1000,100)
+            plot!(ξ_range, [pdf(demand_distributions[repetition][end-1], ξ) for ξ in ξ_range], labels = nothing, xlims = (0,(N+1)*1000))
         end
 
         #display(plt)
@@ -73,7 +78,7 @@ function parameter_fit(solve_for_weights, weight_parameters)
             demand_sample_weights = solve_for_weights(demand_samples, weight_parameters[weight_parameter_index])
 
 #            plot!(demand_samples, demand_sample_weights, seriestype = :sticks, labels = nothing, xlims = (0,3000))
-            stephist!(demand_samples, weights=demand_sample_weights, alpha=1., normalize=:pdf, labels=nothing, bins=15, xlims=(0,4000))
+            stephist!(demand_samples, weights=demand_sample_weights, alpha=1., normalize=:pdf, labels=nothing, bins=15, xlims=(0,(N+1)*1000))
         end
 
         display(plot(plt_1, plt_2, layout=@layout([a;b])))
@@ -92,14 +97,15 @@ include("weights.jl")
 
 #display([parameter_fit(windowing_weights, 1)])
 
-display([parameter_fit(SES_weights, [[0.00001; 0.0001; 0.001]; LinRange(0.01,1.0,100)])])
+display([parameter_fit(SES_weights, [[0.00001; 0.0001; 0.001]; LinRange(0.01,0.2,20)])])
 #display([parameter_fit(SES_weights, 0.25)])
 
 
-#display([parameter_fit(WPF_weights, [0.1, 1, 10, 100, 1000])])
+#display([parameter_fit(WPF_weights, [LinRange(.01,.3,5); LinRange(.4,1,4);])])
+#display([parameter_fit(WPF_weights, [LinRange(.001,.01,3); LinRange(.055,.1,2); LinRange(.55,1,2); LinRange(5.5,10,2); LinRange(55,100,2)])])
+display([parameter_fit(WPF_weights, [LinRange(.001,.03,30); LinRange(.03,.1,5); .2])])
 
-#display([parameter_fit(WPF_weights, [LinRange(.01,.1,3); LinRange(.55,1,2); LinRange(5.5,10,2);])])
-display([parameter_fit(WPF_weights, LinRange(0.01,0.1,10))])
+#display([parameter_fit(WPF_weights, [LinRange(.001,.03,5); LinRange(.03,.1,5)])])
 #display([parameter_fit(WPF_weights, 0.06)])
 
 
