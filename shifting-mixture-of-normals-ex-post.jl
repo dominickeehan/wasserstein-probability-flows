@@ -13,11 +13,11 @@ using LinearAlgebra
 N = 2
 
 #weight_shift_distribution = Normal(0, 0.0)
-mean_shift_distribution = MvNormal(zeros(N), [10000 0; 0 1000]) # I
+mean_shift_distribution = MvNormal(zeros(N), [300 0; 0 100]) # I
 sd_shift_distribution = MvNormal(zeros(N), I)
 
-repetitions = 100
-history_length = 100
+repetitions = 3000
+history_length = 10
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 demand_distributions = [[MixtureModel(Normal[Normal(0, 0) for _ in 1:N]) for _ in 1:history_length+1] for _ in 1:repetitions]
@@ -56,7 +56,9 @@ function parameter_fit(solve_for_weights, weight_parameters)
     weight_parameter_index = argmin(mean(costs))
     minimal_costs = [costs[repetition][weight_parameter_index] for repetition in 1:repetitions]
 
-    println(mean(minimal_costs))
+    digits = 4
+
+    display([round(mean(minimal_costs), digits=digits), round(sem(minimal_costs), digits=digits), round(weight_parameters[weight_parameter_index], digits=digits)])
 
     display(plot(weight_parameters, mean(costs)))
 
@@ -65,8 +67,8 @@ function parameter_fit(solve_for_weights, weight_parameters)
         plt_1 = plot()
         for repetition in 1:repetitions
         
-            ξ_range = LinRange(0,(N+1)*1000,100)
-            plot!(ξ_range, [pdf(demand_distributions[repetition][end-1], ξ) for ξ in ξ_range], labels = nothing, xlims = (0,(N+1)*1000))
+            ξ_range = LinRange(0,(N+1)*1000,1000)
+            plot!(ξ_range, [pdf(demand_distributions[repetition][end-1], ξ) for ξ in ξ_range], labels = nothing, xlims = (0,(N+1)*1000), alpha = 0.1)
         end
 
         #display(plt)
@@ -78,35 +80,31 @@ function parameter_fit(solve_for_weights, weight_parameters)
             demand_sample_weights = solve_for_weights(demand_samples, weight_parameters[weight_parameter_index])
 
 #            plot!(demand_samples, demand_sample_weights, seriestype = :sticks, labels = nothing, xlims = (0,3000))
-            stephist!(demand_samples, weights=demand_sample_weights, alpha=1., normalize=:pdf, labels=nothing, bins=15, xlims=(0,(N+1)*1000))
+            stephist!(demand_samples, weights=demand_sample_weights, normalize=:pdf, labels=nothing, bins=10, xlims=(0,(N+1)*1000), alpha = 0.1, fill=true, fillalpha=0.01)
         end
 
         display(plot(plt_1, plt_2, layout=@layout([a;b])))
     end
 
-    digits = 4
-
-    return round(mean(minimal_costs), digits=digits), round(sem(minimal_costs), digits=digits), round(weight_parameters[weight_parameter_index], digits=digits)
+    return minimal_costs
 end
 
 using LinearAlgebra
 d(i,j,ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) #ifelse(i == j, 0, norm(ξ_i[1] - ξ_j[1], 1)+0)
 include("weights.jl")
 
-#display([parameter_fit(windowing_weights, history_length)])
 
-#display([parameter_fit(windowing_weights, 1)])
-
-display([parameter_fit(SES_weights, [[0.00001; 0.0001; 0.001]; LinRange(0.01,0.2,20)])])
-#display([parameter_fit(SES_weights, 0.25)])
+SES_costs = parameter_fit(SES_weights, [LinRange(0.0001,0.001,10); LinRange(0.002,0.01,9); LinRange(0.02,0.2,19)])
 
 
-#display([parameter_fit(WPF_weights, [LinRange(.01,.3,5); LinRange(.4,1,4);])])
-#display([parameter_fit(WPF_weights, [LinRange(.001,.01,3); LinRange(.055,.1,2); LinRange(.55,1,2); LinRange(5.5,10,2); LinRange(55,100,2)])])
-display([parameter_fit(WPF_weights, [LinRange(.001,.03,30); LinRange(.03,.1,5); .2])])
 
-#display([parameter_fit(WPF_weights, [LinRange(.001,.03,5); LinRange(.03,.1,5)])])
-#display([parameter_fit(WPF_weights, 0.06)])
+#WPF_costs = parameter_fit(WPF_weights, [LinRange(.02,.1,5); LinRange(.2,1,5); LinRange(2,10,5); LinRange(20,100,5)])
+#WPF_costs = parameter_fit(WPF_weights, [.01; LinRange(.1,2,20); LinRange(3,10,9)])
+WPF_costs = parameter_fit(WPF_weights, [LinRange(.01,.2,20); LinRange(.3,1,8)])
+
+display(sem(WPF_costs - SES_costs))
+
+#display([parameter_fit(WPF_weights, 0.7)])
 
 
 
@@ -114,7 +112,7 @@ display([parameter_fit(WPF_weights, [LinRange(.001,.03,30); LinRange(.03,.1,5); 
 
 
 
-if false
+if true
 
     using Plots, Measures
 
@@ -153,7 +151,7 @@ if false
             #markercolor = palette(:tab10)[1],
             #markershape = :circle,
             color = palette(:tab10)[1],
-            alpha = 0.03,
+            alpha = 0.01,
             #linestyle = :auto,
             #markersize = 4, 
             #markerstrokewidth = 1,
