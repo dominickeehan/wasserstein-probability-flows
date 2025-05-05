@@ -16,8 +16,8 @@ weight_shift_distribution = Normal(0, 0.0)
 mean_shift_distribution = MvNormal(zeros(N), [300 0; 0 100]) # I
 sd_shift_distribution = MvNormal(zeros(N), [1 0; 0 1])
 
-repetitions = 3000
-history_length = 20
+repetitions = 1000
+history_length = 10
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 demand_distributions = [[MixtureModel(Normal[Normal(0, 0) for _ in 1:N]) for _ in 1:history_length+1] for _ in 1:repetitions]
@@ -101,8 +101,8 @@ SES_costs = parameter_fit(SES_weights, [LinRange(0.0001,0.001,10); LinRange(0.00
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.02,.1,5); LinRange(.2,1,5); LinRange(2,10,5); LinRange(20,100,5)])
 
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.001,.03,30); LinRange(.04,0.1,7); LinRange(.2,1,9);])
-#WPF_costs = parameter_fit(WPF_weights, [LinRange(.01,.2,20); LinRange(.3,1,8)])
-WPF_costs = parameter_fit(WPF_weights, LinRange(.01,1,100))
+WPF_costs = parameter_fit(WPF_weights, [LinRange(.01,.2,20); LinRange(.3,1,8)])
+#WPF_costs = parameter_fit(WPF_weights, LinRange(.01,1,100))
 #WPF_costs = parameter_fit(WPF_weights, 0.24)
 
 display(sem(WPF_costs - SES_costs))
