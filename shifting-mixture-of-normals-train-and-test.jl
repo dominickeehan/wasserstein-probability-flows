@@ -1,19 +1,20 @@
 using Random, Statistics, StatsBase, Distributions
 
-Cu = 3 # Cost of underage.
+Cu = 4 # Cost of underage.
 Co = 1 # Cost of overage.
 
 newsvendor_loss(x,ξ) = Cu*max(ξ-x,0) + Co*max(x-ξ,0)
 newsvendor_order(ξ, weights) = quantile(ξ, Weights(weights), Cu/(Co+Cu))
 
-Random.seed!(42)
+#Random.seed!(42)
 
-#weight_shift_distribution = Normal(0, 0.0)
-mean_shift_distribution = MvNormal([0, 0], [5000 0.1; 0.1 500])
-sd_shift_distribution = MvNormal([0, 0], [1 0.01; 0.01 1])
+weight_shift_distribution = Normal(0, 0.001)
+mean_shift_distribution = MvNormal([0, 0], [1000 0; 0 1000])
+sd_shift_distribution = MvNormal([0, 0], [3 0; 0 3])
 
-repetitions = 10
-history_length = 100
+repetitions = 1000
+history_length = 10
+training_length = 3
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 #demand_distributions = [[MixtureModel(Normal[Normal(0, 0), Normal(0, 0), Normal(0, 0)], [.333, .333, .333]) for _ in 1:history_length+1] for _ in 1:repetitions]
@@ -22,17 +23,17 @@ demand_distributions = [[MixtureModel(Normal[Normal(0, 0), Normal(0, 0)]) for _ 
 
 for repetition in 1:repetitions
     means = [1000, 2000] #[rand(Uniform(500,1500)), rand(Uniform(1000,3000))]
-    sds = [100, 300] #[rand(Uniform(0,100)), rand(Uniform(0,141))]
-    #weight = 0.5 #rand(Uniform(0,1))
+    sds = [300, 300] #[rand(Uniform(0,100)), rand(Uniform(0,141))]
+    weight = 0.5 #rand(Uniform(0,1))
 
     for t in 1:history_length+1
-        demand_distributions[repetition][t] = MixtureModel(Normal[Normal(means[1], sds[1]), Normal(means[2], sds[2])])
+        demand_distributions[repetition][t] = MixtureModel(Normal[Normal(means[1], sds[1]), Normal(means[2], sds[2])], [weight, 1-weight])
         #demand_sequences[repetition][t] = max(rand(demand_distributions[repetition][t]), 0)
         demand_sequences[repetition][t] = rand(demand_distributions[repetition][t])
 
         means = means + rand(mean_shift_distribution)
         sds = max.(sds + rand(sd_shift_distribution), [0, 0])
-        #weight = min(max(weight + rand(weight_shift_distribution), 0), 1)        
+        weight = min(max(weight + rand(weight_shift_distribution), 0), 1)        
     end
 end
 
@@ -46,15 +47,15 @@ function train_and_test(solve_for_weights, weight_parameters)
 
     println("training and testing method...")
 
-    for repetition in ProgressBar(1:repetitions)
-        training_costs = [zeros(length(weight_parameters)) for _ in history_length-30+1:history_length]
-            Threads.@threads for weight_parameter_index in eachindex(weight_parameters)
+    Threads.@threads for repetition in ProgressBar(1:repetitions)
+        training_costs = [zeros(length(weight_parameters)) for _ in history_length-training_length+1:history_length]
+            for weight_parameter_index in eachindex(weight_parameters)
                     
-                for t in history_length-30+1:history_length
+                for t in history_length-training_length+1:history_length
                     local demand_samples = demand_sequences[repetition][1:t-1]
                     local demand_sample_weights = solve_for_weights(demand_samples, weight_parameters[weight_parameter_index])
                     local order = newsvendor_order(demand_samples, demand_sample_weights)
-                    training_costs[t-(history_length-30)][weight_parameter_index] = newsvendor_loss(order, demand_sequences[repetition][t])
+                    training_costs[t-(history_length-training_length)][weight_parameter_index] = newsvendor_loss(order, demand_sequences[repetition][t])
                 end
             end
 
@@ -73,8 +74,8 @@ d(i,j,ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1)
 include("weights.jl")
 
 
-display([train_and_test(SES_weights, [[0.00001; 0.0001; 0.001]; LinRange(0.01,1.0,100)])])
-display([train_and_test(WPF_weights, [LinRange(.002,.01,5); LinRange(.02,.1,5); LinRange(.2,1,5); LinRange(2,10,5)])])
+display([train_and_test(SES_weights, [LinRange(0.002,0.01,9); LinRange(0.02,0.1,9); LinRange(.2,1.0,9)])])
+display([train_and_test(WPF_weights, [LinRange(.002,.01,9); LinRange(.02,.1,9); LinRange(.2,1,9)])])
 
 #windowing_parameters = round.(Int, LinRange(10,history_length,7))
 #train_and_test(ambiguity_radii, windowing_weights, windowing_parameters)

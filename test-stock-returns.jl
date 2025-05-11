@@ -103,8 +103,8 @@ testing_T = length(testing_data)
 parameter_tuning_window = 1*12
 
 windowing_parameters = round.(Int, LinRange(1,length(extracted_data),10))
-SES_parameters = LinRange(0.0001,1.0,10)
-WPF_parameters = LinRange(5,500,10) #LinRange(50,500,20)
+SES_parameters = [LinRange(0.01,0.1,10); LinRange(0.2,1.0,9)]#LinRange(0.0001,1.0,10)
+WPF_parameters = LinRange(10,500,50) #LinRange(50,500,20)
 
 using ProgressBars, IterTools
 using Statistics, StatsBase
@@ -227,7 +227,7 @@ WPF1_risk_adjusted_expected_cost, WPF1_difference, WPF1_difference_pairwise_se, 
 =#
 
 
-d(i,j,ξ_i,ξ_j) = ifelse(i == j, 0, 1.0*norm(ξ_i - ξ_j, 1)+0.001)
+d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 1)#ifelse(i == j, 0, 1.0*norm(ξ_i - ξ_j, 1)+0.001)
 include("weights.jl")
 WPF1s_risk_adjusted_expected_cost, WPF1s_difference, WPF1s_difference_pairwise_se, WPF1s_parameter = 
     extract_results(WPF_parameters, WPF_weights; save_cost_plot_as = "figures/stock-returns-WPF1s-parameter-costs.pdf")
