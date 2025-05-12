@@ -6,7 +6,7 @@ Co = 1 # Cost of overage.
 newsvendor_loss(x,ξ) = Cu*max(ξ-x,0) + Co*max(x-ξ,0)
 newsvendor_order(ξ, weights) = quantile(ξ, Weights(weights), Cu/(Co+Cu))
 
-Random.seed!(42)
+#Random.seed!(42)
 
 using LinearAlgebra
 
@@ -14,20 +14,20 @@ N = 2
 
 Q = 20
 
-weight_shift_distribution = Normal(0, 0.001)
-mean_shift_distribution = MvNormal(zeros(N), [1000 0; 0 1000]) # I
-sd_shift_distribution = MvNormal(zeros(N), [3 0; 0 3])
+weight_shift_distribution = Normal(0, 0.0)
+mean_shift_distribution = MvNormal(zeros(N), 1000*[1 0; 0 1]) # I
+sd_shift_distribution = MvNormal(zeros(N), [1 0; 0 1])
 
-repetitions = 10
-history_length = 30
+repetitions = 1000
+history_length = 100
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 demand_distributions = [[MixtureModel(Normal[Normal(0, 0) for _ in 1:N]) for _ in 1:history_length+1] for _ in 1:repetitions]
 
 
 for repetition in 1:repetitions
-    means = [1000, 2000] # [i*1000 for i in 1:N]
-    sds = [300, 300] #100*ones(N)
+    means = [0, 3000] # [i*1000 for i in 1:N]
+    sds = [100, 100] #100*ones(N)
     weight = 0.5 #rand(Uniform(0,1))
 
     for t in 1:history_length+1
@@ -96,6 +96,8 @@ d(i,j,ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) #ifelse(i == j, 0, norm(ξ_i[1] - 
 include("weights.jl")
 
 
+parameter_fit(windowing_weights, history_length)
+parameter_fit(windowing_weights, round.(Int, LinRange(1,history_length,10)))
 SES_costs = parameter_fit(SES_weights, [LinRange(0.00001,0.0001,10); LinRange(0.0001,0.001,9); LinRange(0.002,0.01,9); LinRange(0.02,1.0,11)])
 
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.02,.1,5); LinRange(.2,1,5); LinRange(2,10,5); LinRange(20,100,5)])
