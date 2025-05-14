@@ -15,7 +15,7 @@ N = 2
 Q = 20
 
 weight_shift_distribution = Normal(0, 0.0)
-mean_shift_distribution = MvNormal(zeros(N), 1000*[1 0; 0 1]) # I
+mean_shift_distribution = MvNormal(zeros(N), [1000 0; 0 3000]) # I
 sd_shift_distribution = MvNormal(zeros(N), [1 0; 0 1])
 
 repetitions = 1000
@@ -24,10 +24,9 @@ history_length = 100
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 demand_distributions = [[MixtureModel(Normal[Normal(0, 0) for _ in 1:N]) for _ in 1:history_length+1] for _ in 1:repetitions]
 
-
 for repetition in 1:repetitions
-    means = [0, 3000] # [i*1000 for i in 1:N]
-    sds = [100, 100] #100*ones(N)
+    means = [0, 2000] # [i*1000 for i in 1:N]
+    sds = [300, 100] #100*ones(N)
     weight = 0.5 #rand(Uniform(0,1))
 
     for t in 1:history_length+1
@@ -97,8 +96,8 @@ include("weights.jl")
 
 
 parameter_fit(windowing_weights, history_length)
-parameter_fit(windowing_weights, round.(Int, LinRange(1,history_length,10)))
-SES_costs = parameter_fit(SES_weights, [LinRange(0.00001,0.0001,10); LinRange(0.0001,0.001,9); LinRange(0.002,0.01,9); LinRange(0.02,1.0,11)])
+parameter_fit(windowing_weights, round.(Int, LinRange(1,history_length,100)))
+SES_costs = parameter_fit(SES_weights, [LinRange(0.00001,0.0001,10); LinRange(0.0001,0.001,9); LinRange(0.002,0.01,9); LinRange(0.02,1.0,99)])
 
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.02,.1,5); LinRange(.2,1,5); LinRange(2,10,5); LinRange(20,100,5)])
 
@@ -106,7 +105,10 @@ SES_costs = parameter_fit(SES_weights, [LinRange(0.00001,0.0001,10); LinRange(0.
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.002,.01,9); LinRange(.02,.1,9); LinRange(.2,1,9);])
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.01,.1,10); LinRange(.2,1,9); LinRange(2,10,9);])
 #WPF_costs = parameter_fit(WPF_weights, LinRange(.1,1,Q))
-WPF_costs = parameter_fit(WPF_weights, [LinRange(.02,.1,Q); LinRange(.2,1,Q)])#; LinRange(2,10,Q)])
+
+#WPF_costs = parameter_fit(WPF_weights, [LinRange(.01,.1,Q); LinRange(.1,1,Q)])
+WPF_costs = parameter_fit(WPF_weights, LinRange(.01,.1,Q))
+
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.01,.2,20); LinRange(.3,1,8); 10])
 #WPF_costs = parameter_fit(WPF_weights, LinRange(.01,1,100))
 #WPF_costs = parameter_fit(WPF_weights, 0.24)
