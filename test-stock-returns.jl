@@ -93,7 +93,7 @@ portfolio_return(portfolio, realised_return) = dot(portfolio, realised_return)
 #extracted_data = extracted_data[1:108]
 
 training_testing_split = ceil(Int,0.7*length(extracted_data))
-warm_up_period = ceil(Int,0.25*training_testing_split)-1 # Needs to be small enough to allow parameter_tuning_window after.
+warm_up_period = ceil(Int,0.5*training_testing_split)-1 # Needs to be small enough to allow parameter_tuning_window after.
 warm_up_data = extracted_data[1:warm_up_period]
 training_data = extracted_data[warm_up_period+1:training_testing_split]
 training_T = length(training_data)
@@ -104,7 +104,7 @@ parameter_tuning_window = 1*12
 
 windowing_parameters = round.(Int, LinRange(1,length(extracted_data),10))
 SES_parameters = [LinRange(0.01,0.1,10); LinRange(0.2,1.0,9)]#LinRange(0.0001,1.0,10)
-WPF_parameters = LinRange(10,500,50) #LinRange(50,500,20)
+WPF_parameters = [LinRange(10,100,20); LinRange(100,500,20)]#LinRange(10,500,50) #LinRange(50,500,20)
 
 using ProgressBars, IterTools
 using Statistics, StatsBase

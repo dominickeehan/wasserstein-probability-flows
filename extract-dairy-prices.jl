@@ -16,12 +16,12 @@ if do_plots == true
 
     default() # Reset plot defaults.
 
-    gr(size = (830,343))
+    gr(size = (850,343))
     
     font_family = "Computer Modern"
-    primary_font = Plots.font(font_family, pointsize = 17)
+    primary_font = Plots.font(font_family, pointsize = 15)
     secondary_font = Plots.font(font_family, pointsize = 11)
-    legend_font = Plots.font(font_family, pointsize = 11)
+    legend_font = Plots.font(font_family, pointsize = 13)
     
     default(framestyle = :box,
             grid = true,
