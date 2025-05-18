@@ -6,28 +6,28 @@ Co = 1 # Cost of overage.
 newsvendor_loss(x,ξ) = Cu*max(ξ-x,0) + Co*max(x-ξ,0)
 newsvendor_order(ξ, weights) = quantile(ξ, Weights(weights), Cu/(Co+Cu))
 
-Random.seed!(2)
+#Random.seed!(2)
 
 using LinearAlgebra
 
 N = 2
 
-Q = 10
+Q = 100
 
 weight_shift_distribution = Normal(0, 0.0)
 mean_shift_distribution = MvNormal(zeros(N), [300 0; 0 300]) # I
 sd_shift_distribution = MvNormal(zeros(N), [1 0; 0 1])
 
-repetitions = 10000
-history_length = 30
+repetitions = 1000
+history_length = 20
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 demand_distributions = [[MixtureModel(Normal[Normal(0, 0) for _ in 1:N]) for _ in 1:history_length+1] for _ in 1:repetitions]
 
 for repetition in 1:repetitions
-    means = [1000, 1000] # [i*1000 for i in 1:N]
-    sds = [200, 200] #100*ones(N)
-    weight = 0.5 #rand(Uniform(0,1))
+    means = [0, 1000] # [i*1000 for i in 1:N]
+    sds = [200, 300] #100*ones(N)
+    weight = 0.0 #rand(Uniform(0,1))
 
     for t in 1:history_length+1
         demand_distributions[repetition][t] = MixtureModel(Normal[Normal(means[i], sds[i]) for i in 1:N], [weight, 1-weight])
@@ -114,8 +114,9 @@ SES_costs = parameter_fit(SES_weights, [LinRange(0.00001,0.0001,10); LinRange(0.
 #WPF_costs = parameter_fit(WPF_weights, LinRange(.1,1,Q))
 
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.0000001,.000001,Q); LinRange(.000001,.00001,Q); LinRange(.00001,.0001,Q); LinRange(.0001,.001,Q); LinRange(.001,.01,Q); LinRange(.01,.1,Q); LinRange(.1,1,Q); LinRange(1,10,Q); LinRange(10,100,Q); LinRange(100,1000,Q);])
+WPF_costs = parameter_fit(WPF_weights, [LinRange(.001,.01,Q); LinRange(.01,.1,Q); LinRange(.1,1,Q); LinRange(1,10,Q); LinRange(10,100,Q)])
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.01,.1,Q); LinRange(.1,1,Q); LinRange(1,10,Q);])
-WPF_costs = parameter_fit(WPF_weights, [LinRange(.1,1,Q); LinRange(1,10,Q);])
+#WPF_costs = parameter_fit(WPF_weights, [LinRange(.1,1,Q); LinRange(2,10,Q-1);])
 #WPF_costs = parameter_fit(WPF_weights, LinRange(.1,1,Q))
 #WPF_costs = parameter_fit(WPF_weights, LinRange(1,10,Q))
 

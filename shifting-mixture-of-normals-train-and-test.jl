@@ -9,12 +9,12 @@ newsvendor_order(ξ, weights) = quantile(ξ, Weights(weights), Cu/(Co+Cu))
 #Random.seed!(42)
 
 weight_shift_distribution = Normal(0, 0)
-mean_shift_distribution = MvNormal([0, 0], [10000 0; 0 10000])
+mean_shift_distribution = MvNormal([0, 0], [300 0; 0 900])
 sd_shift_distribution = MvNormal([0, 0], [1 0; 0 1])
 
-repetitions = 1000
-history_length = 30
-training_length = 9
+repetitions = 10
+history_length = 60
+training_length = 30
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 #demand_distributions = [[MixtureModel(Normal[Normal(0, 0), Normal(0, 0), Normal(0, 0)], [.333, .333, .333]) for _ in 1:history_length+1] for _ in 1:repetitions]
@@ -22,9 +22,9 @@ demand_distributions = [[MixtureModel(Normal[Normal(0, 0), Normal(0, 0)]) for _ 
 
 
 for repetition in 1:repetitions
-    means = [1000, 2000] #[rand(Uniform(500,1500)), rand(Uniform(1000,3000))]
-    sds = [100, 300] #[rand(Uniform(0,100)), rand(Uniform(0,141))]
-    weight = 0.5 #rand(Uniform(0,1))
+    means = [1000, 1000] #[rand(Uniform(500,1500)), rand(Uniform(1000,3000))]
+    sds = [200, 200] #[rand(Uniform(0,100)), rand(Uniform(0,141))]
+    weight = 0.0 #rand(Uniform(0,1))
 
     for t in 1:history_length+1
         demand_distributions[repetition][t] = MixtureModel(Normal[Normal(means[1], sds[1]), Normal(means[2], sds[2])], [weight, 1-weight])
@@ -77,7 +77,7 @@ display([train_and_test(windowing_weights, history_length)])
 display([train_and_test(windowing_weights, round.(Int, LinRange(1,history_length,history_length)))])
 display([train_and_test(SES_weights, [LinRange(0.0002,0.001,9); LinRange(0.002,0.01,9); LinRange(.02,1.0,99)])])
 
-display([train_and_test(WPF_weights, [LinRange(.0002,.001,9); LinRange(.002,.01,9); LinRange(.02,.1,9); LinRange(.2,1,9); LinRange(2,10,9); LinRange(20,100,9)])])
+display([train_and_test(WPF_weights, [LinRange(.002,.01,9); LinRange(.02,.1,9); LinRange(.2,1,9); LinRange(2,10,9); LinRange(20,100,9);])])
 
 #windowing_parameters = round.(Int, LinRange(10,history_length,7))
 #train_and_test(ambiguity_radii, windowing_weights, windowing_parameters)
