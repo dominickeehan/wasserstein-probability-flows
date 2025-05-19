@@ -38,18 +38,18 @@ loss_function(x,ξ) = (norm(x-ξ, 2))^2
 #extracted_data = extracted_data[1:round(Int,0.8*length(extracted_data))]
 
 training_testing_split = ceil(Int,0.7*length(extracted_data))
-warm_up_period = ceil(Int,0.6*training_testing_split)-1 # Needs to be small enough to allow parameter_tuning_window after.
+warm_up_period = ceil(Int,0.5*training_testing_split)-1 # Needs to be small enough to allow parameter_tuning_window after.
 warm_up_data = extracted_data[1:warm_up_period]
 training_data = extracted_data[warm_up_period+1:training_testing_split]
 training_T = length(training_data)
 testing_data = extracted_data[training_testing_split+1:end]
 testing_T = length(testing_data)
 
-parameter_tuning_window = 3*12
+parameter_tuning_window = 2*12
 
-windowing_parameters = round.(Int, LinRange(10,length(extracted_data),50))
-SES_parameters = LinRange(0.0001,0.2,50) # LinRange(0.0001,0.1,11)
-WPF_parameters = LinRange(10,150,50) # LinRange(0,150,11)
+windowing_parameters = round.(Int, LinRange(10,length(extracted_data),length(extracted_data)))
+SES_parameters = [LinRange(.001,.01,10); LinRange(.01,.1,10); LinRange(.1,.9,9)]
+WPF_parameters = [LinRange(10,100,20); LinRange(100,1000,20)] #LinRange(10,150,50) # LinRange(0,150,11)
 
 using ProgressBars, IterTools
 using Statistics, StatsBase
