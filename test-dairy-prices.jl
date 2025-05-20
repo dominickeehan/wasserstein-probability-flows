@@ -27,7 +27,7 @@ loss_function(x,ξ) = (norm(x-ξ, 2))^2
 
 training_testing_split = ceil(Int,0.7*length(extracted_data))
 
-warm_up_period = ceil(Int,0.5*training_testing_split)-1 # Needs to be small enough to allow parameter_tuning_window after.
+warm_up_period = ceil(Int,0.7*training_testing_split)-1 # Needs to be small enough to allow parameter_tuning_window after.
 warm_up_data = extracted_data[1:warm_up_period]
 
 training_data = extracted_data[warm_up_period+1:training_testing_split]
