@@ -4,9 +4,7 @@ csv_file_path = "dairy-prices.csv"
 
 data = CSV.File(csv_file_path) # Units are in dollars per tonne.
 
-dairy_prices = [(Float64.([row.amf, row.but, row.bmp, row.smp, row.wmp])) for row in Iterators.take(data, size(data)[1])]
-#dairy_prices = [(Float64.([row.wmp])) for row in Iterators.take(data, size(data)[1])]
-dairy_prices = dairy_prices[1:2:end] # Convert to per month.
+dairy_prices = [(Float64.([row.AMF, row.BUT, row.BMP, row.SMP, row.WMP])) for row in Iterators.take(data, size(data)[1])]
 log_dairy_prices = [log.(dairy_prices[t]) for t in eachindex(dairy_prices)]
 extracted_data = log_dairy_prices
 

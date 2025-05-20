@@ -5,7 +5,6 @@ csv_file_path = "stock-returns.csv"
 data = CSV.File(csv_file_path)
 
 stock_returns = [(Float64.([row.BA, row.BRKB, row.GS, row.JNJ, row.JPM, row.KO, row.MCD, row.PFE, row.WMT, row.XOM])) for row in Iterators.take(data, size(data)[1])]
-stock_returns = stock_returns[120+1:end] # 10 years of monthly data.
 extracted_data = stock_returns
 
 m = 10

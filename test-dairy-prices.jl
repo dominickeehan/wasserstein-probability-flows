@@ -49,7 +49,8 @@ parameter_tuning_window = 2*12
 
 windowing_parameters = round.(Int, LinRange(10,length(extracted_data),length(extracted_data)))
 SES_parameters = [LinRange(.001,.01,10); LinRange(.01,.1,10); LinRange(.1,.9,9)]
-WPF_parameters = [LinRange(10,100,20); LinRange(100,1000,20)] #LinRange(10,150,50) # LinRange(0,150,11)
+WPF_parameters = [LinRange(10,100,10); LinRange(100,1000,10)] #LinRange(50,500,20)
+#WPF_parameters = [LinRange(10,100,20); LinRange(100,1000,20)] #LinRange(10,150,50) # LinRange(0,150,11)
 
 using ProgressBars, IterTools
 using Statistics, StatsBase
@@ -114,9 +115,10 @@ function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_p
             tickfont = secondary_font,
             legendfont = legend_font)
     
-    plt = plot(parameters, 
+    plt = plot([float.(parameters)], 
             vec(sum(parameter_costs[end-(parameter_tuning_window-1):end,:], dims=1))/(parameter_tuning_window),
             ribbon = sem.([parameter_costs[end-(parameter_tuning_window-1):end,parameter] for parameter in eachindex(parameters)]),
+            xscale = :log10,
             xlabel = "\$λ\$", 
             ylabel = "Expected cost",
             legend = nothing,
@@ -167,14 +169,14 @@ windowing_risk_adjusted_expected_cost, windowing_difference, windowing_differenc
 SES_risk_adjusted_expected_cost, SES_difference, SES_difference_pairwise_se, _ = 
     extract_results(SES_parameters, SES_weights)
 
-d(i,j,ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)
-include("weights.jl")
-WPF1_risk_adjusted_expected_cost, WPF1_difference, WPF1_difference_pairwise_se, _ = 
-    extract_results(WPF_parameters, WPF_weights)
+#d(i,j,ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)
+#include("weights.jl")
+#WPF1_risk_adjusted_expected_cost, WPF1_difference, WPF1_difference_pairwise_se, _ = 
+#    extract_results(WPF_parameters, WPF_weights)
 
 
-#=
-d(i,j,ξ_i,ξ_j) = ifelse(i == j, 0, 1.05*(norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)) + 0.01)
+
+d(i,j,ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)#ifelse(i == j, 0, 1.05*(norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)) )
 include("weights.jl")
 WPF1s_risk_adjusted_expected_cost, WPF1s_difference, WPF1s_difference_pairwise_se, WPF1s_parameter = 
     extract_results(WPF_parameters, WPF_weights; save_cost_plot_as = "figures/dairy-prices-WPF1s-parameter-costs.pdf")
@@ -224,7 +226,7 @@ plt_extracted_data = plot(1:14*1*12,
 
 sample_indices = 2:14*1*12
 WPF1s_parameter = round(Int,WPF1s_parameter)
-println("\$λ\$ = $WPF_parameter")
+println("\$λ\$ = $WPF1s_parameter")
 
 plt_probabilities = plot(sample_indices[WPF1s_sample_weights .>= 1e-3], 
                 WPF1s_sample_weights[WPF1s_sample_weights .>= 1e-3],
@@ -266,5 +268,3 @@ SAA_risk_adjusted_expected_cost = round(SAA_risk_adjusted_expected_cost, digits=
 println("& \$$SAA_risk_adjusted_expected_cost\$ & \$$windowing_risk_adjusted_expected_cost\$ & \$$SES_risk_adjusted_expected_cost\$ & \$$WPF1_risk_adjusted_expected_cost\$ & \$$WPF1s_risk_adjusted_expected_cost\$ & \$$WPF2_risk_adjusted_expected_cost\$ & \$$WPFInfty_risk_adjusted_expected_cost\$")
 println("& \$\$ & \\makecell{\$\\kern8.5167pt $windowing_difference\$\\\\\\small\$\\pm$windowing_difference_pairwise_se\$} & \\makecell{\$\\kern8.5167pt$SES_difference\$\\\\\\small{\$\\pm$SES_difference_pairwise_se\$}} & \\makecell{\$\\kern8.5167pt$WPF1_difference\$\\\\\\small{\$\\pm$WPF1_difference_pairwise_se\$}} & \\makecell{\$$WPF1s_difference\$\\\\\\small{\$\\pm$WPF1s_difference_pairwise_se\$}} & \\makecell{\$$WPF2_difference\$\\\\\\small{\$\\pm$WPF2_difference_pairwise_se\$}} & \\makecell{\$$WPFInfty_difference\$\\\\\\small{\$\\pm$WPFInfty_difference_pairwise_se\$}}")
 
-
-=#
