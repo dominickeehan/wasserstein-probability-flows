@@ -6,14 +6,14 @@ Co = 1 # Cost of overage.
 newsvendor_loss(x,ξ) = Cu*max(ξ-x,0) + Co*max(x-ξ,0)
 newsvendor_order(ξ, weights) = quantile(ξ, Weights(weights), Cu/(Co+Cu))
 
-#Random.seed!(42)
+Random.seed!(42)
 
 weight_shift_distribution = Normal(0, 0)
-mean_shift_distribution = MvNormal([0, 0], [300 0; 0 900])
-sd_shift_distribution = MvNormal([0, 0], [1 0; 0 1])
+mean_shift_distribution = MvNormal([0, 0], [300 0; 0 200])
+sd_shift_distribution = MvNormal([0, 0], [.1 0; 0 .1])
 
-repetitions = 10
-history_length = 60
+repetitions = 10000
+history_length = 100
 training_length = 30
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
@@ -23,7 +23,7 @@ demand_distributions = [[MixtureModel(Normal[Normal(0, 0), Normal(0, 0)]) for _ 
 
 for repetition in 1:repetitions
     means = [1000, 1000] #[rand(Uniform(500,1500)), rand(Uniform(1000,3000))]
-    sds = [200, 200] #[rand(Uniform(0,100)), rand(Uniform(0,141))]
+    sds = [300, 200] #[rand(Uniform(0,100)), rand(Uniform(0,141))]
     weight = 0.0 #rand(Uniform(0,1))
 
     for t in 1:history_length+1
@@ -74,10 +74,10 @@ include("weights.jl")
 
 
 display([train_and_test(windowing_weights, history_length)])
-display([train_and_test(windowing_weights, round.(Int, LinRange(1,history_length,history_length)))])
-display([train_and_test(SES_weights, [LinRange(0.0002,0.001,9); LinRange(0.002,0.01,9); LinRange(.02,1.0,99)])])
+display([train_and_test(windowing_weights, round.(Int, LinRange(1,history_length,30)))])
+display([train_and_test(SES_weights, [LinRange(0.002,0.01,9); LinRange(0.02,0.1,9); LinRange(.2,1,9)])])
 
-display([train_and_test(WPF_weights, [LinRange(.002,.01,9); LinRange(.02,.1,9); LinRange(.2,1,9); LinRange(2,10,9); LinRange(20,100,9);])])
+#display([train_and_test(WPF_weights, [LinRange(.02,.1,9); LinRange(.2,1,9); LinRange(2,10,9)])])
 
 #windowing_parameters = round.(Int, LinRange(10,history_length,7))
 #train_and_test(ambiguity_radii, windowing_weights, windowing_parameters)
