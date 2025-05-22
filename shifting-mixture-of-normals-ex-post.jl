@@ -12,22 +12,20 @@ using LinearAlgebra
 
 N = 2
 
-Q = 5
-
 weight_shift_distribution = Normal(0, 0.0)
-mean_shift_distribution = MvNormal(zeros(N), [300 0; 0 100]) # I
+mean_shift_distribution = MvNormal(zeros(N), [1000 0; 0 1000]) # I
 sd_shift_distribution = MvNormal(zeros(N), [.1 0; 0 .1])
 
-repetitions = 1000
-history_length = 20
+repetitions = 10000
+history_length = 10
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 demand_distributions = [[MixtureModel(Normal[Normal(0, 0) for _ in 1:N]) for _ in 1:history_length+1] for _ in 1:repetitions]
 
 for repetition in 1:repetitions
-    means = [0, 1000] # [i*1000 for i in 1:N]
-    sds = [300, 500] #100*ones(N)
-    weight = 0.0 #rand(Uniform(0,1))
+    means = [1000, 1000] # [i*1000 for i in 1:N]
+    sds = [300, 300] #100*ones(N)
+    weight = 0.5 #rand(Uniform(0,1))
 
     for t in 1:history_length+1
         demand_distributions[repetition][t] = MixtureModel(Normal[Normal(means[i], sds[i]) for i in 1:N], [weight, 1-weight])
@@ -69,8 +67,8 @@ function parameter_fit(solve_for_weights, weight_parameters)
         plt_1 = plot()
         for repetition in 1:repetitions
         
-            ξ_range = LinRange(-1000,(N+1)*1000,1000)
-            plot!(ξ_range, [pdf(demand_distributions[repetition][end-1], ξ) for ξ in ξ_range], labels = nothing, xlims = (-1000,(N+1)*1000), alpha = 0.5)
+            ξ_range = LinRange(-1000,3000,1000)
+            plot!(ξ_range, [pdf(demand_distributions[repetition][end-1], ξ) for ξ in ξ_range], labels = nothing, xlims = (-1000,3000), alpha = 0.5)
         end
 
         #display(plt)
@@ -82,7 +80,7 @@ function parameter_fit(solve_for_weights, weight_parameters)
             demand_sample_weights = solve_for_weights(demand_samples, weight_parameters[weight_parameter_index])
 
 #            plot!(demand_samples, demand_sample_weights, seriestype = :sticks, labels = nothing, xlims = (0,3000))
-            stephist!(demand_samples, weights=demand_sample_weights, normalize=:pdf, labels=nothing, xlims=(-1000,(N+1)*1000), bins = 25, alpha = 0.5, fill=true, fillalpha=0.01)
+            stephist!(demand_samples, weights=demand_sample_weights, normalize=:pdf, labels=nothing, xlims=(-1000,3000), bins = 3, alpha = 0.5)
         end
 
         display(plot(plt_1, plt_2, layout=@layout([a;b])))
@@ -118,7 +116,8 @@ SES_costs = parameter_fit(SES_weights, [LinRange(0.00001,0.0001,10); LinRange(0.
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.001,.01,Q); LinRange(.01,.1,Q); LinRange(.1,1,Q); LinRange(1,10,Q); LinRange(10,100,Q)])
 
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.01,.1,Q); LinRange(.1,1,Q); LinRange(1,10,Q)])
-WPF_costs = parameter_fit(WPF_weights, [LinRange(.02,.1,Q); LinRange(.2,1,Q); LinRange(2,10,Q);])
+#WPF_costs = parameter_fit(WPF_weights, [LinRange(.02,.1,9); LinRange(.2,1,9); LinRange(2,10,9);])
+WPF_costs = parameter_fit(WPF_weights, [LinRange(.02,.1,9); LinRange(.2,1,9)])
 #WPF_costs = parameter_fit(WPF_weights, LinRange(.1,1,Q))
 #WPF_costs = parameter_fit(WPF_weights, LinRange(1,10,Q))
 
