@@ -23,7 +23,7 @@ demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 demand_distributions = [[MixtureModel(Normal[Normal(0, 0) for _ in 1:N]) for _ in 1:history_length+1] for _ in 1:repetitions]
 
 for repetition in 1:repetitions
-    means = [1000, 1000] # [i*1000 for i in 1:N]
+    means = [0, 1000] # [i*1000 for i in 1:N]
     sds = [300, 300] #100*ones(N)
     weight = 0.5 #rand(Uniform(0,1))
 
