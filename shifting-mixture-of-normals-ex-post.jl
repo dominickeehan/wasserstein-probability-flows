@@ -6,26 +6,26 @@ Co = 1 # Cost of overage.
 newsvendor_loss(x,ξ) = Cu*max(ξ-x,0) + Co*max(x-ξ,0)
 newsvendor_order(ξ, weights) = quantile(ξ, Weights(weights), Cu/(Co+Cu))
 
-Random.seed!(42)
+Random.seed!(50)
 
 using LinearAlgebra
 
 N = 2
 
 weight_shift_distribution = Normal(0, 0.0)
-mean_shift_distribution = MvNormal(zeros(N), [1000 0; 0 1000]) # I
-sd_shift_distribution = MvNormal(zeros(N), [.1 0; 0 .1])
+mean_shift_distribution = MvNormal(zeros(N), [100 0; 0 10]) # I
+sd_shift_distribution = MvNormal(zeros(N), [.01 0; 0 .01])
 
-repetitions = 10000
-history_length = 10
+repetitions = 10
+history_length = 100
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 demand_distributions = [[MixtureModel(Normal[Normal(0, 0) for _ in 1:N]) for _ in 1:history_length+1] for _ in 1:repetitions]
 
 for repetition in 1:repetitions
     means = [0, 1000] # [i*1000 for i in 1:N]
-    sds = [300, 300] #100*ones(N)
-    weight = 0.5 #rand(Uniform(0,1))
+    sds = [100, 100] #100*ones(N)
+    weight = 0.0 #rand(Uniform(0,1))
 
     for t in 1:history_length+1
         demand_distributions[repetition][t] = MixtureModel(Normal[Normal(means[i], sds[i]) for i in 1:N], [weight, 1-weight])
@@ -62,7 +62,7 @@ function parameter_fit(solve_for_weights, weight_parameters)
     display(plot(weight_parameters, mean(costs), xscale=:log10))
     #display(plot(weight_parameters, mean(costs)))
 
-    if false
+    if true
 
         plt_1 = plot()
         for repetition in 1:repetitions
@@ -111,13 +111,18 @@ SES_costs = parameter_fit(SES_weights, [LinRange(0.00001,0.0001,10); LinRange(0.
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.01,.1,Q); LinRange(.1,1,Q); LinRange(1,10,Q)])
 #WPF_costs = parameter_fit(WPF_weights, LinRange(.1,1,Q))
 
-#WPF_costs = parameter_fit(WPF_weights, [LinRange(.0000001,.000001,Q); LinRange(.000001,.00001,Q); LinRange(.00001,.0001,Q); LinRange(.0001,.001,Q); LinRange(.001,.01,Q); LinRange(.01,.1,Q); LinRange(.1,1,Q); LinRange(1,10,Q); LinRange(10,100,Q); LinRange(100,1000,Q);])
+WPF_costs = parameter_fit(WPF_weights, [LinRange(.0000001,.000001,10); LinRange(.000001,.00001,10); LinRange(.00001,.0001,10); LinRange(.0001,.001,10); LinRange(.001,.01,10); LinRange(.01,.1,10); LinRange(.1,1,10); LinRange(1,10,10); LinRange(10,100,10); LinRange(100,1000,10);])
 
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.001,.01,Q); LinRange(.01,.1,Q); LinRange(.1,1,Q); LinRange(1,10,Q); LinRange(10,100,Q)])
 
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.01,.1,Q); LinRange(.1,1,Q); LinRange(1,10,Q)])
+
+#WPF_costs = parameter_fit(WPF_weights, [LinRange(.02,.1,9); LinRange(.2,1,9); LinRange(2,10,9); LinRange(20,100,9);])
+#WPF_costs = parameter_fit(WPF_weights, [LinRange(.0002,.001,9); LinRange(.002,.01,9); LinRange(.02,.1,9); LinRange(.2,1,9)])
+
+
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.02,.1,9); LinRange(.2,1,9); LinRange(2,10,9);])
-WPF_costs = parameter_fit(WPF_weights, [LinRange(.02,.1,9); LinRange(.2,1,9)])
+#WPF_costs = parameter_fit(WPF_weights, [LinRange(.02,.1,9); LinRange(.2,1,9)])
 #WPF_costs = parameter_fit(WPF_weights, LinRange(.1,1,Q))
 #WPF_costs = parameter_fit(WPF_weights, LinRange(1,10,Q))
 

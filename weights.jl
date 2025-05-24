@@ -141,3 +141,38 @@ function windowing_weights(history_of_observations, window_size)
 
     return weights
 end
+
+
+
+
+using JuMP, Ipopt
+
+Ipoptimizer = optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0)#, "tol" => 1e-9)
+
+function W₁_concentration_weights(history_of_observations, ϱ)
+
+    T = length(history_of_observations)
+    
+    ε = 30
+
+    p = 1
+
+    if ϱ >= (1/1)*ε; ϱ = (1/1)*ε; end
+
+    Problem = Model(Ipoptimizer)
+
+    @variable(Problem, 1>= w[t=1:T] >=0)
+
+    @constraint(Problem, sum(w[t] for t in 1:T) == 1)
+    @constraint(Problem, sum(w[t]*t^p*ϱ^p for t in 1:T) <= ε^p)
+
+    @objective(Problem, Max, (1/(sum(w[t]^2 for t in 1:T)))*((ε-(sum(w[t]*t^p*ϱ^p for t in 1:T))^(1/p))^(2*p)))
+
+    optimize!(Problem)
+
+    weights = [max(value(w[t]),0) for t in 1:T]
+    weights .= weights/sum(weights)
+
+    return reverse(weights)
+
+end

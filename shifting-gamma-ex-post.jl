@@ -10,10 +10,10 @@ Random.seed!(42)
 
 using LinearAlgebra
 
-shift_distribution = Normal(0, 2)
+shift_distribution = Normal(0, 1)
 
-repetitions = 3000
-history_length = 10
+repetitions = 1000
+history_length = 30
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 demand_distributions = [[Gamma(1,1) for _ in 1:history_length+1] for _ in 1:repetitions]
@@ -113,7 +113,7 @@ SES_costs = parameter_fit(SES_weights, [LinRange(0.00001,0.0001,10); LinRange(0.
 
 
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.002,.01,9); LinRange(.02,.1,9); LinRange(.2,1,9); LinRange(2,10,9); LinRange(20,100,9)])
-WPF_costs = parameter_fit(WPF_weights, [LinRange(.02,.1,9); LinRange(.2,1,19); LinRange(2,10,9);])
+WPF_costs = parameter_fit(WPF_weights, [LinRange(.001,.01,20); LinRange(.01,.1,20); LinRange(.1,1,20); LinRange(1,10,20);])
 #WPF_costs = parameter_fit(WPF_weights, LinRange(0.01,0.1,30))
 
 
