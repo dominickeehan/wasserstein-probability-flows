@@ -18,7 +18,7 @@ using LinearAlgebra
 
 shift_distribution = Normal(0, 10)
 
-repetitions = 3000
+repetitions = 1000
 history_length = 30
 
 value_sequences = [zeros(history_length+1) for _ in 1:repetitions]
@@ -70,7 +70,7 @@ include("weights.jl")
 
 parameter_fit(windowing_weights, history_length)
 #parameter_fit(windowing_weights, round.(Int, LinRange(1,history_length,history_length)))
-D = 10
+D = 20
 SES_revenues = parameter_fit(SES_weights, [0.0001; LinRange(0.001,0.01,D); LinRange(0.01,0.1,D); LinRange(0.1,1.0,D)])
 #WPF_revenues = parameter_fit(WPF_weights, [LinRange(.002,.01,9); LinRange(.02,.1,9); LinRange(.2,1,9); LinRange(2,10,9); LinRange(10,100,9); LinRange(100,1000,9)])
 #WPF_revenues = parameter_fit(WPF_weights, [LinRange(.1,1,10); LinRange(1,10,10); LinRange(10,100,10); LinRange(100,1000,10)])
