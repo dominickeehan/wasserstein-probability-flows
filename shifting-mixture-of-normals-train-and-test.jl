@@ -6,13 +6,13 @@ Co = 1 # Cost of overage.
 newsvendor_loss(x,ξ) = Cu*max(ξ-x,0) + Co*max(x-ξ,0)
 newsvendor_order(ξ, weights) = quantile(ξ, Weights(weights), Cu/(Co+Cu))
 
-Random.seed!(42)
+Random.seed!(40)
 
 weight_shift_distribution = Normal(0, 0)
-mean_shift_distribution = MvNormal([0, 0], [100 0; 0 10])
+mean_shift_distribution = MvNormal([0, 0], [10 0; 0 10])
 sd_shift_distribution = MvNormal([0, 0], [.1 0; 0 .1])
 
-repetitions = 10
+repetitions = 1
 history_length = 100
 training_length = 30
 
