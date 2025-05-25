@@ -13,7 +13,7 @@ using LinearAlgebra
 N = 2
 
 weight_shift_distribution = Normal(0, 0.0)
-mean_shift_distribution = MvNormal(zeros(N), [100 0; 0 10]) # I
+mean_shift_distribution = MvNormal(zeros(N), [10 0; 0 20]) # I
 sd_shift_distribution = MvNormal(zeros(N), [.01 0; 0 .01])
 
 repetitions = 10
@@ -24,8 +24,8 @@ demand_distributions = [[MixtureModel(Normal[Normal(0, 0) for _ in 1:N]) for _ i
 
 for repetition in 1:repetitions
     means = [0, 1000] # [i*1000 for i in 1:N]
-    sds = [100, 100] #100*ones(N)
-    weight = 0.0 #rand(Uniform(0,1))
+    sds = [100, 200] #100*ones(N)
+    weight = 0.5 #rand(Uniform(0,1))
 
     for t in 1:history_length+1
         demand_distributions[repetition][t] = MixtureModel(Normal[Normal(means[i], sds[i]) for i in 1:N], [weight, 1-weight])

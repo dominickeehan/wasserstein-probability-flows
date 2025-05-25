@@ -18,15 +18,15 @@ using LinearAlgebra
 
 shift_distribution = Normal(0, 20)
 
-repetitions = 1000
-history_length = 10
+repetitions = 100
+history_length = 100
 
 value_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 value_distributions = [[Normal(0,1) for _ in 1:history_length+1] for _ in 1:repetitions]
 
 for repetition in 1:repetitions
-    μ = 100
-    σ = 20
+    μ = 1000
+    σ = 200
 
     for t in 1:history_length+1
         value_distributions[repetition][t] = Normal(μ, σ)
@@ -74,7 +74,8 @@ D = 10
 SES_revenues = parameter_fit(SES_weights, [0.0001; LinRange(0.001,0.01,D); LinRange(0.01,0.1,D); LinRange(0.1,1.0,D)])
 #WPF_revenues = parameter_fit(WPF_weights, [LinRange(.002,.01,9); LinRange(.02,.1,9); LinRange(.2,1,9); LinRange(2,10,9); LinRange(10,100,9); LinRange(100,1000,9)])
 #WPF_revenues = parameter_fit(WPF_weights, [LinRange(.1,1,10); LinRange(1,10,10); LinRange(10,100,10); LinRange(100,1000,10)])
-WPF_revenues = parameter_fit(WPF_weights, [LinRange(.1,1,D); LinRange(1,10,D); LinRange(10,100,D); LinRange(100,1000,D)])
+#WPF_revenues = parameter_fit(WPF_weights, [LinRange(.001,.01,D); LinRange(.01,.1,D); LinRange(.1,1,D); LinRange(1,10,D); LinRange(10,100,D); LinRange(100,1000,D); LinRange(1000,10000,D)])
+WPF_revenues = parameter_fit(WPF_weights, [LinRange(.01,.1,D); LinRange(.1,1,D); LinRange(1,10,D); LinRange(10,100,D)])
 
 
 display(sem(WPF_revenues - SES_revenues))
