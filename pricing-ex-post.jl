@@ -16,10 +16,10 @@ Random.seed!(42)
 
 using LinearAlgebra
 
-shift_distribution = Normal(0, 20)
+shift_distribution = Normal(0, 10)
 
-repetitions = 100
-history_length = 100
+repetitions = 3000
+history_length = 30
 
 value_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 value_distributions = [[Normal(0,1) for _ in 1:history_length+1] for _ in 1:repetitions]
