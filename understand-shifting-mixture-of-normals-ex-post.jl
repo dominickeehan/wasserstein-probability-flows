@@ -6,25 +6,25 @@ Co = 1 # Cost of overage.
 newsvendor_loss(x,ξ) = Cu*max(ξ-x,0) + Co*max(x-ξ,0)
 newsvendor_order(ξ, weights) = quantile(ξ, Weights(weights), Cu/(Co+Cu))
 
-Random.seed!(42)
+Random.seed!(43)
 
 using LinearAlgebra
 
 N = 2
 
 weight_shift_distribution = Normal(0, 0.0)
-mean_shift_distribution = MvNormal(zeros(N), [100 0; 0 1000]) # I
+mean_shift_distribution = MvNormal(zeros(N), [2*300 0; 0 1/2*3000]) # I
 sd_shift_distribution = MvNormal(zeros(N), [.01 0; 0 .01])
 
-repetitions = 100
-history_length = 100
+repetitions = 300
+history_length = 30
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 demand_distributions = [[MixtureModel(Normal[Normal(0, 0) for _ in 1:N]) for _ in 1:history_length+1] for _ in 1:repetitions]
 
 for repetition in 1:repetitions
-    means = [0, 1000] # [i*1000 for i in 1:N]
-    sds = [100, 200] #100*ones(N)
+    means = [1000, 1000] # [i*1000 for i in 1:N]
+    sds = [1/2*100, 200] #100*ones(N)
     weight = 0.5 #rand(Uniform(0,1))
 
     for t in 1:history_length+1
@@ -40,7 +40,7 @@ end
 
 using Plots
 using ProgressBars, IterTools
-function parameter_fit(solve_for_weights, weight_parameters)
+function parameter_fit(solve_for_weights, weight_parameters, string)
 
     costs = [zeros(length(weight_parameters)) for _ in 1:repetitions]
 
@@ -59,33 +59,41 @@ function parameter_fit(solve_for_weights, weight_parameters)
 
     display([round(mean(minimal_costs), digits=digits), round(sem(minimal_costs), digits=digits), round(weight_parameters[weight_parameter_index], digits=digits)])
 
-    display(plot(weight_parameters, mean(costs), xscale=:log10))
+    #display(plot(weight_parameters, mean(costs), xscale=:log10))
     #display(plot(weight_parameters, mean(costs)))
 
-    if false
+    if true
 
-        plt_1 = plot()
-        for repetition in 1:repetitions
+        for q in 1:3
+            plt_1 = plot(title=string)
+            for repetition in q:q
         
-            ξ_range = LinRange(-1000,3000,1000)
-            plot!(ξ_range, [pdf(demand_distributions[repetition][end-1], ξ) for ξ in ξ_range], labels = nothing, xlims = (-1000,3000), alpha = 0.5)
-        end
+                ξ_range = LinRange(-1000,3000,1000)
+                for t in 1:history_length
+                    plot!(ξ_range, [pdf(demand_distributions[repetition][t], ξ) for ξ in ξ_range].-t*0.0001, labels = nothing, xlims = (-1000,3000), alpha = 0.5, color=:red)
+                    scatter!([demand_sequences[repetition][t]], [pdf(demand_distributions[repetition][t], demand_sequences[repetition][t])-t*0.0001], labels = nothing, color=:purple, markershape=:circle, markersize=2)
+                end
+            end
 
         #display(plt)
 
-        plt_2 = plot()
-        for repetition in 1:repetitions
+            plt_2 = plot()
+            for repetition in q:q
 
-            demand_samples = demand_sequences[repetition][1:history_length]
-            demand_sample_weights = solve_for_weights(demand_samples, weight_parameters[weight_parameter_index])
+                demand_samples = demand_sequences[repetition][1:history_length]
+                demand_sample_weights = solve_for_weights(demand_samples, weight_parameters[weight_parameter_index])
 
-#            plot!(demand_samples, demand_sample_weights, seriestype = :sticks, labels = nothing, xlims = (0,3000))
-            stephist!(demand_samples, weights=demand_sample_weights, normalize=:pdf, labels=nothing, xlims=(-1000,3000), bins = 3, alpha = 0.5)
+#                plot!(demand_samples, demand_sample_weights, seriestype = :sticks, labels = nothing, xlims = (0,3000))
+                ξ_range = LinRange(-1000,3000,1000)
+                plot!(ξ_range, [pdf(demand_distributions[repetition][end], ξ) for ξ in ξ_range], labels = nothing, xlims = (-1000,3000), alpha = 0.5, color=:red)
+                scatter!([demand_sequences[repetition][end]], [pdf(demand_distributions[repetition][end], demand_sequences[repetition][end])], labels = nothing, color=:purple, markershape=:circle, markersize=2)
+                stephist!(demand_samples, weights=demand_sample_weights, normalize=:pdf, labels=nothing, xlims=(-1000,3000), bins = 10, alpha = 0.5, color=:blue)
+            end
+
+            display(plot(plt_1, plt_2, layout=@layout([a;b])))
+    
         end
-
-        display(plot(plt_1, plt_2, layout=@layout([a;b])))
     end
-
     return minimal_costs
 end
 
@@ -94,9 +102,9 @@ d(i,j,ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) #ifelse(i == j, 0, norm(ξ_i[1] - 
 include("weights.jl")
 
 
-parameter_fit(windowing_weights, history_length)
+parameter_fit(windowing_weights, history_length, "SAA")
 #parameter_fit(windowing_weights, round.(Int, LinRange(1,history_length,history_length)))
-SES_costs = parameter_fit(SES_weights, [LinRange(0.00001,0.0001,10); LinRange(0.0001,0.001,9); LinRange(0.002,0.01,9); LinRange(0.02,1.0,99)])
+SES_costs = parameter_fit(SES_weights, [LinRange(0.00001,0.0001,10); LinRange(0.0001,0.001,9); LinRange(0.002,0.01,9); LinRange(0.02,1.0,99)], "SES")
 
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.02,.1,5); LinRange(.2,1,5); LinRange(2,10,5); LinRange(20,100,5)])
 
@@ -111,7 +119,10 @@ SES_costs = parameter_fit(SES_weights, [LinRange(0.00001,0.0001,10); LinRange(0.
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.01,.1,Q); LinRange(.1,1,Q); LinRange(1,10,Q)])
 #WPF_costs = parameter_fit(WPF_weights, LinRange(.1,1,Q))
 
-WPF_costs = parameter_fit(WPF_weights, [LinRange(.0000001,.000001,10); LinRange(.000001,.00001,10); LinRange(.00001,.0001,10); LinRange(.0001,.001,10); LinRange(.001,.01,10); LinRange(.01,.1,10); LinRange(.1,1,10); LinRange(1,10,10); LinRange(10,100,10); LinRange(100,1000,10);])
+WPF_costs = parameter_fit(WPF_weights, [LinRange(.0000001,.000001,10); LinRange(.000001,.00001,10); LinRange(.00001,.0001,10); LinRange(.0001,.001,10); LinRange(.001,.01,10); LinRange(.01,.1,10); LinRange(.1,1,10); LinRange(1,10,10); LinRange(10,100,10); LinRange(100,1000,10);], "WPF")
+
+#WPF_costs = parameter_fit(WPF_weights, [LinRange(.01,.1,10); LinRange(.1,1,10); LinRange(1,10,10); LinRange(10,100,10); LinRange(100,1000,10);])
+
 
 #WPF_costs = parameter_fit(WPF_weights, [LinRange(.001,.01,Q); LinRange(.01,.1,Q); LinRange(.1,1,Q); LinRange(1,10,Q); LinRange(10,100,Q)])
 

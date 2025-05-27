@@ -15,11 +15,11 @@ end
 
 Random.seed!(42)
 
-shift_distribution = Normal(0, 20)
+shift_distribution = Normal(0, 2000)
 
-repetitions = 30
+repetitions = 100
 history_length = 30
-training_length = 20
+training_length = 10
 
 value_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 value_distributions = [[Normal(0,1) for _ in 1:history_length+1] for _ in 1:repetitions]
@@ -76,7 +76,8 @@ D = 10
 display([train_and_test(windowing_weights, history_length)])
 display([train_and_test(windowing_weights, round.(Int, LinRange(1,history_length,30)))])
 display([train_and_test(SES_weights, [LinRange(0.002,0.01,9); LinRange(0.02,0.1,9); LinRange(.2,1,9)])])
-display([train_and_test(WPF_weights, [LinRange(.01,.1,D); LinRange(.1,1,D); LinRange(1,10,D); LinRange(10,100,D)])])
+display([train_and_test(WPF_weights, [LinRange(.00001,.001,D); LinRange(.001,.01,D); LinRange(.01,.1,D); LinRange(.1,1,D); LinRange(1,10,D); LinRange(10,100,D); LinRange(100,1000,D); LinRange(1000,10000,D)])])
+#display([train_and_test(WPF_weights, [LinRange(.01,.1,D); LinRange(.1,1,D); LinRange(1,10,D); LinRange(10,100,D)])])
 
 
 
