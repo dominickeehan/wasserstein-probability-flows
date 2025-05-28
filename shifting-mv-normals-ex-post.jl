@@ -21,17 +21,19 @@ Random.seed!(42)
 
 using LinearAlgebra
 
-D = 100
+Dims = 100
 
-μ_shift_distribution = MvNormal(zeros(D), 100*I)
+matrix = Matrix(1.0*I, Dims, Dims)
+for i in 1:Dims; matrix[i,i] = rand()*i; end
+μ_shift_distribution = MvNormal(zeros(Dims), 1*matrix)
 
-repetitions = 100
+repetitions = 300
 history_length = 30
 
-demand_sequences = [[zeros(D) for t in 1:history_length+1] for r in 1:repetitions]
+demand_sequences = [[zeros(Dims) for t in 1:history_length+1] for r in 1:repetitions]
 
 for repetition in 1:repetitions
-    μ = 1000*ones(D)
+    μ = 1000*ones(Dims)
     σ = 100
 
     for t in 1:history_length+1
@@ -69,16 +71,15 @@ function parameter_fit(solve_for_weights, weight_parameters)
 end
 
 using LinearAlgebra
-d(i,j,ξ_i,ξ_j) = ifelse(i == j, 0, norm(ξ_i - ξ_j, 1) + 0)
+d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 1) #ifelse(i == j, 0, norm(ξ_i - ξ_j, 1) + 0)
 include("weights.jl")
 
-Q = 20
+D = 10
 
 parameter_fit(windowing_weights, history_length)
 SES_costs = parameter_fit(SES_weights, [LinRange(0.001,0.01,10); LinRange(0.01,0.1,10); LinRange(0.1,1.0,10)])
-W₁_concentration_costs = parameter_fit(W₁_concentration_weights, LinRange(1,history_length,30))
-#WPF_costs = parameter_fit(WPF_weights, [LinRange(.01,.1,Q); LinRange(.1,1,Q); LinRange(1,10,Q); LinRange(10,100,Q)])
+WPF_costs = parameter_fit(WPF_weights, [LinRange(.001,.01,D); LinRange(.01,.1,D); LinRange(.1,1,D); LinRange(1,10,D); LinRange(10,100,D)])
 
-#display(sem(WPF_costs - SES_costs))
+display(sem(WPF_costs - SES_costs))
 
-display(1)
+#display(1)

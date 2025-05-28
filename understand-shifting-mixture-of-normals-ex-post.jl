@@ -13,18 +13,18 @@ using LinearAlgebra
 N = 2
 
 weight_shift_distribution = Normal(0, 0.0)
-mean_shift_distribution = MvNormal(zeros(N), [2*300 0; 0 1/2*3000]) # I
+mean_shift_distribution = MvNormal(zeros(N), [4*300 0; 0 1/4*3000]) # I
 sd_shift_distribution = MvNormal(zeros(N), [.01 0; 0 .01])
 
-repetitions = 300
-history_length = 30
+repetitions = 300 #300
+history_length = 60
 
 demand_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 demand_distributions = [[MixtureModel(Normal[Normal(0, 0) for _ in 1:N]) for _ in 1:history_length+1] for _ in 1:repetitions]
 
 for repetition in 1:repetitions
     means = [1000, 1000] # [i*1000 for i in 1:N]
-    sds = [1/2*100, 200] #100*ones(N)
+    sds = [1/4*100, 200] #100*ones(N)
     weight = 0.5 #rand(Uniform(0,1))
 
     for t in 1:history_length+1
@@ -57,10 +57,15 @@ function parameter_fit(solve_for_weights, weight_parameters, string)
 
     digits = 4
 
-    display([round(mean(minimal_costs), digits=digits), round(sem(minimal_costs), digits=digits), round(weight_parameters[weight_parameter_index], digits=digits)])
+    #display([round(mean(minimal_costs), digits=digits), round(sem(minimal_costs), digits=digits), round(weight_parameters[weight_parameter_index], digits=digits)])
+    display([round(mean(minimal_costs), digits=digits)])
+
 
     #display(plot(weight_parameters, mean(costs), xscale=:log10))
     #display(plot(weight_parameters, mean(costs)))
+
+    plt = [plot(), plot(), plot()] #plot(title=string)
+
 
     if true
 
@@ -90,10 +95,14 @@ function parameter_fit(solve_for_weights, weight_parameters, string)
                 stephist!(demand_samples, weights=demand_sample_weights, normalize=:pdf, labels=nothing, xlims=(-1000,3000), bins = 10, alpha = 0.5, color=:blue)
             end
 
-            display(plot(plt_1, plt_2, layout=@layout([a;b])))
+            plt[q] = plot(plt_1, plt_2, layout=@layout([a;b]))
     
         end
     end
+
+    gr(size = (600,1500))
+    display(plot(plt[1], plt[2], plt[3], layout=@layout([a;b;c]), title=string))
+
     return minimal_costs
 end
 

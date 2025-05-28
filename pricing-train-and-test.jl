@@ -1,7 +1,14 @@
 using Random, Statistics, StatsBase, Distributions
+using QuadGK
 
+price_revenue(price, value) = price*ifelse(value >= price, 1, 0)
+function distribution_price_revenue(price, value_distribution)
 
-price_revenue(price,value) = price*ifelse(value >= price, 1, 0)
+    integrand(p) = p * pdf(value_distribution, p)
+    result, error = quadgk(integrand, price, Inf)
+
+    return result
+end
 
 function optimal_price(values, weights)
     
@@ -15,11 +22,11 @@ end
 
 Random.seed!(42)
 
-shift_distribution = Normal(0, 2000)
+shift_distribution = MixtureModel(Normal[Normal(0, .1), Normal(0, 100)], [.9, .1])
 
-repetitions = 100
+repetitions = 300
 history_length = 30
-training_length = 10
+training_length = 9
 
 value_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 value_distributions = [[Normal(0,1) for _ in 1:history_length+1] for _ in 1:repetitions]
@@ -62,7 +69,8 @@ function train_and_test(solve_for_weights, weight_parameters)
         value_samples = value_sequences[repetition][1:history_length]
         value_sample_weights = solve_for_weights(value_samples, weight_parameters[weight_parameter_index])
         price = optimal_price(value_samples, value_sample_weights)
-        revenues[repetition] = price_revenue(price, value_sequences[repetition][history_length+1])
+        #revenues[repetition] = price_revenue(price, value_sequences[repetition][history_length+1])
+        revenues[repetition] = distribution_price_revenue(price, value_distributions[repetition][history_length+1])
     end
 
     return mean(revenues), sem(revenues)
@@ -75,8 +83,9 @@ include("weights.jl")
 D = 10
 display([train_and_test(windowing_weights, history_length)])
 display([train_and_test(windowing_weights, round.(Int, LinRange(1,history_length,30)))])
-display([train_and_test(SES_weights, [LinRange(0.002,0.01,9); LinRange(0.02,0.1,9); LinRange(.2,1,9)])])
-display([train_and_test(WPF_weights, [LinRange(.00001,.001,D); LinRange(.001,.01,D); LinRange(.01,.1,D); LinRange(.1,1,D); LinRange(1,10,D); LinRange(10,100,D); LinRange(100,1000,D); LinRange(1000,10000,D)])])
+display([train_and_test(SES_weights, [LinRange(0.001,0.01,D); LinRange(0.01,0.1,D); LinRange(.1,1,D)])])
+#display([train_and_test(WPF_weights, [LinRange(.00001,.0001,D); LinRange(.0001,.001,D); LinRange(.001,.01,D); LinRange(.01,.1,D); LinRange(.1,1,D); LinRange(1,10,D); LinRange(10,100,D); LinRange(100,1000,D); LinRange(1000,10000,D)])])
+display([train_and_test(WPF_weights, [LinRange(.001,.01,D); LinRange(.01,.1,D); LinRange(.1,1,D); LinRange(1,10,D); LinRange(10,100,D); LinRange(100,1000,D)])])
 #display([train_and_test(WPF_weights, [LinRange(.01,.1,D); LinRange(.1,1,D); LinRange(1,10,D); LinRange(10,100,D)])])
 
 
