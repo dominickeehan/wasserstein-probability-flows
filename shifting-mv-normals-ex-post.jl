@@ -21,20 +21,20 @@ Random.seed!(42)
 
 using LinearAlgebra
 
-Dims = 100
+Dims = 20
 
 matrix = Matrix(1.0*I, Dims, Dims)
-for i in 1:Dims; matrix[i,i] = rand()*i; end
+for i in 1:Dims; matrix[i,i] = i; end
 μ_shift_distribution = MvNormal(zeros(Dims), 1*matrix)
 
-repetitions = 300
+repetitions = 100
 history_length = 30
 
 demand_sequences = [[zeros(Dims) for t in 1:history_length+1] for r in 1:repetitions]
 
 for repetition in 1:repetitions
     μ = 1000*ones(Dims)
-    σ = 100
+    σ = 200
 
     for t in 1:history_length+1
         demand_sequences[repetition][t] = rand(MvNormal(μ, σ*I))
@@ -79,6 +79,16 @@ D = 10
 parameter_fit(windowing_weights, history_length)
 SES_costs = parameter_fit(SES_weights, [LinRange(0.001,0.01,10); LinRange(0.01,0.1,10); LinRange(0.1,1.0,10)])
 WPF_costs = parameter_fit(WPF_weights, [LinRange(.001,.01,D); LinRange(.01,.1,D); LinRange(.1,1,D); LinRange(1,10,D); LinRange(10,100,D)])
+
+d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 2) #ifelse(i == j, 0, norm(ξ_i - ξ_j, 1) + 0)
+include("weights.jl")
+WPF_costs = parameter_fit(WPF_weights, [LinRange(.001,.01,D); LinRange(.01,.1,D); LinRange(.1,1,D); LinRange(1,10,D); LinRange(10,100,D)])
+
+d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, Inf) #ifelse(i == j, 0, norm(ξ_i - ξ_j, 1) + 0)
+include("weights.jl")
+WPF_costs = parameter_fit(WPF_weights, [LinRange(.001,.01,D); LinRange(.01,.1,D); LinRange(.1,1,D); LinRange(1,10,D); LinRange(10,100,D)])
+
+
 
 display(sem(WPF_costs - SES_costs))
 
