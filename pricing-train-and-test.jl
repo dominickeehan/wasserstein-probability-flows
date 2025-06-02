@@ -1,5 +1,6 @@
 using Random, Statistics, StatsBase, Distributions
 using QuadGK
+using Plots, Measures
 
 price_revenue(price, value) = price*ifelse(value >= price, 1, 0)
 function expected_price_revenue(price, value_distribution)
@@ -22,18 +23,18 @@ end
 
 Random.seed!(42)
 
-shift_distribution = Normal(0, 1000) #Normal(0, 1000) #MixtureModel(Normal[Normal(0, .1), Normal(0, 1000)], [.9, .1])
+shift_distribution = Normal(0, 100) #Normal(0, 100)
 
-repetitions = 1000
-history_length = 50 #20 #30
-training_length = 15 #5 #9
+repetitions = 10 # 100
+history_length = 50 # 50
+training_length = 15 # 15
 
 value_sequences = [zeros(history_length+1) for _ in 1:repetitions]
 value_distributions = [[Normal(0,1) for _ in 1:history_length+1] for _ in 1:repetitions]
 
 for repetition in 1:repetitions
-    μ = 1000
-    σ = 200
+    μ = 100 # 100
+    σ = 20 # 20
 
     for t in 1:history_length+1
         value_distributions[repetition][t] = Normal(μ, σ)
@@ -51,7 +52,7 @@ function train_and_test(solve_for_weights, weight_parameters)
     revenues = zeros(repetitions)
     #weight_parameters_to_test = zeros(repetitions)
 
-    println("training and testing method...")
+    #println("training and testing method...")
 
     for repetition in ProgressBar(1:repetitions)
 
@@ -64,6 +65,8 @@ function train_and_test(solve_for_weights, weight_parameters)
             training_revenues[t-(history_length-training_length)][weight_parameter_index] = price_revenue(price, value_sequences[repetition][t])
         end
 
+        #display(plot(weight_parameters, mean(training_revenues), xscale=:log10))
+
         weight_parameter_index = argmax(mean(training_revenues))
         #println([weight_parameter_index, length(weight_parameters)])
         value_samples = value_sequences[repetition][1:history_length]
@@ -73,21 +76,30 @@ function train_and_test(solve_for_weights, weight_parameters)
         revenues[repetition] = expected_price_revenue(price, value_distributions[repetition][history_length+1])
     end
 
-    return mean(revenues), sem(revenues)
+    μ = mean(revenues)
+    σ = sem(revenues)
+
+    println("$μ ± $σ")
+
+    return revenues
+
 end
 
 using LinearAlgebra
 d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 1)
 include("weights.jl")
 
-D = 10
-display([train_and_test(windowing_weights, history_length)])
-display([train_and_test(windowing_weights, round.(Int, LinRange(1,history_length,40)))])
-display([train_and_test(SES_weights, [LinRange(0.0001,0.001,D); LinRange(0.001,0.01,D); LinRange(0.01,0.1,D); LinRange(.1,1,D)])])
 
-display([train_and_test(WPF_weights, [LinRange(0.01,0.1,D); LinRange(0.1,1,D); LinRange(1,10,D); LinRange(10,100,D); LinRange(100,1000,D)])])
+SAA = train_and_test(windowing_weights, [history_length])
+windowing = train_and_test(windowing_weights, round.(Int, LinRange(1,history_length,30)))
+smoothing = train_and_test(SES_weights, [LinRange(0.001,0.01,10); LinRange(0.01,0.1,10); LinRange(0.1,1.0,10)])
 
+WPF = train_and_test(WPF_weights, [[0]; LinRange(0.1,1,10); LinRange(2,10,9); LinRange(20,100,9)])  # train_and_test(WPF_weights, [LinRange(0.1,1,D); LinRange(1,10,D); LinRange(10,100,D); LinRange(100,1000,D)])
 
+display(sem(WPF - SAA))
 
-
+# (262.0736477091183, 13.092936082748315)
+# (248.95441024652078, 13.366638093872824)
+# (250.05230443034603, 13.40248200641896)
+# (274.4764549759506, 13.767884442532075)
 

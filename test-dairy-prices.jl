@@ -36,12 +36,12 @@ training_T = length(training_data)
 testing_data = extracted_data[training_testing_split+1:end]
 testing_T = length(testing_data)
 
-parameter_tuning_window = 2*12
+parameter_tuning_window = 2*12 # 2*12
 
 
-windowing_parameters = round.(Int, LinRange(10,length(extracted_data),30))
+windowing_parameters = round.(Int, LinRange(12,length(extracted_data),27))
 SES_parameters = [LinRange(.001,.01,10); LinRange(.01,.1,10); LinRange(.1,.9,9)]
-WPF_parameters = [LinRange(10,100,10); LinRange(100,1000,10)] #[LinRange(10,100,100); LinRange(100,1000,100)]
+WPF_parameters = [LinRange(10,100,10); LinRange(200,1000,9)] #[LinRange(10,100,100); LinRange(100,1000,100)]
 
 
 function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_plot_as = nothing)
