@@ -25,7 +25,7 @@ Random.seed!(42)
 
 shift_distribution = Normal(0, 100) #Normal(0, 100)
 
-repetitions = 10 # 100
+repetitions = 3000 # 100
 history_length = 50 # 50
 training_length = 15 # 15
 
@@ -94,7 +94,7 @@ SAA = train_and_test(windowing_weights, [history_length])
 windowing = train_and_test(windowing_weights, round.(Int, LinRange(1,history_length,30)))
 smoothing = train_and_test(SES_weights, [LinRange(0.001,0.01,10); LinRange(0.01,0.1,10); LinRange(0.1,1.0,10)])
 
-WPF = train_and_test(WPF_weights, [[0]; LinRange(0.1,1,10); LinRange(2,10,9); LinRange(20,100,9)])  # train_and_test(WPF_weights, [LinRange(0.1,1,D); LinRange(1,10,D); LinRange(10,100,D); LinRange(100,1000,D)])
+WPF = train_and_test(WPF_weights, [LinRange(0.1,1,10); LinRange(2,10,9); LinRange(20,100,9)])  # train_and_test(WPF_weights, [LinRange(0.1,1,D); LinRange(1,10,D); LinRange(10,100,D); LinRange(100,1000,D)])
 
 display(sem(WPF - SAA))
 
