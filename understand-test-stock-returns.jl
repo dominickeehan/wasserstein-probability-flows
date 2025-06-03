@@ -90,9 +90,9 @@ testing_T = length(testing_data)
 parameter_tuning_window = 2*12
 
 
-windowing_parameters = round.(Int, LinRange(1,length(extracted_data),18))
+windowing_parameters = round.(Int, LinRange(1,length(extracted_data),30))
 SES_parameters = [LinRange(0.001,0.01,10); LinRange(0.01,0.1,10); LinRange(0.1,1,10)]
-WPF_parameters = [[0]; LinRange(1,10,10); LinRange(20,100,9); LinRange(200,1000,9)] #[LinRange(1,10,100); LinRange(10,100,100); LinRange(100,1000,100)]
+WPF_parameters = [LinRange(1,10,10); LinRange(10,100,10); LinRange(100,1000,10)] #[LinRange(1,10,100); LinRange(10,100,100); LinRange(100,1000,100)]
 
 
 function train_and_test_out_of_sample(parameters, weights; save_cost_plot_as = nothing)
@@ -138,7 +138,7 @@ function train_and_test_out_of_sample(parameters, weights; save_cost_plot_as = n
     
     default() # Reset plot defaults.
 
-    gr(size = (600,400))
+    gr(size = (600,2000))
     
     font_family = "Computer Modern"
     primary_font = Plots.font(font_family, pointsize = 17)
@@ -161,28 +161,34 @@ function train_and_test_out_of_sample(parameters, weights; save_cost_plot_as = n
             tickfont = secondary_font,
             legendfont = legend_font)
 
-    plt = plot([float.(parameters)], 
-            average_parameter_costs_in_previous_stages[end], #vec(sum(parameter_costs[end-(parameter_tuning_window-1):end,:], dims=1))/(parameter_tuning_window),
-            ribbon = sem.([parameter_costs[end-(parameter_tuning_window-1):end,parameter_index] for parameter_index in eachindex(parameters)]),
-            xscale = :log10,
-            xticks = [1, 10, 100, 1000],
-            xlabel = "\$λ\$", 
-            ylabel = "Risk-adjusted expected cost",
-            legend = nothing,
-            legendfonthalign = :center,
-            color = palette(:tab10)[1],
-            alpha = 1,
-            linestyle = :solid,
-            linewidth = 1,
-            fillalpha = .1,
-            topmargin = 0pt, 
-            rightmargin = 0pt,
-            bottommargin = 3pt, 
-            leftmargin = 3pt)
+    plt = plot()
+
+    for k in eachindex(average_parameter_costs_in_previous_stages)
+        plot!([float.(parameters)], 
+        average_parameter_costs_in_previous_stages[k].-k*0.1, #vec(sum(parameter_costs[end-(parameter_tuning_window-1):end,:], dims=1))/(parameter_tuning_window),
+        #ribbon = sem.([parameter_costs[end-(parameter_tuning_window-1):end,parameter_index] for parameter_index in eachindex(parameters)]),
+        xscale = :log10,
+        xticks = [1, 10, 100, 1000],
+        xlabel = "\$λ\$", 
+        ylabel = "Risk-adjusted expected cost",
+        legend = nothing,
+        legendfonthalign = :center,
+        color = palette(:tab10)[1],
+        alpha = 1.0,#*k/length(average_parameter_costs_in_previous_stages),
+        linestyle = :solid,
+        linewidth = 1,
+        fillalpha = .1,
+        topmargin = 0pt, 
+        rightmargin = 0pt,
+        bottommargin = 3pt, 
+        leftmargin = 3pt)
+
+        scatter!([float.(parameters[argmin(average_parameter_costs_in_previous_stages[k])])], [min(average_parameter_costs_in_previous_stages[k]...).-k*0.1])
+    end
     
     display(plt);
 
-    if !(save_cost_plot_as === nothing); savefig(plt, save_cost_plot_as); end
+    #if !(save_cost_plot_as === nothing); savefig(plt, save_cost_plot_as); end
 
     return realised_costs, parameters[argmin(average_parameter_costs_in_previous_stages[end])]
 
@@ -220,11 +226,14 @@ windowing_risk_adjusted_expected_cost, windowing_difference, windowing_differenc
 SES_risk_adjusted_expected_cost, SES_difference, SES_difference_pairwise_se, _ = 
     extract_results(SES_parameters, SES_weights)
 
+
 d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 1)
 include("weights.jl")
 WPF1_risk_adjusted_expected_cost, WPF1_difference, WPF1_difference_pairwise_se, WPF1_parameter = 
     extract_results(WPF_parameters, WPF_weights; save_cost_plot_as = "figures/stock-returns-WPF1-parameter-costs.pdf")
 
+
+#=
 WPF1_sample_weights = WPF_weights(extracted_data, WPF1_parameter)
 
 
@@ -307,7 +316,7 @@ plt_probabilities = plot(sample_indices[WPF1_sample_weights .>= 1e-3],
 
 figure = plot(plt_extracted_data, plt_probabilities, layout=@layout([a; b]))
 display(figure)
-savefig(figure, "figures/stock-returns-WPF1-assigned-probability-to-historical-observations.pdf")
+#savefig(figure, "figures/stock-returns-WPF1-assigned-probability-to-historical-observations.pdf")
 
 
 
@@ -326,4 +335,5 @@ println("& \$$SAA_risk_adjusted_expected_cost\$ & \$$windowing_risk_adjusted_exp
 println("& \$\$ & \\makecell{\$\\kern8.5167pt$windowing_difference\$\\\\\\small\$\\pm$windowing_difference_pairwise_se\$} & \\makecell{\$\\kern8.5167pt$SES_difference\$\\\\\\small{\$\\pm$SES_difference_pairwise_se\$}} & \\makecell{\$$WPF1_difference\$\\\\\\small{\$\\pm$WPF1_difference_pairwise_se\$}} & \\makecell{\$\\kern8.5167pt$WPF2_difference\$\\\\\\small{\$\\pm$WPF2_difference_pairwise_se\$}} & \\makecell{\$$WPFInfty_difference\$\\\\\\small{\$\\pm$WPFInfty_difference_pairwise_se\$}}")
 
 
-include("test-dairy-prices.jl")
+#include("test-dairy-prices.jl")
+=#
