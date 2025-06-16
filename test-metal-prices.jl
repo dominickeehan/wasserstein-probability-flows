@@ -1,4 +1,4 @@
-include("extract-dairy-prices.jl")
+include("extract-metal-prices.jl")
 
 
 using LinearAlgebra
@@ -41,7 +41,7 @@ parameter_tuning_window = 2*12 # 2*12
 
 windowing_parameters = round.(Int, LinRange(12,length(extracted_data),27))
 smoothing_parameters = [LinRange(.001,.01,10); LinRange(.01,.1,10); LinRange(.1,.9,9)]
-WPF_parameters = [LinRange(10,100,10); LinRange(200,1000,9)] #[LinRange(10,100,100); LinRange(100,1000,100)]
+WPF_parameters = [LinRange(1,10,10); LinRange(20,100,9); LinRange(200,1000,9);] #[LinRange(10,100,100); LinRange(100,1000,100)]
 
 
 function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_plot_as = nothing)
@@ -171,95 +171,4 @@ smoothing_risk_adjusted_expected_cost, smoothing_difference, smoothing_differenc
 d(i,j,ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)
 include("weights.jl")
 WPF1_risk_adjusted_expected_cost, WPF1_difference, WPF1_difference_pairwise_se, WPF1_parameter = 
-    extract_results(WPF_parameters, WPF_weights; save_cost_plot_as = "figures/dairy-prices-WPF1-parameter-costs.pdf")
-
-WPF1_sample_weights = WPF_weights([[extracted_data[i], extracted_data[i+1]] for i in 1:length(extracted_data)-1], WPF1_parameter)
-
-
-default() # Reset plot defaults.
-
-gr(size = (700,515))
-
-font_family = "Computer Modern"
-primary_font = Plots.font(font_family, pointsize = 15)
-secondary_font = Plots.font(font_family, pointsize = 11)
-legend_font = Plots.font(font_family, pointsize = 13)
-
-default(framestyle = :box,
-        grid = true,
-        #gridlinewidth = 1.0,
-        gridalpha = 0.075,
-        #minorgrid = true,
-        #minorgridlinewidth = 1.0, 
-        #minorgridalpha = 0.075,
-        #minorgridlinestyle = :dash,
-        tick_direction = :in,
-        xminorticks = 0, 
-        yminorticks = 0,
-        fontfamily = font_family,
-        guidefont = primary_font,
-        tickfont = secondary_font,
-        legendfont = legend_font)
-
-colors = [palette(:tab10)[1] palette(:tab10)[2] palette(:tab10)[3] palette(:tab10)[4] palette(:tab10)[5]]
-
-plt_extracted_data = plot(1:14*1*12, 
-        stack(log_dairy_prices)',
-        xticks = (1*6+1:1*12:14*1*12),
-        xlims = (-5,14*1*12+6),
-        xformatter = :none,
-        ylabel = "Log price (\$/t)",
-        labels = nothing, 
-        color = colors,
-        linewidth = 1,
-        topmargin = 0pt, 
-        rightmargin = 0pt,
-        bottommargin = 0pt, 
-        leftmargin = 5pt)
-
-sample_indices = 2:14*1*12
-WPF1_parameter = round(Int,WPF1_parameter)
-println("\$λ\$ = $WPF1_parameter")
-
-plt_probabilities = plot(sample_indices[WPF1_sample_weights .>= 1e-3], 
-                WPF1_sample_weights[WPF1_sample_weights .>= 1e-3],
-                xlabel = "Time (year)",
-                xticks = (1*6+1:1*12:14*1*12, ["2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024"]),
-                xlims = (-5,14*1*12+6),
-                ylabel = "Probability", # at \$λ=$WPF_parameter\$",
-                seriestype=:sticks,
-                linestyle=:solid,
-                linewidth = 1,
-                seriescolor = palette(:tab10)[8],
-                marker = nothing,
-                markersize = 2.0,
-                markercolor = palette(:tab10)[8],
-                markerstrokecolor = :black,
-                markerstrokewidth = 0.5,
-                label = nothing,
-                topmargin = 0pt, 
-                rightmargin = 0pt,
-                bottommargin = 2.5pt, 
-                leftmargin = 2.5pt)
-
-figure = plot(plt_extracted_data, plt_probabilities, layout=@layout([a; b]))
-display(figure)
-savefig(figure, "figures/dairy-prices-WPF1-assigned-probability-to-historical-observations.pdf")
-
-
-
-
-d(i,j,ξ_i,ξ_j) = sqrt(norm(ξ_i[1] - ξ_j[1], 2)^2 + norm(ξ_i[2] - ξ_j[2], 2)^2)
-include("weights.jl")
-WPF2_risk_adjusted_expected_cost, WPF2_difference, WPF2_difference_pairwise_se, _ = 
     extract_results(WPF_parameters, WPF_weights)
-
-d(i,j,ξ_i,ξ_j) = max(norm(ξ_i[1] - ξ_j[1], Inf), norm(ξ_i[2] - ξ_j[2], Inf))
-include("weights.jl")
-WPFInfty_risk_adjusted_expected_cost, WPFInfty_difference, WPFInfty_difference_pairwise_se, _ = 
-    extract_results([WPF_parameters; LinRange(1000,10000,10)], WPF_weights)
-
-SAA_risk_adjusted_expected_cost = round(SAA_risk_adjusted_expected_cost, digits=digits)
-println("& \$$SAA_risk_adjusted_expected_cost\$ & \$$windowing_risk_adjusted_expected_cost\$ & \$$smoothing_risk_adjusted_expected_cost\$ & \$$WPF1_risk_adjusted_expected_cost\$ & \$$WPF2_risk_adjusted_expected_cost\$ & \$$WPFInfty_risk_adjusted_expected_cost\$")
-println("& \$\$ & \\makecell{\$$windowing_difference\$\\\\\\small\$\\pm$windowing_difference_pairwise_se\$} & \\makecell{\$\\kern8.5167pt$smoothing_difference\$\\\\\\small{\$\\pm$smoothing_difference_pairwise_se\$}} & \\makecell{\$$WPF1_difference\$\\\\\\small{\$\\pm$WPF1_difference_pairwise_se\$}} & \\makecell{\$\\kern8.5167pt$WPF2_difference\$\\\\\\small{\$\\pm$WPF2_difference_pairwise_se\$}} & \\makecell{\$$WPFInfty_difference\$\\\\\\small{\$\\pm$WPFInfty_difference_pairwise_se\$}}")
-

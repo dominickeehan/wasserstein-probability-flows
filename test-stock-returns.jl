@@ -91,7 +91,7 @@ parameter_tuning_window = 2*12
 
 
 windowing_parameters = round.(Int, LinRange(1,length(extracted_data),18))
-SES_parameters = [LinRange(0.001,0.01,10); LinRange(0.01,0.1,10); LinRange(0.1,1,10)]
+smoothing_parameters = [LinRange(0.001,0.01,10); LinRange(0.01,0.1,10); LinRange(0.1,1,10)]
 WPF_parameters = [[0]; LinRange(1,10,10); LinRange(20,100,9); LinRange(200,1000,9)] #[LinRange(1,10,100); LinRange(10,100,100); LinRange(100,1000,100)]
 
 
@@ -217,8 +217,8 @@ end
 windowing_risk_adjusted_expected_cost, windowing_difference, windowing_difference_pairwise_se, _ = 
     extract_results(windowing_parameters, windowing_weights)
 
-SES_risk_adjusted_expected_cost, SES_difference, SES_difference_pairwise_se, _ = 
-    extract_results(SES_parameters, SES_weights)
+smoothing_risk_adjusted_expected_cost, smoothing_difference, smoothing_difference_pairwise_se, _ = 
+    extract_results(smoothing_parameters, smoothing_weights)
 
 d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 1)
 include("weights.jl")
@@ -322,8 +322,8 @@ WPFInfty_risk_adjusted_expected_cost, WPFInfty_difference, WPFInfty_difference_p
     extract_results([WPF_parameters; LinRange(1000,10000,10)], WPF_weights)
 
 SAA_risk_adjusted_expected_cost = round(SAA_risk_adjusted_expected_cost, digits=digits)
-println("& \$$SAA_risk_adjusted_expected_cost\$ & \$$windowing_risk_adjusted_expected_cost\$ & \$$SES_risk_adjusted_expected_cost\$ & \$$WPF1_risk_adjusted_expected_cost\$ & \$$WPF2_risk_adjusted_expected_cost\$ & \$$WPFInfty_risk_adjusted_expected_cost\$")
-println("& \$\$ & \\makecell{\$\\kern8.5167pt$windowing_difference\$\\\\\\small\$\\pm$windowing_difference_pairwise_se\$} & \\makecell{\$\\kern8.5167pt$SES_difference\$\\\\\\small{\$\\pm$SES_difference_pairwise_se\$}} & \\makecell{\$$WPF1_difference\$\\\\\\small{\$\\pm$WPF1_difference_pairwise_se\$}} & \\makecell{\$\\kern8.5167pt$WPF2_difference\$\\\\\\small{\$\\pm$WPF2_difference_pairwise_se\$}} & \\makecell{\$$WPFInfty_difference\$\\\\\\small{\$\\pm$WPFInfty_difference_pairwise_se\$}}")
+println("& \$$SAA_risk_adjusted_expected_cost\$ & \$$windowing_risk_adjusted_expected_cost\$ & \$$smoothing_risk_adjusted_expected_cost\$ & \$$WPF1_risk_adjusted_expected_cost\$ & \$$WPF2_risk_adjusted_expected_cost\$ & \$$WPFInfty_risk_adjusted_expected_cost\$")
+println("& \$\$ & \\makecell{\$\\kern8.5167pt$windowing_difference\$\\\\\\small\$\\pm$windowing_difference_pairwise_se\$} & \\makecell{\$\\kern8.5167pt$smoothing_difference\$\\\\\\small{\$\\pm$smoothing_difference_pairwise_se\$}} & \\makecell{\$$WPF1_difference\$\\\\\\small{\$\\pm$WPF1_difference_pairwise_se\$}} & \\makecell{\$\\kern8.5167pt$WPF2_difference\$\\\\\\small{\$\\pm$WPF2_difference_pairwise_se\$}} & \\makecell{\$$WPFInfty_difference\$\\\\\\small{\$\\pm$WPFInfty_difference_pairwise_se\$}}")
 
 
 include("test-dairy-prices.jl")
