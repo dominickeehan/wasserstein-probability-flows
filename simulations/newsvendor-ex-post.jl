@@ -42,15 +42,15 @@ using LinearAlgebra
 shift_distribution = Normal(0,0)
 
 repetitions = 100
-history_length = 50
+history_length = 10
 
 demand_sequences = [zeros(history_length) for _ in 1:repetitions]
 demand_distributions = [[Normal(0, 0) for _ in 1:history_length] for _ in 1:repetitions]
-final_demand_distributions = [[Normal(0,0) for _ in 1:10000] for _ in 1:repetitions]
+final_demand_distributions = [[Normal(0,0) for _ in 1:10*repetitions] for _ in 1:repetitions]
 
 for repetition in 1:repetitions
     μ = 100
-    σ = 100
+    σ = 20
 
     for t in 1:history_length
 
@@ -106,7 +106,7 @@ parameter_fit(windowing_weights, history_length)
 
 smoothing_costs = parameter_fit(smoothing_weights, [LinRange(0.00001,0.0001,10); LinRange(0.0001,0.001,9); LinRange(0.002,0.01,9); LinRange(0.02,1.0,99)])
 
-WPF_costs = parameter_fit(WPF_weights, [LinRange(.02,.1,9); LinRange(.2,1,9); LinRange(2,10,9); LinRange(20,100,9); LinRange(200,1000,9);])
+WPF_costs = parameter_fit(WPF_weights, [LinRange(.0000001,.000001,10); LinRange(.000002,.00001,9); LinRange(.00002,.0001,9); LinRange(.0002,.001,9); LinRange(.002,.01,9); LinRange(.02,.1,9); LinRange(.2,1,9); LinRange(2,10,9); LinRange(20,100,9); LinRange(200,1000,9);])
 
 
 display(mean(WPF_costs - smoothing_costs)/mean(smoothing_costs))
