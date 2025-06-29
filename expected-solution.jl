@@ -8,7 +8,7 @@ Random.seed!(42)
 
 shift_distribution = Normal(0, 1)
 
-repetitions = 1000
+repetitions = 10000
 history_length = 20
 
 value_sequences = [zeros(history_length+1) for _ in 1:repetitions]
