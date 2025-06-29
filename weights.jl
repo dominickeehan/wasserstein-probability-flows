@@ -3,6 +3,10 @@
 using JuMP, MathOptInterface
 using COPT, Ipopt
 
+using LinearAlgebra
+
+d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 1)
+
 WPF_optimizer = optimizer_with_attributes(COPT.ConeOptimizer, "Logging" => 0, "LogToConsole" => 0, "BarIterLimit" => 50)  
 
 """
@@ -71,12 +75,12 @@ function WPF_weights(history_of_observations, λ)
 
 	end
 
-    return catch_WPF_weights(history_of_observations, λ) # Use Ipopt Interior-Point Method if COPT Barrier Method fails.
+    return open_source_WPF_weights(history_of_observations, λ) # Use Ipopt Interior-Point Method if COPT Barrier Method fails.
 
 end
 
 
-function catch_WPF_weights(history_of_observations, λ)
+function open_source_WPF_weights(history_of_observations, λ)
 
     Problem = Model(optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0))
 
@@ -128,6 +132,121 @@ function catch_WPF_weights(history_of_observations, λ)
     #end
 
 end
+
+function test_open_source_WPF_weights(history_of_observations, λ)
+
+    Problem = Model(optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0))
+
+    T = length(history_of_observations)
+    
+	distances = zeros((T,T))
+    for i in 1:T
+        for j in 1:T
+            distances[i,j] = d(i,j,history_of_observations[i],history_of_observations[j])
+        end
+    end
+	
+    @variables(Problem, begin
+                            1>= w[i=0:T, j=1:T+1] >=0 # Probability allocated to observation i at time 1, Probability allocated to observation i at time T.
+                        end)
+
+    @constraint(Problem, sum(w[0,j] for j in 1:T) == 1)
+
+    for j in 1:T
+        @constraint(Problem, sum(w[i,j] for i in 0:T) == sum(w[j,k] for k in 1:T+1)) # Initial and terminal probabilities sum to 1.
+    end
+
+    for i in 1:T
+        for j in 1:i
+            JuMP.fix(w[i,j], 0; force = true) # Only transport probability from an earlier observation to a later observation (diagonality constraints).
+        end
+    end
+
+    JuMP.fix(w[0,T+1], 0; force = true)
+
+    @objective(Problem, Max,
+        sum(ifelse(sum(w[i,j] for i in 0:T) > 0, log(sum(w[i,j] for i in 0:T)), -Inf) for j in 1:T) - # Defining log(0) = -Inf seems to result in faster solves here.
+            λ*sum(distances[i,j]*w[i,j] for j in 1:T for i in 1:T))
+
+    optimize!(Problem)
+
+    #if is_solved_and_feasible(Problem)
+        weights = [max(value(w[i, T+1]),0) for i in 1:T] # Maximum likelihood terminal probability distribution.
+        weights = weights/sum(weights)
+	    
+        return weights
+
+    #else
+    #    return 1/T*ones(T)
+
+    #end
+
+end
+
+
+
+
+
+function solve_for_probability_flow(time_series, λ)
+
+    Problem = Model(optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0))
+
+    T = length(time_series)
+
+    if true
+        distances = zeros((T,T))
+        for i in 1:T
+            for j in 1:T
+                distances[i,j] = d(i,j,time_series[i],time_series[j])
+            end
+        end
+    end
+
+    @variables(Problem, begin
+                            1 >= p[i=1:T, t=1:T] >=0          # Probability allocated to observation i at time t.
+                            1 >= γ[i=1:T, j=1:T, t=1:T-1] >=0 # Probability transported from observation i to observation j between times t and t+1. 
+                        end)
+
+    for t in 1:T
+        @constraint(Problem, sum([p[i,t] for i in 1:T]) == 1) # Probabilities Sum to 1.
+    end
+
+    for t in 1:T-1
+        for i in 1:T
+            @constraint(Problem, sum([γ[i,j,t] for j in 1:T]) == p[i,t]) # Conservation of probability flow entering.
+        end
+    end
+
+    for t in 1:T-1
+        for j in 1:T
+            @constraint(Problem, p[j,t+1] == sum([γ[i,j,t] for i in 1:T])) # Conservation of probability flow exiting.
+        end
+    end
+
+    @objective(Problem, Max, 
+        sum([ifelse(p[t,t] > 0, log(p[t,t]), -Inf) for t in 1:T]) - 
+            λ*sum([distances[i,j]*γ[i,j,t] for j in 1:T for i in 1:T for t in 1:T-1]))
+
+    optimize!(Problem)
+
+    if true
+        return [max(value(p[i, T]),0) for i in 1:T] # Maximum likelihood terminal probability distribution.
+    else
+        return
+    end
+end
+
+
+
+
+
+
+display(open_source_WPF_weights([6.13, 7.85, 6.47, 4.91, 5.54, 7.13], 4))
+
+display(test_open_source_WPF_weights([6.13, 7.85, 6.47, 4.91, 5.54, 7.13], 4))
+
+
+display(solve_for_probability_flow([6.13, 7.85, 6.47, 4.91, 5.54, 7.13], 4))
 
 
 function smoothing_weights(history_of_observations, α)
