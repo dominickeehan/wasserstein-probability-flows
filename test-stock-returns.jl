@@ -90,9 +90,9 @@ testing_T = length(testing_data)
 parameter_tuning_window = 2*12
 
 
-windowing_parameters = round.(Int, LinRange(1,length(extracted_data),18))
+windowing_parameters = round.(Int, LinRange(4,length(extracted_data),30))
 smoothing_parameters = [LinRange(0.001,0.01,10); LinRange(0.01,0.1,10); LinRange(0.1,1,10)]
-WPF_parameters = [[0]; LinRange(1,10,10); LinRange(20,100,9); LinRange(200,1000,9)] #[LinRange(1,10,100); LinRange(10,100,100); LinRange(100,1000,100)]
+WPF_parameters = [LinRange(1,10,10); LinRange(20,100,9); LinRange(200,1000,9)] #[LinRange(1,10,100); LinRange(10,100,100); LinRange(100,1000,100)]
 
 
 function train_and_test_out_of_sample(parameters, weights; save_cost_plot_as = nothing)
@@ -166,8 +166,8 @@ function train_and_test_out_of_sample(parameters, weights; save_cost_plot_as = n
             ribbon = sem.([parameter_costs[end-(parameter_tuning_window-1):end,parameter_index] for parameter_index in eachindex(parameters)]),
             xscale = :log10,
             xticks = [1, 10, 100, 1000],
-            xlabel = "\$λ\$", 
-            ylabel = "Risk-adjusted expected cost",
+            xlabel = "Penalty parameter, \$λ\$", 
+            ylabel = "Risk-adjusted average cost",
             legend = nothing,
             legendfonthalign = :center,
             color = palette(:tab10)[1],
@@ -177,8 +177,8 @@ function train_and_test_out_of_sample(parameters, weights; save_cost_plot_as = n
             fillalpha = .1,
             topmargin = 0pt, 
             rightmargin = 0pt,
-            bottommargin = 3pt, 
-            leftmargin = 3pt)
+            bottommargin = 4pt, 
+            leftmargin = 4pt)
     
     display(plt);
 
@@ -205,7 +205,7 @@ function extract_results(parameters, weights; save_cost_plot_as = nothing)
         realised_costs, optimal_parameter = train_and_test_out_of_sample(parameters, weights; save_cost_plot_as = save_cost_plot_as)
     end
 
-    risk_adjusted_expected_cost = round(ρ*mean(realised_costs) + (1-ρ)*unweighted_cvar(realised_costs), digits=digits-1)
+    risk_adjusted_expected_cost = round(ρ*mean(realised_costs) + (1-ρ)*unweighted_cvar(realised_costs), digits=digits)
     difference = round(risk_adjusted_expected_cost - SAA_risk_adjusted_expected_cost, digits=digits)
     difference_pairwise_se = round(sem(realised_costs - SAA_realised_costs), digits=digits)
 
@@ -222,15 +222,16 @@ smoothing_risk_adjusted_expected_cost, smoothing_difference, smoothing_differenc
 
 d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 1)
 include("weights.jl")
-WPF1_risk_adjusted_expected_cost, WPF1_difference, WPF1_difference_pairwise_se, WPF1_parameter = 
-    extract_results(WPF_parameters, WPF_weights; save_cost_plot_as = "figures/stock-returns-WPF1-parameter-costs.pdf")
+WPF_L1_risk_adjusted_expected_cost, WPF_L1_difference, WPF_L1_difference_pairwise_se, WPF_L1_parameter = 
+    extract_results(WPF_parameters, WPF_weights; save_cost_plot_as = "figures/stock-returns-WPF-L1-parameter-costs.pdf")
 
-WPF1_sample_weights = WPF_weights(extracted_data, WPF1_parameter)
+WPF_L1_sample_weights = WPF_weights(extracted_data, WPF_L1_parameter)
 
 
 default() # Reset plot defaults.
 
-gr(size = (700,515))
+#gr(size = (700,515))
+gr(size = (700,343))
 
 font_family = "Computer Modern"
 primary_font = Plots.font(font_family, pointsize = 15)
@@ -281,11 +282,11 @@ plt_extracted_data = plot(1:10*12,
                         leftmargin = 5pt)
 
 sample_indices = 1:10*12
-WPF1_parameter = round(Int,WPF1_parameter)
-println("\$λ\$ = $WPF1_parameter")
+WPF_L1_parameter = round(Int,WPF_L1_parameter)
+println("\$λ\$ = $WPF_L1_parameter")
 
-plt_probabilities = plot(sample_indices[WPF1_sample_weights .>= 1e-3], 
-                WPF1_sample_weights[WPF1_sample_weights .>= 1e-3],
+plt_probabilities = plot(sample_indices[WPF_L1_sample_weights .>= 1e-3], 
+                WPF_L1_sample_weights[WPF_L1_sample_weights .>= 1e-3],
                 xlabel = "Time (year)",
                 xticks = (1:12:11*12, ["2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024"]),
                 xlims = (1-4,10*12+4),
@@ -302,12 +303,17 @@ plt_probabilities = plot(sample_indices[WPF1_sample_weights .>= 1e-3],
                 label = nothing,
                 topmargin = 0pt, 
                 rightmargin = 0pt,
-                bottommargin = 2.5pt, 
-                leftmargin = 2.5pt)
+                #bottommargin = 2.5pt, 
+                #leftmargin = 2.5pt
+                bottommargin = 16pt, 
+                leftmargin = 12.5pt,
+                )
 
-figure = plot(plt_extracted_data, plt_probabilities, layout=@layout([a; b]))
-display(figure)
-savefig(figure, "figures/stock-returns-WPF1-assigned-probability-to-historical-observations.pdf")
+#figure = plot(plt_extracted_data, plt_probabilities, layout=@layout([a; b]))
+#display(figure)
+#savefig(figure, "figures/stock-returns-WPF-L1-assigned-probability-to-historical-observations.pdf")
+display(plt_probabilities)
+savefig(plt_probabilities, "figures/stock-returns-WPF-L1-probability-assigned.pdf")
 
 
 
@@ -319,11 +325,11 @@ WPF2_risk_adjusted_expected_cost, WPF2_difference, WPF2_difference_pairwise_se, 
 d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, Inf)
 include("weights.jl")
 WPFInfty_risk_adjusted_expected_cost, WPFInfty_difference, WPFInfty_difference_pairwise_se, _ = 
-    extract_results([WPF_parameters; LinRange(1000,10000,10)], WPF_weights)
+    extract_results(WPF_parameters, WPF_weights)
 
 SAA_risk_adjusted_expected_cost = round(SAA_risk_adjusted_expected_cost, digits=digits)
-println("& \$$SAA_risk_adjusted_expected_cost\$ & \$$windowing_risk_adjusted_expected_cost\$ & \$$smoothing_risk_adjusted_expected_cost\$ & \$$WPF1_risk_adjusted_expected_cost\$ & \$$WPF2_risk_adjusted_expected_cost\$ & \$$WPFInfty_risk_adjusted_expected_cost\$")
-println("& \$\$ & \\makecell{\$\\kern8.5167pt$windowing_difference\$\\\\\\small\$\\pm$windowing_difference_pairwise_se\$} & \\makecell{\$\\kern8.5167pt$smoothing_difference\$\\\\\\small{\$\\pm$smoothing_difference_pairwise_se\$}} & \\makecell{\$$WPF1_difference\$\\\\\\small{\$\\pm$WPF1_difference_pairwise_se\$}} & \\makecell{\$\\kern8.5167pt$WPF2_difference\$\\\\\\small{\$\\pm$WPF2_difference_pairwise_se\$}} & \\makecell{\$$WPFInfty_difference\$\\\\\\small{\$\\pm$WPFInfty_difference_pairwise_se\$}}")
+println("& \$$SAA_risk_adjusted_expected_cost\$ & \$$windowing_risk_adjusted_expected_cost\$ & \$$smoothing_risk_adjusted_expected_cost\$ & \$$WPF_L1_risk_adjusted_expected_cost\$ & \$$WPF2_risk_adjusted_expected_cost\$ & \$$WPFInfty_risk_adjusted_expected_cost\$")
+println("& \$\$ & \\makecell{\$\\kern8.5167pt$windowing_difference\$\\\\\\small\$\\pm$windowing_difference_pairwise_se\$} & \\makecell{\$\\kern8.5167pt$smoothing_difference\$\\\\\\small{\$\\pm$smoothing_difference_pairwise_se\$}} & \\makecell{\$$WPF_L1_difference\$\\\\\\small{\$\\pm$WPF_L1_difference_pairwise_se\$}} & \\makecell{\$\\kern8.5167pt$WPF2_difference\$\\\\\\small{\$\\pm$WPF2_difference_pairwise_se\$}} & \\makecell{\$$WPFInfty_difference\$\\\\\\small{\$\\pm$WPFInfty_difference_pairwise_se\$}}")
 
 
-include("test-dairy-prices.jl")
+#include("test-dairy-prices.jl")

@@ -5,7 +5,7 @@ using COPT, Ipopt
 
 using LinearAlgebra
 
-d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 1)
+#d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 1)
 
 WPF_optimizer = optimizer_with_attributes(COPT.ConeOptimizer, "Logging" => 0, "LogToConsole" => 0, "BarIterLimit" => 50)  
 
@@ -184,7 +184,7 @@ function test_open_source_WPF_weights(history_of_observations, λ)
 end
 
 
-test
+#test
 
 
 function solve_for_probability_flow(time_series, λ)
@@ -241,12 +241,12 @@ end
 
 
 
-display(open_source_WPF_weights([6.13, 7.85, 6.47, 4.91, 5.54, 7.13], 4))
+#display(open_source_WPF_weights([6.13, 7.85, 6.47, 4.91, 5.54, 7.13], 4))#
 
-display(test_open_source_WPF_weights([6.13, 7.85, 6.47, 4.91, 5.54, 7.13], 4))
+#display(test_open_source_WPF_weights([6.13, 7.85, 6.47, 4.91, 5.54, 7.13], 4))
 
 
-display(solve_for_probability_flow([6.13, 7.85, 6.47, 4.91, 5.54, 7.13], 4))
+#display(solve_for_probability_flow([6.13, 7.85, 6.47, 4.91, 5.54, 7.13], 4))
 
 
 function smoothing_weights(history_of_observations, α)
