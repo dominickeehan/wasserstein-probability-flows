@@ -39,10 +39,10 @@ Random.seed!(42)
 
 using LinearAlgebra
 
-shift_distribution = Normal(0,0)
+shift_distribution = Normal(0,1)
 
 repetitions = 100
-history_length = 50
+history_length = 30
 
 demand_sequences = [zeros(history_length) for _ in 1:repetitions]
 demand_distributions = [[Normal(0, 0) for _ in 1:history_length] for _ in 1:repetitions]
@@ -50,7 +50,7 @@ final_demand_distributions = [[Normal(0,0) for _ in 1:10000] for _ in 1:repetiti
 
 for repetition in 1:repetitions
     μ = 100
-    σ = 100
+    σ = 10
 
     for t in 1:history_length
 
