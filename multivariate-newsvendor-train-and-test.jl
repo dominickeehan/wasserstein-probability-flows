@@ -39,14 +39,14 @@ end
 # --- Setup ---
 Random.seed!(42)
 
-dim = 3
+dim = 4
 repetitions = 100
 history_length = 100
 training_length = 30
 σ = 10.0
 shift_distribution = MvNormal(zeros(dim), 1 * I)
 
-num_future_samples = 100  # <--- PARAMETERIZED HERE
+num_future_samples = 10000  # <--- PARAMETERIZED HERE
 
 demand_sequences = [zeros(dim, history_length + 1) for _ in 1:repetitions]
 final_demand_distributions = [[Vector{UnivariateDistribution}(undef, dim) for _ in 1:num_future_samples] for _ in 1:repetitions]
@@ -99,7 +99,7 @@ include("weights.jl")  # defines: smoothing_weights, WPF_weights, windowing_weig
 
 # --- Weight parameters ---
 smoothing_params = [LinRange(0.002, 0.01, 9); LinRange(0.02, 0.1, 9); LinRange(0.2, 1, 9)]
-WPF_params = [LinRange(0.2, 1, 9); LinRange(2, 10, 9); LinRange(20, 100, 9)]
+WPF_params = [LinRange(.02, .1, 9); LinRange(.2, 1, 9); LinRange(2, 10, 9)]
 
 println("\nEvaluating smoothing:")
 smoothing_mean, smoothing_sem, smoothing_costs = train_and_test(smoothing_weights, smoothing_params)

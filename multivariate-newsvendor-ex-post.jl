@@ -42,7 +42,7 @@ end
 Random.seed!(42)
 
 dim = 3                   # Number of products
-repetitions = 100         # Number of trials
+repetitions = 1000         # Number of trials
 history_length = 100       # Historical demand points
 
 σ = 10.0
