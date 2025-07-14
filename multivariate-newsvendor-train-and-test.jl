@@ -29,6 +29,8 @@ function expected_newsvendor_loss(order::AbstractVector, demand_dists::Vector{<:
     return total_cost
 end
 
+write=1
+
 # --- Quantile-based ordering ---
 function newsvendor_order(ξ::Matrix{Float64}, weights::Vector{Float64})
     dim, T = size(ξ)
