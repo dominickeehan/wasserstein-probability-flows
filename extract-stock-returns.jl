@@ -20,12 +20,13 @@ if do_plots == true
 
     default() # Reset plot defaults.
 
-    gr(size = (850,343))
-    
-    font_family = "Computer Modern"
-    primary_font = Plots.font(font_family, pointsize = 15)
-    secondary_font = Plots.font(font_family, pointsize = 11)
-    legend_font = Plots.font(font_family, pointsize = 13)
+
+        gr(size = (317+7+75,159+10).*sqrt(3))
+
+        font_family = "Computer Modern"
+        primary_font = Plots.font(font_family, pointsize = 12)
+        secondary_font = Plots.font(font_family, pointsize = 10)
+        legend_font = Plots.font(font_family, pointsize = 11)
     
     default(framestyle = :box,
             grid = true,
@@ -36,7 +37,7 @@ if do_plots == true
             #minorgridalpha = 0.075,
             #minorgridlinestyle = :dash,
             tick_direction = :in,
-            xminorticks = 0, 
+            xminorticks = 2, 
             yminorticks = 0,
             fontfamily = font_family,
             guidefont = primary_font,
@@ -50,8 +51,8 @@ if do_plots == true
     plt = plot(1:10*12+1, 
             wealth, 
             xlabel = "Time (year)", 
-            xticks = (1:12:10*12+1, ["2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024"]),
-            xlims = (1-4,10*12+4),
+            xticks = (1:2*12:10*12+1, ["2014","2016","2018","2020","2022","2024"]),
+            xlims = (1-6,10*12+6+1),
             ylims = (0,4),
             ylabel = "Stock value (normalised)",
             labels = labels,
@@ -62,8 +63,8 @@ if do_plots == true
             linewidth = 1,
             topmargin = 0pt, 
             rightmargin = 0pt,
-            bottommargin = 15.5pt, 
-            leftmargin = 12.5pt)
+            bottommargin = 10pt, 
+            leftmargin = 7pt)
     
     display(plt)
     savefig(plt, "figures/stock-returns.pdf")

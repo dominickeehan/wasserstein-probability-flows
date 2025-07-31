@@ -88,12 +88,12 @@ function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_p
 
     default() # Reset plot defaults.
 
-    gr(size = (600,400))
-    
+    gr(size = (275+6,183+6).*sqrt(3))
+
     font_family = "Computer Modern"
-    primary_font = Plots.font(font_family, pointsize = 17)
-    secondary_font = Plots.font(font_family, pointsize = 11)
-    legend_font = Plots.font(font_family, pointsize = 15)
+    primary_font = Plots.font(font_family, pointsize = 12)
+    secondary_font = Plots.font(font_family, pointsize = 10)
+    legend_font = Plots.font(font_family, pointsize = 11)
     
     default(framestyle = :box,
             grid = true,
@@ -127,8 +127,8 @@ function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_p
             fillalpha = .1,
             topmargin = 0pt, 
             rightmargin = 0pt,
-            bottommargin = 4pt, 
-            leftmargin = 4pt)
+            bottommargin = 6pt, 
+            leftmargin = 6pt)
     
     display(plt);
 
@@ -181,13 +181,13 @@ WPF_L1_sample_weights = WPF_weights([[extracted_data[i], extracted_data[i+1]] fo
 
 default() # Reset plot defaults.
 
-#gr(size = (700,515))
-gr(size = (700,343))
+
+gr(size = (317+6+6,159+7).*sqrt(3))
 
 font_family = "Computer Modern"
-primary_font = Plots.font(font_family, pointsize = 15)
-secondary_font = Plots.font(font_family, pointsize = 11)
-legend_font = Plots.font(font_family, pointsize = 13)
+primary_font = Plots.font(font_family, pointsize = 12)
+secondary_font = Plots.font(font_family, pointsize = 10)
+legend_font = Plots.font(font_family, pointsize = 11)
 
 default(framestyle = :box,
         grid = true,
@@ -198,7 +198,7 @@ default(framestyle = :box,
         #minorgridalpha = 0.075,
         #minorgridlinestyle = :dash,
         tick_direction = :in,
-        xminorticks = 0, 
+        xminorticks = 3, 
         yminorticks = 0,
         fontfamily = font_family,
         guidefont = primary_font,
@@ -228,8 +228,8 @@ println("\$λ\$ = $WPF_L1_parameter")
 plt_probabilities = plot(sample_indices[WPF_L1_sample_weights .>= 1e-3], 
                 WPF_L1_sample_weights[WPF_L1_sample_weights .>= 1e-3],
                 xlabel = "Time (year)",
-                xticks = (1*6+1:1*12:14*1*12, ["2011","2012","2013","2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024"]),
-                xlims = (-5,14*1*12+6),
+        xticks = ([-5,3*12-5,6*12-5,9*12-5,12*12-5,14*12+6], ["2010","2013","2016","2019","2022","2025"]),
+        xlims = (-5,14*1*12+6),
                 ylabel = "Probability", # at \$λ=$WPF_parameter\$",
                 seriestype=:sticks,
                 linestyle=:solid,
@@ -242,12 +242,15 @@ plt_probabilities = plot(sample_indices[WPF_L1_sample_weights .>= 1e-3],
                 markerstrokewidth = 0.5,
                 label = nothing,
                 topmargin = 0pt, 
-                rightmargin = 0pt,
+                rightmargin = 6pt,
                 #bottommargin = 2.5pt, 
                 #leftmargin = 2.5pt
-                bottommargin = 16pt, 
-                leftmargin = 12.5pt,
+                bottommargin = 7pt, 
+                leftmargin = 6pt,
                 )
+
+yl = ylims(plt_probabilities)
+ylims!((0,yl[2]))
 
 #figure = plot(plt_extracted_data, plt_probabilities, layout=@layout([a; b]))
 #display(figure)
@@ -257,7 +260,7 @@ savefig(plt_probabilities, "figures/dairy-prices-WPF-L1-probability-assigned.pdf
 
 
 
-
+#=
 d(i,j,ξ_i,ξ_j) = sqrt(norm(ξ_i[1] - ξ_j[1], 2)^2 + norm(ξ_i[2] - ξ_j[2], 2)^2)
 include("weights.jl")
 WPF_L2_average_cost, WPF_L2_difference, WPF_L2_difference_pairwise_se, _ = 
@@ -271,4 +274,5 @@ WPF_LInfty_average_cost, WPF_LInfty_difference, WPF_LInfty_difference_pairwise_s
 SAA_average_cost = round(SAA_average_cost, digits=digits)
 println("& \$$SAA_average_cost\$ & \$$windowing_average_cost\$ & \$$smoothing_average_cost\$ & \$$WPF_L1_average_cost\$ & \$$WPF_L2_average_cost\$ & \$$WPF_LInfty_average_cost\$")
 println("& \$\$ & \\makecell{\$$windowing_difference\$\\\\\\small\$\\pm$windowing_difference_pairwise_se\$} & \\makecell{\$\\kern8.5167pt$smoothing_difference\$\\\\\\small{\$\\pm$smoothing_difference_pairwise_se\$}} & \\makecell{\$$WPF_L1_difference\$\\\\\\small{\$\\pm$WPF_L1_difference_pairwise_se\$}} & \\makecell{\$\\kern8.5167pt$WPF_L2_difference\$\\\\\\small{\$\\pm$WPF_L2_difference_pairwise_se\$}} & \\makecell{\$$WPF_LInfty_difference\$\\\\\\small{\$\\pm$WPF_LInfty_difference_pairwise_se\$}}")
+=#
 

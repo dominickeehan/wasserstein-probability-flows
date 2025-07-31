@@ -138,12 +138,12 @@ function train_and_test_out_of_sample(parameters, weights; save_cost_plot_as = n
     
     default() # Reset plot defaults.
 
-    gr(size = (600,400))
-    
+    gr(size = (275+6,183+6).*sqrt(3))
+
     font_family = "Computer Modern"
-    primary_font = Plots.font(font_family, pointsize = 17)
-    secondary_font = Plots.font(font_family, pointsize = 11)
-    legend_font = Plots.font(font_family, pointsize = 15)
+    primary_font = Plots.font(font_family, pointsize = 12)
+    secondary_font = Plots.font(font_family, pointsize = 10)
+    legend_font = Plots.font(font_family, pointsize = 11)
     
     default(framestyle = :box,
             grid = true,
@@ -177,8 +177,8 @@ function train_and_test_out_of_sample(parameters, weights; save_cost_plot_as = n
             fillalpha = .1,
             topmargin = 0pt, 
             rightmargin = 0pt,
-            bottommargin = 4pt, 
-            leftmargin = 4pt)
+            bottommargin = 6pt, 
+            leftmargin = 6pt)
     
     display(plt);
 
@@ -230,13 +230,12 @@ WPF_L1_sample_weights = WPF_weights(extracted_data, WPF_L1_parameter)
 
 default() # Reset plot defaults.
 
-#gr(size = (700,515))
-gr(size = (700,343))
+gr(size = (317+6+6,159+7).*sqrt(3))
 
 font_family = "Computer Modern"
-primary_font = Plots.font(font_family, pointsize = 15)
-secondary_font = Plots.font(font_family, pointsize = 11)
-legend_font = Plots.font(font_family, pointsize = 13)
+primary_font = Plots.font(font_family, pointsize = 12)
+secondary_font = Plots.font(font_family, pointsize = 10)
+legend_font = Plots.font(font_family, pointsize = 11)
 
 default(framestyle = :box,
         grid = true,
@@ -247,7 +246,7 @@ default(framestyle = :box,
         #minorgridalpha = 0.075,
         #minorgridlinestyle = :dash,
         tick_direction = :in,
-        xminorticks = 0, 
+        xminorticks = 2, 
         yminorticks = 0,
         fontfamily = font_family,
         guidefont = primary_font,
@@ -288,8 +287,8 @@ println("\$λ\$ = $WPF_L1_parameter")
 plt_probabilities = plot(sample_indices[WPF_L1_sample_weights .>= 1e-3], 
                 WPF_L1_sample_weights[WPF_L1_sample_weights .>= 1e-3],
                 xlabel = "Time (year)",
-                xticks = (1:12:11*12, ["2014","2015","2016","2017","2018","2019","2020","2021","2022","2023","2024"]),
-                xlims = (1-4,10*12+4),
+            xticks = (1:2*12:10*12+1, ["2014","2016","2018","2020","2022","2024"]),
+            xlims = (1-6,10*12+6+1),
                 ylabel = "Probability", # at \$λ=$WPF_parameter\$",
                 seriestype=:sticks,
                 linestyle=:solid,
@@ -305,9 +304,12 @@ plt_probabilities = plot(sample_indices[WPF_L1_sample_weights .>= 1e-3],
                 rightmargin = 0pt,
                 #bottommargin = 2.5pt, 
                 #leftmargin = 2.5pt
-                bottommargin = 16pt, 
-                leftmargin = 12.5pt,
+                bottommargin = 7pt, 
+                leftmargin = 6pt,
                 )
+
+yl = ylims(plt_probabilities)
+ylims!((0,yl[2]))
 
 #figure = plot(plt_extracted_data, plt_probabilities, layout=@layout([a; b]))
 #display(figure)
@@ -316,7 +318,7 @@ display(plt_probabilities)
 savefig(plt_probabilities, "figures/stock-returns-WPF-L1-probability-assigned.pdf")
 
 
-
+#=
 d(i,j,ξ_i,ξ_j) = norm(ξ_i - ξ_j, 2)
 include("weights.jl")
 WPF2_risk_adjusted_expected_cost, WPF2_difference, WPF2_difference_pairwise_se, _ = 
@@ -333,3 +335,5 @@ println("& \$\$ & \\makecell{\$\\kern8.5167pt$windowing_difference\$\\\\\\small\
 
 
 #include("test-dairy-prices.jl")
+
+=#
