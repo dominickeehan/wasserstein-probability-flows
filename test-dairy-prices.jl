@@ -120,7 +120,7 @@ function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_p
             ylabel = "Average cost",
             legend = nothing,
             legendfonthalign = :center,
-            color = palette(:tab10)[1],
+            color = :black,#palette(:tab10)[1],
             alpha = 1,
             linestyle = :solid,
             linewidth = 1,

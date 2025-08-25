@@ -2,7 +2,7 @@ using Random, Statistics, StatsBase, Distributions
 using LinearAlgebra, Plots, ProgressBars, IterTools
 
 # --- Cost parameters ---
-Cu = 6  # Underage cost
+Cu = 4  # Underage cost
 Co = 1  # Overage cost
 
 # --- Newsvendor loss per scenario ---
@@ -31,19 +31,75 @@ function expected_newsvendor_loss(order::AbstractVector, demand_dists::Vector{<:
     return total_cost
 end
 
-# --- Weighted quantile per coordinate ---
+B = 300.0
+
+using JuMP, MathOptInterface, Gurobi
+env = Gurobi.Env()
+GRBsetintparam(env, "OutputFlag", 0)
+GRBsetintparam(env, "BarHomogeneous", 1)
+
 function newsvendor_order(ξ::Matrix{Float64}, weights::Vector{Float64})
+    # --- Absolute budget (required) ---
+    #@assert isdefined(@__MODULE__, :B_abs) "Define global const B_abs::Float64 = <your absolute budget> before calling."
+    #B = float(getfield(@__MODULE__, :B_abs))
+
+    # --- Keep everything else as in your pipeline ---
     dim, T = size(ξ)
-    q = Cu / (Cu + Co)
-    [quantile(ξ[i, :], Weights(weights), q) for i in 1:dim]
+    @assert length(weights) == T "weights length must equal number of samples (T)."
+
+    # Normalize positive weights (scaling doesn't affect the argmin)
+    w = max.(0.0, weights)
+    idx = findall(>(0.0), w)
+    @assert !isempty(idx) "All weights are zero."
+    w = w[idx]; w ./= sum(w)
+    Ξ = ξ[:, idx]
+    T_eff = length(idx)
+
+    # Solve LP:
+    #   minimize ∑_t w_t ∑_i s[i,t]
+    #   s[i,t] ≥ -Cu * x[i] + Cu * Ξ[i,t]
+    #   s[i,t] ≥  Co * x[i] - Co * Ξ[i,t]
+    #   ∑_i x[i] ≤ B
+    #   x[i] ≥ 0, s[i,t] ≥ 0
+    #
+    # Uses Gurobi quietly, like your original style.
+    #
+    # NOTE: Only this function is changed. Everything else stays the same.
+
+    # Local imports so the rest of your file stays untouched
+
+
+    model = Model(() -> Gurobi.Optimizer(env))
+
+    @variable(model, x[1:dim] >= 0)
+    @variable(model, s[1:dim, 1:T_eff] >= 0)
+
+    @constraint(model, sum(x[i] for i in 1:dim) <= B)
+    @constraint(model, [i=1:dim, t=1:T_eff], s[i,t] >= -Cu * x[i] + Cu * Ξ[i,t])
+    @constraint(model, [i=1:dim, t=1:T_eff], s[i,t] >=  Co * x[i] - Co * Ξ[i,t])
+
+    @objective(model, Min, sum(w[t] * sum(s[i,t] for i in 1:dim) for t in 1:T_eff))
+
+    optimize!(model)
+    term = JuMP.termination_status(model)
+
+    if term == MathOptInterface.OPTIMAL || term == MathOptInterface.LOCALLY_SOLVED
+        return value.(x)
+    else
+        # Fallback: keep your behavior stable—use decoupled quantiles then scale to meet the absolute budget
+        q = Cu / (Cu + Co)
+        x_dec = [quantile(ξ[i, :], Weights(weights), q) for i in 1:dim]
+        total = sum(x_dec)
+        return total > 0 ? (B / total) .* x_dec : zeros(dim)
+    end
 end
 
 # --- Problem setup ---
 Random.seed!(42)
 
-dim = 5                 # Number of products
-repetitions = 100         # Number of trials
-history_length = 100       # Historical demand points
+dim = 5                   # Number of products
+repetitions = 200         # Number of trials
+history_length = 50       # Historical demand points
 
 σ = 10.0
 

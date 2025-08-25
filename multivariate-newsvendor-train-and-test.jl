@@ -41,10 +41,10 @@ end
 # --- Setup ---
 Random.seed!(42)
 
-dim = 4
+dim = 10
 repetitions = 100
-history_length = 100
-training_length = 30
+history_length = 30
+training_length = 10
 σ = 10.0
 shift_distribution = MvNormal(zeros(dim), 1 * I)
 
