@@ -3,7 +3,7 @@ using LinearAlgebra
 using IterTools
 using ProgressBars, Plots
 
-Cu = 6  # Underage cost.
+Cu = 4  # Underage cost.
 Co = 1  # Overage cost.
 
 newsvendor_loss(orders, demands) =
@@ -39,23 +39,23 @@ end
 
 Random.seed!(42)
 
-dimension = 5
+dimension = 10
 repetitions = 100
 history_length = 100
 
 μ = 100
 σ = 10
 
-shift_distribution = MvNormal(zeros(dimension), 1 * I)
+shift_distribution = MvNormal(zeros(dimension), (1^2) * I)
 
 demands = [zeros(dimension, history_length) for _ in 1:repetitions]
-final_demand_distributions = [[Vector{UnivariateDistribution}(undef, dimension) for _ in 1:1000] for _ in 1:repetitions]
+final_demand_distributions = [[Vector{UnivariateDistribution}(undef, dimension) for _ in 1:10000] for _ in 1:repetitions]
 
 for repetition in 1:repetitions
     μs = ones(dimension) * μ
 
     for t in 1:history_length
-        demands[repetition][:, t] = rand(MvNormal(μs, Diagonal(fill(σ, dimension))))
+        demands[repetition][:, t] = rand(MvNormal(μs, Diagonal(fill((σ)^2, dimension))))
         μs += rand(shift_distribution)
 
     end
@@ -101,16 +101,17 @@ parameter_fit(windowing_weights, history_length)
 
 smoothing_costs = parameter_fit(smoothing_weights, [
     #LinRange(0.00001, 0.0001, 10);
-    LinRange(0.0001, 0.001, 9);
-    LinRange(0.002, 0.01, 9);
-    LinRange(0.02, 1.0, 99)
+    LinRange(0.001, 0.01, 9);
+    LinRange(0.02, 0.1, 9);
+    LinRange(0.2, 1.0, 9)
 ])
+
 
 WPF_costs = parameter_fit(WPF_weights, [
     LinRange(0.02, 0.1, 9);
     LinRange(0.2, 1.0, 9);
     LinRange(2, 10, 9);
-    #LinRange(20, 100, 9);
+    LinRange(20, 100, 9);
     #LinRange(200, 1000, 9)
 ])
 
