@@ -22,30 +22,47 @@ using JuMP, MathOptInterface, Gurobi
 # Interpretation: decide on factory capacity now, then meet random customer demand later with minimal operating cost.
 
 # Dimensions:
-n = 2    #(capacity decisions)
-m = 2    #(two demand sources)
-r = 2    #(two recourse actions)
-k = 2    #(two balancing constraints)
+n = 5    #(capacity decisions)
+m = 5    #(two demand sources)
+r = 5    #(two recourse actions)
+k = 5    #(two balancing constraints)
 
 # First-stage costs
-c = [50, 70]
+c = [10.0, 12.0, 15.0, 20.0, 25.0]
+
 
 # Q (second-stage cost mapping, r x m)
-Q = [5.0 0.0;
-     0.0 8.0]
+Q = [1.0 0.0 0.0 0.0 0.0;
+     0.0 1.2 0.0 0.0 0.0;
+     0.0 0.0 1.5 0.0 0.0;
+     0.0 0.0 0.0 1.8 0.0;
+     0.0 0.0 0.0 0.0 2.0]
+
 # So effective recourse cost for scenario ξ is (Q ξ)' y = ( [5 ξ1, 8 ξ2] ) y
 
 # A (recourse technology, k x r)
-A = [1.0 0.0;
-     0.0 1.0]
+A = [1.0 0.0 0.0 0.0 0.0;
+     0.0 1.0 0.0 0.0 0.0;
+     0.0 0.0 1.0 0.0 0.0;
+     0.0 0.0 0.0 1.0 0.0;
+     0.0 0.0 0.0 0.0 1.0]
+
 
 # B (how demand enters constraints, k x m)
-B = [1.0 0.0;
-     0.0 1.0]
+B = [1.0 0.0 0.0 0.0 0.0;
+     0.0 1.0 0.0 0.0 0.0;
+     0.0 0.0 1.0 0.0 0.0;
+     0.0 0.0 0.0 1.0 0.0;
+     0.0 0.0 0.0 0.0 1.0]
+
 
 # T (link between first-stage capacity and constraints, k x n)
-Z = [1.0 0.5;
-     0.0 1.0]
+Z = [1.0 0.2 0.0 0.0 0.0;
+     0.0 1.0 0.3 0.0 0.0;
+     0.0 0.0 1.0 0.4 0.0;
+     0.0 0.0 0.0 1.0 0.5;
+     0.1 0.0 0.0 0.0 1.0]
+
 
 env = Gurobi.Env()
 GRBsetintparam(env, "OutputFlag", 0)
@@ -103,17 +120,17 @@ end
 
 Random.seed!(42)
 
-dimension = 2
-repetitions = 1000
-history_length = 100
+dimension = 5
+repetitions = 100
+history_length = 50
 
-μ = [100, 150]
-σ = [20, 30]
+μ = [10.0, 12.0, 14.0, 16.0, 18.0]
+σ = [2.0, 2.5, 3.0, 3.5, 4.0]
 
-shift_distribution = MvNormal(zeros(dimension), Diagonal([10, 5]))
+shift_distribution = MvNormal(zeros(dimension), Diagonal(0.01*[5, 4, 3, 2, 1]))
 
 ξ = [[zeros(dimension) for __ in 1:history_length] for _ in 1:repetitions]
-final_ξ = [[Vector{Float64}(undef, dimension) for _ in 1:100] for _ in 1:repetitions]
+final_ξ = [[Vector{Float64}(undef, dimension) for _ in 1:10] for _ in 1:repetitions]
 
 for repetition in 1:repetitions
     μs = μ
@@ -171,7 +188,7 @@ smoothing_costs = parameter_fit(smoothing_weights, [
 ])
 
 WPF_costs = parameter_fit(WPF_weights, [
-    #LinRange(0.002, 0.01, 9);
+    LinRange(0.002, 0.01, 9);
     LinRange(0.02, 0.1, 9);
     LinRange(0.2, 1.0, 9);
     LinRange(2, 10, 9);
