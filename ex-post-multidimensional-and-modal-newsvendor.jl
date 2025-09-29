@@ -19,8 +19,8 @@ end
 Random.seed!(42)
 
 dimension = 2
-repetitions = 300
-history_length = 100
+repetitions = 150
+history_length = 50
 
 μ_1 = 100
 σ_1 = 10
