@@ -18,8 +18,8 @@ end
 
 Random.seed!(42)
 
-dimension = 4
-repetitions = 100
+dimension = 2
+repetitions = 300
 history_length = 100
 
 μ_1 = 100
