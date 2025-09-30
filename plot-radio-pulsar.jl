@@ -12,7 +12,7 @@ Co = 1  # Overage cost.
 
 Random.seed!(42)
 
-dimension = 2
+dimensions = 2
 modes = 3
 
 history_length = 100
@@ -22,15 +22,15 @@ history_length = 100
 σ = 30
 
 # Demand-mode shift-distribution parameters.
-shift_distribution = [MvNormal(zeros(dimension), (10^2) * I) for _ in 1:modes]
+shift_distribution = [MvNormal(zeros(dimensions), (10^2) * I) for _ in 1:modes]
 
-demands = [zeros(dimension) for _ in 1:history_length]
-μs_history = [[ones(dimension) * μ[i] for i in 1:modes] for _ in 1:history_length]
+demands = [zeros(dimensions) for _ in 1:history_length]
+μs_history = [[ones(dimensions) * μ[i] for i in 1:modes] for _ in 1:history_length]
 
-μs = [ones(dimension) * μ[i] for i in 1:modes]
+μs = [ones(dimensions) * μ[i] for i in 1:modes]
 for t in 1:history_length
     for i in eachindex(μs); μs_history[t][i] = μs[i]; end
-    demands[t] = rand(MixtureModel(MvNormal, [(μs[i], Diagonal(fill((σ)^2, dimension))) for i in 1:modes]))
+    demands[t] = rand(MixtureModel(MvNormal, [(μs[i], Diagonal(fill((σ)^2, dimensions))) for i in 1:modes]))
     
     for i in eachindex(μs); μs[i] += rand(shift_distribution[1]); end
 
@@ -71,7 +71,7 @@ xl = (Ξ[1],Ξ[end])
 
 vertical_increment = 0.001
 
-dimension_one = plot(xlabel = "Dimension one",
+dimensions_one = plot(xlabel = "Dimensions one",
                         ylabel = "Time, t", 
                         xformatter=_->"",
                         topmargin = 0pt, 
@@ -106,7 +106,7 @@ end
 yticks!([0-vertical_increment*t for t in 0:10:history_length],["$i" for i in 0:10:history_length])
 
 xlims!(xl)
-ylims!(ylims(dimension_one))
+ylims!(ylims(dimensions_one))
 
 plot!([-100,-99], 
         [100, 100], 
@@ -125,7 +125,7 @@ scatter!([-100,-99],
         markeralpha = 0.5,
         legend = :topright)
 
-dimension_two = plot(xlabel = "Dimension two", 
+dimensions_two = plot(xlabel = "Dimensions two", 
                         xformatter=_->"", 
                         yformatter =_->"",
                         topmargin = 0pt, 
@@ -160,7 +160,7 @@ end
 yticks!([0-vertical_increment*t for t in 0:10:history_length])#,["$i" for i in 0:10:history_length])
 
 xlims!(xl)
-ylims!(ylims(dimension_one))
+ylims!(ylims(dimensions_one))
 
 plot!([-100,-99], 
         [100, 100], 
@@ -179,7 +179,7 @@ scatter!([-100,-99],
         markeralpha = 0.5,
         legend = :topleft)
 
-plt = plot(dimension_one, dimension_two, layout=@layout([a b]))
+plt = plot(dimensions_one, dimensions_two, layout=@layout([a b]))
 display(plt)
 savefig(plt,"figures\\radio-pulsar.pdf")
 
