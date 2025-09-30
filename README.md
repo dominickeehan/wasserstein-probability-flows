@@ -15,7 +15,7 @@ A number of Julia packages are required. They can be added by commanding:
 
 `using Pkg, Pkg.add("JuMP, ......")`.*
 
-*Note that a (proprietary) license for COPT is also required; see https://www.shanshu.ai/copt. The paper uses COPT XXXX.X. Alternatively, Ipopt can be used.
+*Note that a license for the COPT solver is also required; see https://www.shanshu.ai/copt. The paper uses COPT XXXX.X. Alternatively, with some changes, Ipopt can be used.
 
 ## Reproducing Output from the Paper
 You can reproduce Figure XXXX by running the script ".......jl".
