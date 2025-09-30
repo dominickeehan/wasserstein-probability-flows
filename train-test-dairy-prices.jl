@@ -90,11 +90,8 @@ function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_p
 
     gr(size = (275+6,183+6).*sqrt(3))
 
-    font_family = "Computer Modern"
-    primary_font = Plots.font(font_family, pointsize = 12)
-    secondary_font = Plots.font(font_family, pointsize = 10)
-    legend_font = Plots.font(font_family, pointsize = 11)
-    
+    fontfamily = "Computer Modern"
+
     default(framestyle = :box,
             grid = true,
             #gridlinewidth = 1.0,
@@ -106,10 +103,10 @@ function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_p
             tick_direction = :in,
             xminorticks = 9, 
             yminorticks = 0,
-            fontfamily = font_family,
-            guidefont = primary_font,
-            tickfont = secondary_font,
-            legendfont = legend_font)
+            fontfamily = fontfamily,
+            guidefont = Plots.font(fontfamily, pointsize = 12),
+            tickfont = Plots.font(fontfamily, pointsize = 10),
+            legendfont = Plots.font(fontfamily, pointsize = 11))
     
     plt = plot([float.(parameters)], 
             vec(sum(parameter_costs[end-(parameter_tuning_window-1):end,:], dims=1))/(parameter_tuning_window),

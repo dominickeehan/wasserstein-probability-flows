@@ -1,4 +1,5 @@
 using Random, Distributions, Statistics, StatsBase
+using LinearAlgebra
 using IterTools, ProgressBars
 
 include("weights.jl")
@@ -22,24 +23,24 @@ dimension = 2
 modes = 3
 
 repetitions = 300
-history_length = 50
+history_length = 100
 
 # Initial demand-distribution parameters. Mixture of axis-aligned normals.
 μ = [i*100 for i in 1:modes]
-σ = 10
+σ = 20
 
 # Demand-mode shift-distribution parameters.
-shift_distribution = [MvNormal(zeros(dimension), (10^2) * I) for _ in 1:modes]
+shift_distribution = [MvNormal(zeros(dimension), (20^2) * I) for _ in 1:modes]
 
-demand = [zeros(dimension, history_length) for _ in 1:repetitions]
-final_demand = [[Vector{Float64}(undef, dimension) for _ in 1:1000] for _ in 1:repetitions]
+demands = [zeros(dimension, history_length) for _ in 1:repetitions]
+final_demand = [[Vector{Float64}(undef, dimension) for _ in 1:10000] for _ in 1:repetitions]
 
 for repetition in 1:repetitions
 
     μs = [ones(dimension) * μ[i] for i in 1:modes]
 
     for t in 1:history_length
-        demand[repetition][:, t] = rand(MixtureModel(MvNormal, [(μs[i], Diagonal(fill((σ)^2, dimension))) for i in 1:modes]))
+        demands[repetition][:, t] = rand(MixtureModel(MvNormal, [(μs[i], Diagonal(fill((σ)^2, dimension))) for i in 1:modes]))
         
         for i in eachindex(μs); μs[i] += rand(shift_distribution[1]); end
 
@@ -57,7 +58,7 @@ function parameter_fit(solve_for_weights, weight_parameters, distance_function)
     costs = [zeros(length(weight_parameters)) for _ in 1:repetitions]
 
     Threads.@threads for (weight_parameter_index, repetition) in ProgressBar(collect(IterTools.product(eachindex(weight_parameters), 1:repetitions)))
-        demand_samples = demand[repetition]
+        demand_samples = demands[repetition]
         weights = solve_for_weights(eachcol(demand_samples), weight_parameters[weight_parameter_index], distance_function)
         order = newsvendor_order(demand_samples, weights)
 
@@ -85,7 +86,6 @@ LogRange(start, stop, len) = exp.(LinRange(log(start), log(stop), len))
 windowing_costs = parameter_fit(windowing_weights, unique(ceil.(Int, LogRange(1,history_length,30))), 0)
 smoothing_costs = parameter_fit(smoothing_weights, [[0]; LogRange(1e-3, 1, 30)], 0)
 
-using LinearAlgebra
 d(ξ, ζ) = norm(ξ - ζ, 1)
 WPF_costs = parameter_fit(WPF_weights, [[0]; LogRange(1e-3, 1, 30); [Inf]], d)
 
