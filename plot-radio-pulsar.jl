@@ -12,17 +12,17 @@ Co = 1  # Overage cost.
 
 Random.seed!(42)
 
-dimensions = 2
-modes = 3
+dimensions = 1
+modes = 2
 
 history_length = 100
 
 # Initial demand-distribution parameters. Mixture of axis-aligned normals.
 μ = [i*100 for i in 1:modes]
-σ = 30
+σ = 20
 
 # Demand-mode shift-distribution parameters.
-shift_distribution = [MvNormal(zeros(dimensions), (10^2) * I) for _ in 1:modes]
+shift_distribution = [MvNormal(zeros(dimensions), (4^2) * I) for _ in 1:modes]
 
 demands = [zeros(dimensions) for _ in 1:history_length]
 μs_history = [[ones(dimensions) * μ[i] for i in 1:modes] for _ in 1:history_length]
@@ -36,13 +36,139 @@ for t in 1:history_length
 
 end
 
-d(ξ, ζ) = norm(ξ - ζ, 1)
-λ = 0.5 #0.0356
+d(ξ, ζ) = norm(ξ - ζ, 2)
+λ = 10
 weights = WPF_weights(demands, λ, d)
 
 
 using Plots, Measures
 
+default() # Reset plot defaults.
+
+#gr(size = (388+6,388+6).*sqrt(3))
+
+fontfamily = "Computer Modern"
+
+default(framestyle = :box,
+        grid = false,
+        #gridlinewidth = 1.0,
+        #gridalpha = 0.075,
+        minorgrid = false,
+        #minorgridlinewidth = 1.0, 
+        #minorgridalpha = 0.075,
+        #minorgridlinestyle = :dash,
+        ytick_direction = :none,
+        xtick_direction = :in,
+        xminorticks = 0, 
+        yminorticks = 0,
+        fontfamily = fontfamily,
+        guidefont = Plots.font(fontfamily, pointsize = 12),
+        tickfont = Plots.font(fontfamily, pointsize = 10),
+        legendfont = Plots.font(fontfamily, pointsize = 11))
+
+Ξ = LinRange(-0, 300, 1000)
+yl = (Ξ[1],Ξ[end])
+
+horizontal_increment = 0.001
+
+plt = plot(xlabel = "Time, t",
+                        ylabel = "Outcome space, \$Ξ\$", 
+                        yformatter=_->"",
+                        topmargin = 0pt, 
+                        rightmargin = 0pt,
+                        bottommargin = 6pt, 
+                        leftmargin = 6pt,
+                        color = cgrad([palette(:tab10)[2], palette(:tab10)[1]], [34/50]),
+                        colorbar_title = "\nOut-of-sample performance difference")
+
+for t in 1:history_length
+        alpha = weights[t]+0.01
+
+        plot!([-pdf(MixtureModel(Normal, [(μs_history[t][i][1], σ) for i in 1:modes]), ξ) for ξ in Ξ].+horizontal_increment*t, 
+                Ξ,
+                color = palette(:tab10)[1],
+                linewidth = 1,
+                alpha = 10*alpha,
+                fill = (0, alpha, palette(:tab10)[1]),
+                label = nothing)
+
+        scatter!([-pdf(MixtureModel(Normal, [(μs_history[t][i][1], σ) for i in 1:modes]), demands[t][1])+horizontal_increment*t],
+                [demands[t][1]],
+                markershape = :circle,
+                markersize = 3,
+                markerstrokecolor = palette(:tab10)[1],
+                #markerstrokealpha = 1, #10*weights[t],
+                markerstrokewidth = 0.0,
+                markercolor = palette(:tab10)[1],
+                alpha = 20*alpha,
+                label = nothing)
+
+end
+
+outer_increment = 11
+
+x = [demands[t][1] for t in 1:history_length]
+w = weights
+# Weighted histogram
+h = fit(Histogram, x, Weights(w), nbins=10)
+# Extract bin edges and weighted counts
+edges = h.edges[1]
+counts = h.weights
+widths = diff(edges)
+total_weight = sum(w)
+# Density heights (constant within each bin)
+densities = counts ./ (total_weight .* widths)
+# Build stepwise coordinates
+xcoords = repeat(edges, inner=2)[2:end-1]   # repeat edges so each appears twice, trim first/last
+ycoords = repeat(densities, inner=2)        # repeat each density twice
+plot!([horizontal_increment*(history_length+1+outer_increment); horizontal_increment*(history_length+1+outer_increment); -ycoords.+horizontal_increment*(history_length+1+outer_increment); horizontal_increment*(history_length+1+outer_increment); horizontal_increment*(history_length+1+outer_increment);], 
+        [Ξ[1]; xcoords[1]; xcoords; xcoords[end]; Ξ[end];],
+        color = palette(:tab10)[2],
+        linewidth = 1,
+        linestyle = :dash,
+        alpha = 1,
+        fill = (0, 0.5, palette(:tab10)[2]),
+        label = nothing)
+
+xticks!([0+horizontal_increment*t for t in 0:10:history_length],["$i" for i in 0:10:history_length])
+
+ylims!(yl)
+xlims!((-outer_increment-1,history_length+1+outer_increment).*horizontal_increment)
+
+plot!([-100,-99], 
+        [100, 100], 
+        label = "Underlying density",
+        color = palette(:tab10)[1],
+        linewidth = 1,
+        alpha = 1,
+        fill = (0, 0.5, palette(:tab10)[1]))
+scatter!([-100,-99], 
+        [100, 100], 
+        label = "Observation",#, \$ξ_t\$",
+        markershape = :circle,
+        markersize = 3,
+        markerstrokewidth = 0.0,
+        markercolor = palette(:tab10)[1],
+        markeralpha = 0.9,
+        legend = :topleft)
+plot!([-100,-99], 
+        [100, 100], 
+        label = "Estimated density",
+        color = palette(:tab10)[2],
+        linewidth = 1,
+        linestyle = :dash,
+        alpha = 1,
+        fill = (0, 0.5, palette(:tab10)[2]))
+
+display(plt)
+#savefig(plt,"figures\\radio-pulsar.pdf")
+
+
+
+
+
+
+#=
 default() # Reset plot defaults.
 
 gr(size = (388+6,388+6).*sqrt(3))
@@ -182,4 +308,81 @@ scatter!([-100,-99],
 plt = plot(dimensions_one, dimensions_two, layout=@layout([a b]))
 display(plt)
 savefig(plt,"figures\\radio-pulsar.pdf")
+
+=#
+
+
+
+
+
+
+
+
+
+
+#=
+default() # Reset plot defaults.
+
+#gr(size = (300+6,300+6).*sqrt(3))
+
+fontfamily = "Computer Modern"
+
+default(framestyle = :box,
+        grid = true,
+        #gridlinewidth = 1.0,
+        #gridalpha = 0.075,
+        minorgrid = true,
+        #minorgridlinewidth = 1.0, 
+        #minorgridalpha = 0.075,
+        minorgridlinestyle = :dash,
+        ytick_direction = :in,
+        xtick_direction = :in,
+        xminorticks = 0, 
+        yminorticks = 0,
+        fontfamily = fontfamily,
+        guidefont = Plots.font(fontfamily, pointsize = 12),
+        tickfont = Plots.font(fontfamily, pointsize = 10),
+        legendfont = Plots.font(fontfamily, pointsize = 11))
+
+#Ξ = LinRange(-200, 600, 1000)
+#lims = (Ξ[1],Ξ[end])
+
+plt = plot(xlabel = "Dimension one",
+                ylabel = "Dimension two",
+                topmargin = 0pt, 
+                rightmargin = 0pt,
+                bottommargin = 6pt, 
+                leftmargin = 6pt)
+
+mode_colours = [palette(:tab10)[1], palette(:tab10)[2], palette(:tab10)[7]]
+
+for t in 1:history_length
+        for i in 1:3
+                scatter!([μs_history[t][i][1]], [μs_history[t][i][2]],
+                                markershape = :circle,
+                                markersize = 10,
+                                markerstrokewidth = 0,
+                                markercolor = mode_colours[i],
+                                alpha = (t/history_length)^(3)+0.1,
+                                label = nothing)
+
+        end
+end
+
+for t in 1:history_length
+        scatter!([demands[t][1]], [demands[t][2]],
+                        markershape = :circle,
+                        markersize = 2,
+                        markerstrokewidth = 0,
+                        markercolor = :black,
+                        alpha = weights[t]+0.1,
+                        label = nothing)
+                                
+end
+
+display(plt)
+#savefig(plt,"figures\\radio-pulsar.pdf")
+=#
+
+
 
