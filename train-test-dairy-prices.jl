@@ -1,10 +1,10 @@
-include("extract-dairy-prices.jl")
-
-
 using LinearAlgebra
 using Statistics, StatsBase
 using ProgressBars, IterTools
 using Plots, Measures
+
+include("extract-dairy-prices.jl")
+include("weights.jl")
 
 
 function fit_weighted_AR1_model(time_series, weights)
@@ -38,21 +38,20 @@ testing_T = length(testing_data)
 
 parameter_tuning_window = 2*12 # 2*12
 
+LogRange(start, stop, len) = exp.(LinRange(log(start), log(stop), len))
 
-windowing_parameters = round.(Int, LinRange(12,length(extracted_data),27))
-smoothing_parameters = [LinRange(.001,.01,10); LinRange(.01,.1,10); LinRange(.1,.9,9)]
-WPF_parameters = [LinRange(10,100,10); LinRange(200,1000,9); LinRange(2000,10000,9)] #[LinRange(10,100,100); LinRange(100,1000,100)]
+windowing_parameters = unique(ceil.(Int, LogRange(10,length(extracted_data),30))) # 12
+smoothing_parameters = [0; LogRange(1e-4,0.9,30)]
+WPF_parameters = [LinRange(10,100,10); LinRange(200,1000,9); LinRange(2000,10000,9); Inf] 
 
-#throw=thrwo
-
-function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_plot_as = nothing)
+function train_and_test_out_of_sample(parameters, solve_for_weights, d; save_cost_plot_as = nothing)
     
     parameter_costs_in_training_stages = zeros((training_T,length(parameters)))
     Threads.@threads for (t,i) in ProgressBar(collect(IterTools.product(training_T:-1:1, eachindex(parameters))))  
 
         local samples = [warm_up_data; training_data[1:t-1]]
         local paired_samples = [[samples[i], samples[i+1]] for i in 1:length(samples)-1]
-        local sample_weights = solve_for_weights(paired_samples, parameters[i])
+        local sample_weights = solve_for_weights(paired_samples, parameters[i], d)
         local μ, A = fit_weighted_AR1_model(samples, sample_weights)
         local x = μ + A*samples[end]
 
@@ -64,7 +63,7 @@ function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_p
         
         local samples = [warm_up_data; training_data; testing_data[1:t-1]]
         local paired_samples = [[samples[i], samples[i+1]] for i in 1:length(samples)-1]
-        local sample_weights = solve_for_weights(paired_samples, parameters[i])
+        local sample_weights = solve_for_weights(paired_samples, parameters[i], d)
         local μ, A = fit_weighted_AR1_model(samples, sample_weights)
         local x = μ + A*samples[end]
         
@@ -108,26 +107,32 @@ function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_p
             tickfont = Plots.font(fontfamily, pointsize = 10),
             legendfont = Plots.font(fontfamily, pointsize = 11))
     
-    plt = plot([float.(parameters)], 
-            vec(sum(parameter_costs[end-(parameter_tuning_window-1):end,:], dims=1))/(parameter_tuning_window),
-            ribbon = sem.([parameter_costs[end-(parameter_tuning_window-1):end,parameter] for parameter in eachindex(parameters)]),
-            xscale = :log10,
-            xticks = [10, 100, 1000, 10000],
-            xlabel = "Penalty parameter, \$λ\$", 
-            ylabel = "Average cost",
-            legend = nothing,
-            legendfonthalign = :center,
-            color = :black,#palette(:tab10)[1],
-            alpha = 1,
-            linestyle = :solid,
-            linewidth = 1,
-            fillalpha = .1,
-            topmargin = 0pt, 
-            rightmargin = 0pt,
-            bottommargin = 6pt, 
-            leftmargin = 6pt)
-    
-    display(plt);
+    if solve_for_weights == WPF_weights
+
+        plt = plot([parameters[1:end-1]; 100000], 
+                vec(sum(parameter_costs[end-(parameter_tuning_window-1):end,:], dims=1))/(parameter_tuning_window),
+                ribbon = sem.([parameter_costs[end-(parameter_tuning_window-1):end,parameter] for parameter in eachindex(parameters)]),
+                xscale = :log10,
+                xticks = [10, 100, 1000, 10000],
+                xlabel = "Shift penalty, \$λ\$", 
+                ylabel = "Average cost",
+                legend = nothing,
+                legendfonthalign = :center,
+                color = :black,#palette(:tab10)[1],
+                alpha = 1,
+                linestyle = :solid,
+                linewidth = 1,
+                fillalpha = .1,
+                topmargin = 0pt, 
+                rightmargin = 0pt,
+                bottommargin = 6pt, 
+                leftmargin = 6pt)
+
+        xlims!((parameters[1], parameters[end-1]+2500))
+
+        display(plt);
+
+    end
 
     if !(save_cost_plot_as === nothing); savefig(plt, save_cost_plot_as); end
 
@@ -135,45 +140,42 @@ function train_and_test_out_of_sample(parameters, solve_for_weights; save_cost_p
 
 end
 
-d(i,j,ξ_i,ξ_j) = 0
-include("weights.jl")
-SAA_realised_costs, _ = train_and_test_out_of_sample(length(extracted_data), windowing_weights)
+d(ξ_i,ξ_j) = 0
+SAA_realised_costs, _ = train_and_test_out_of_sample(length(extracted_data), windowing_weights, d)
 SAA_average_cost = mean(SAA_realised_costs)
 
 
 digits=4
-function extract_results(parameters, weights; save_cost_plot_as = nothing)
+function extract_results(parameters, weights, d; save_cost_plot_as = nothing)
 
     if save_cost_plot_as === nothing
     
-        realised_costs, optimal_parameter = train_and_test_out_of_sample(parameters, weights)
+        realised_costs, optimal_parameter = train_and_test_out_of_sample(parameters, weights, d)
     else
     
-        realised_costs, optimal_parameter = train_and_test_out_of_sample(parameters, weights; save_cost_plot_as = save_cost_plot_as)
+        realised_costs, optimal_parameter = train_and_test_out_of_sample(parameters, weights, d; save_cost_plot_as = save_cost_plot_as)
     end
     
-    average_cost = round(mean(realised_costs), digits=digits)
-    difference = round(average_cost - SAA_average_cost, digits=digits)
-    difference_pairwise_se = round(sem(realised_costs - SAA_realised_costs), digits=digits)
+    average_cost = mean(realised_costs)
+    percentage_average_difference = round((average_cost - SAA_average_cost) / SAA_average_cost * 100, digits = 1)
+    percentage_sem_difference = round(sem(realised_costs - SAA_realised_costs) / SAA_average_cost * 100, digits = 1)
     
-    display("difference to SAA: $difference ± $difference_pairwise_se")
+    display("difference to SAA: $percentage_average_difference ± $percentage_sem_difference")
     
-    return average_cost, difference, difference_pairwise_se, optimal_parameter
+    return round(average_cost, digits=digits), percentage_average_difference, percentage_sem_difference, optimal_parameter
 end
 
-windowing_average_cost, windowing_difference, windowing_difference_pairwise_se, _ = 
-    extract_results(windowing_parameters, windowing_weights)
+windowing_average_cost, windowing_percentage_average_difference, windowing_percentage_sem_difference, _ = 
+    extract_results(windowing_parameters, windowing_weights, d)
 
-smoothing_average_cost, smoothing_difference, smoothing_difference_pairwise_se, _ = 
-    extract_results(smoothing_parameters, smoothing_weights)
+smoothing_average_cost, smoothing_percentage_average_difference, smoothing_percentage_sem_difference, _ = 
+    extract_results(smoothing_parameters, smoothing_weights, d)
 
+d(ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)
+WPF_L1_average_cost, WPF_L1_percentage_average_difference, WPF_L1_percentage_sem_difference, WPF_L1_parameter = 
+    extract_results(WPF_parameters, WPF_weights, d; save_cost_plot_as = "figures/dairy-prices-WPF-L1-parameter-costs.pdf")
 
-d(i,j,ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)
-include("weights.jl")
-WPF_L1_average_cost, WPF_L1_difference, WPF_L1_difference_pairwise_se, WPF_L1_parameter = 
-    extract_results(WPF_parameters, WPF_weights; save_cost_plot_as = "figures/dairy-prices-WPF-L1-parameter-costs.pdf")
-
-WPF_L1_sample_weights = WPF_weights([[extracted_data[i], extracted_data[i+1]] for i in 1:length(extracted_data)-1], WPF_L1_parameter)
+WPF_L1_sample_weights = WPF_weights([[extracted_data[i], extracted_data[i+1]] for i in 1:length(extracted_data)-1], WPF_L1_parameter, d)
 
 
 default() # Reset plot defaults.
@@ -257,19 +259,34 @@ savefig(plt_probabilities, "figures/dairy-prices-WPF-L1-probability-assigned.pdf
 
 
 
-#=
-d(i,j,ξ_i,ξ_j) = sqrt(norm(ξ_i[1] - ξ_j[1], 2)^2 + norm(ξ_i[2] - ξ_j[2], 2)^2)
-include("weights.jl")
-WPF_L2_average_cost, WPF_L2_difference, WPF_L2_difference_pairwise_se, _ = 
-    extract_results(WPF_parameters, WPF_weights)
 
-d(i,j,ξ_i,ξ_j) = max(norm(ξ_i[1] - ξ_j[1], Inf), norm(ξ_i[2] - ξ_j[2], Inf))
-include("weights.jl")
-WPF_LInfty_average_cost, WPF_LInfty_difference, WPF_LInfty_difference_pairwise_se, _ = 
-    extract_results(WPF_parameters, WPF_weights)
+d(ξ_i,ξ_j) = sqrt(norm(ξ_i[1] - ξ_j[1], 2)^2 + norm(ξ_i[2] - ξ_j[2], 2)^2)
+WPF_L2_average_cost, WPF_L2_percentage_average_difference, WPF_L2_percentage_sem_difference, _ = 
+    extract_results(WPF_parameters, WPF_weights, d)
+
+d(ξ_i,ξ_j) = max(norm(ξ_i[1] - ξ_j[1], Inf), norm(ξ_i[2] - ξ_j[2], Inf))
+WPF_LInf_average_cost, WPF_LInf_percentage_average_difference, WPF_LInf_percentage_sem_difference, _ = 
+    extract_results(WPF_parameters, WPF_weights, d)
 
 SAA_average_cost = round(SAA_average_cost, digits=digits)
-println("& \$$SAA_average_cost\$ & \$$windowing_average_cost\$ & \$$smoothing_average_cost\$ & \$$WPF_L1_average_cost\$ & \$$WPF_L2_average_cost\$ & \$$WPF_LInfty_average_cost\$")
-println("& \$\$ & \\makecell{\$$windowing_difference\$\\\\\\small\$\\pm$windowing_difference_pairwise_se\$} & \\makecell{\$\\kern8.5167pt$smoothing_difference\$\\\\\\small{\$\\pm$smoothing_difference_pairwise_se\$}} & \\makecell{\$$WPF_L1_difference\$\\\\\\small{\$\\pm$WPF_L1_difference_pairwise_se\$}} & \\makecell{\$\\kern8.5167pt$WPF_L2_difference\$\\\\\\small{\$\\pm$WPF_L2_difference_pairwise_se\$}} & \\makecell{\$$WPF_LInfty_difference\$\\\\\\small{\$\\pm$WPF_LInfty_difference_pairwise_se\$}}")
-=#
+
+println("\\makecell[r]{Average\\\\testing cost} 
+        & \$\\textcolor{white}{+}$SAA_average_cost\$ 
+        & \$\\textcolor{white}{+}$windowing_average_cost\$ 
+        & \$\\textcolor{white}{+}$smoothing_average_cost\$ 
+        & \$\\textcolor{white}{+}$WPF_L1_average_cost\$ 
+        & \$\\textcolor{white}{+}$WPF_L2_average_cost\$ 
+        & \$\\textcolor{white}{+}$WPF_LInf_average_cost\$ \\\\")
+println("\\addlinespace")
+println("\\midrule")
+println("\\addlinespace")
+println("\\makecell[r]{Difference\\\\from SAA (\\%)} 
+        & \$ \$ 
+        & \$\\textcolor{white}{+}$windowing_percentage_average_difference\\pm $windowing_percentage_sem_difference\$ 
+        & \$\\textcolor{white}{+}$smoothing_percentage_average_difference\\pm $smoothing_percentage_sem_difference\$
+        & \$$WPF_L1_percentage_average_difference\\pm $WPF_L1_percentage_sem_difference\$
+        & \$\\textcolor{white}{+}$WPF_L2_percentage_average_difference\\pm $WPF_L2_percentage_sem_difference\$
+        & \$$WPF_LInf_percentage_average_difference\\pm $WPF_LInf_percentage_sem_difference\$ \\\\")
+
+
 

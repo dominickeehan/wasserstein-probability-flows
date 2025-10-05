@@ -128,22 +128,22 @@ WPF_L2_percentage_sem_difference = round(sem(WPF_L2_costs - SAA_costs) / mean(SA
 WPF_LInf_percentage_average_difference = round(mean(WPF_LInf_costs - SAA_costs) / mean(SAA_costs) * 100, digits = digits)
 WPF_LInf_percentage_sem_difference = round(sem(WPF_LInf_costs - SAA_costs) / mean(SAA_costs) * 100, digits = digits)
 
-println("\\makecell{Ex-post optimal\\\\average cost} 
-        & \$\\kern0.0pt$SAA_average_cost\$ 
-        & \$\\kern0.0pt$windowing_average_cost\$ 
-        & \$\\kern0.0pt$smoothing_average_cost\$ 
-        & \$\\kern0.0pt$WPF_L1_average_cost\$ 
-        & \$\\kern0.0pt$WPF_L2_average_cost\$ 
-        & \$\\kern0.0pt$WPF_LInf_average_cost\$ \\\\")
+println("\\makecell[r]{Ex-post optimal\\\\average cost} 
+        & \$\\textcolor{white}{+}$SAA_average_cost\$ 
+        & \$\\textcolor{white}{+}$windowing_average_cost\$ 
+        & \$\\textcolor{white}{+}$smoothing_average_cost\$ 
+        & \$\\textcolor{white}{+}$WPF_L1_average_cost\$ 
+        & \$\\textcolor{white}{+}$WPF_L2_average_cost\$ 
+        & \$\\textcolor{white}{+}$WPF_LInf_average_cost\$ \\\\")
 println("\\addlinespace")
 println("\\midrule")
 println("\\addlinespace")
-println("\\makecell{Difference\\\\from SAA} 
+println("\\makecell[r]{Difference\\\\from SAA (\\%)} 
         & \$ \$ 
-        & \\makecell{\$$windowing_percentage_average_difference\\,\\%\$\\\\ \$\\pm$windowing_percentage_sem_difference\\,\\%\$} 
-        & \\makecell{\$$smoothing_percentage_average_difference\\,\\%\$\\\\ \$\\pm$smoothing_percentage_sem_difference\\,\\%\$}
-        & \\makecell{\$$WPF_L1_percentage_average_difference\\,\\%\$\\\\ \$\\pm$WPF_L1_percentage_sem_difference\\,\\%\$} 
-        & \\makecell{\$$WPF_L2_percentage_average_difference\\,\\%\$\\\\ \$\\pm$WPF_L2_percentage_sem_difference\\,\\%\$}
-        & \\makecell{\$$WPF_LInf_percentage_average_difference\\,\\%\$\\\\ \$\\pm$WPF_LInf_percentage_sem_difference\\,\\%\$} \\\\")
+        & \$$windowing_percentage_average_difference \\pm $windowing_percentage_sem_difference\$ 
+        & \$$smoothing_percentage_average_difference \\pm $smoothing_percentage_sem_difference\$
+        & \$$WPF_L1_percentage_average_difference \\pm $WPF_L1_percentage_sem_difference\$
+        & \$$WPF_L2_percentage_average_difference \\pm $WPF_L2_percentage_sem_difference\$
+        & \$$WPF_LInf_percentage_average_difference \\pm $WPF_LInf_percentage_sem_difference\$ \\\\")
 
 

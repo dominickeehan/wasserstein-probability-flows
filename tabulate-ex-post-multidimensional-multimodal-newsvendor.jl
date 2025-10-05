@@ -27,7 +27,7 @@ for dimensions in Dimensions
             return [quantile([demands[t][i] for t in eachindex(demands)], Weights(weights), q) for i in 1:dimensions]
         end
 
-        repetitions = 1000
+        repetitions = 300
         history_length = 30
 
         # Initial demand-distribution parameters. Mixture of axis-aligned normals.
@@ -89,10 +89,10 @@ for dimensions in Dimensions
 
         LogRange(start, stop, len) = exp.(LinRange(log(start), log(stop), len))
 
-        smoothing_costs = parameter_fit(smoothing_weights, [[0]; LogRange(1e-3, 1, 30)], 0)
+        smoothing_costs = parameter_fit(smoothing_weights, [0; LogRange(1e-4, 1, 30)], 0)
 
         L1(ξ, ζ) = norm(ξ - ζ, 1)
-        WPF_L1_costs = parameter_fit(WPF_weights, [[0]; LogRange(1e-3, 1, 30); [Inf]], L1)
+        WPF_L1_costs = parameter_fit(WPF_weights, [0; LinRange(1e-3,1e-2,10); LinRange(2e-2,1e-1,9); LinRange(2e-1,1e0,9); Inf], L1)
         percentage_average_difference = mean(WPF_L1_costs - smoothing_costs) / mean(smoothing_costs) * 100
         percentage_sem_difference = sem(WPF_L1_costs - smoothing_costs) / mean(smoothing_costs) * 100
         println("WPF L1 difference from smoothing: $percentage_average_difference ± $percentage_sem_difference %")
@@ -114,9 +114,9 @@ for dimensions in Dimensions
 
     for modes in Modes
         percentage_average_difference = round(percentage_average_differences[dimensions, modes], digits = digits)
-        kern = ifelse(sign(percentage_average_difference) == 1, "\\kern8.5167pt", "\\kern0.0pt")
+        kern = ifelse(sign(percentage_average_difference) == 1, "\\textcolor{white}{+}", "")
         percentage_sem_difference = round(percentage_sem_differences[dimensions, modes], digits = digits)
-        print(" & \$"*kern*"$percentage_average_difference \\pm $percentage_sem_difference\\,\\%\$")
+        print(" & \$"*kern*"$percentage_average_difference \\pm $percentage_sem_difference\$")
 
     end
     println(" \\\\")
