@@ -13,7 +13,7 @@ You must install a recent version of Julia from http://julialang.org/downloads/.
 
 A number of Julia packages are required. They can be added by commanding:
 
-`using Pkg, Pkg.add("JuMP, ......")`.*
+`using Pkg, Pkg.add("Random, Distributions, Statistics, StatsBase,   JuMP, MathOptInterface, COPT, Ipopt,  IterTools, ProgressBars,  Plots, Measures......")`.*
 
 *Note that a license for the COPT solver is also required; see https://www.shanshu.ai/copt. The paper uses COPT XXXX.X.
 
