@@ -300,10 +300,10 @@ plt_probabilities = plot(sample_indices[WPF_L1_sample_weights .>= 1e-3],
                 seriestype=:sticks,
                 linestyle=:solid,
                 linewidth = 1,
-                seriescolor = palette(:tab10)[8],
+                seriescolor = :black,#palette(:tab10)[8],
                 marker = nothing,
                 markersize = 2.0,
-                markercolor = palette(:tab10)[8],
+                markercolor = :black,#palette(:tab10)[8],
                 markerstrokecolor = :black,
                 markerstrokewidth = 0.5,
                 label = nothing,
@@ -325,7 +325,7 @@ display(plt_probabilities)
 savefig(plt_probabilities, "figures/stock-returns-WPF-L1-probability-assigned.pdf")
 
 
-
+#=
 d(ξ_i,ξ_j) = norm(ξ_i - ξ_j, 2)
 WPF_L2_risk_adjusted_average_cost, WPF_L2_percentage_average_difference, WPF_L2_percentage_sem_difference, _ = 
     extract_results(WPF_parameters, WPF_weights, d)
@@ -355,3 +355,4 @@ println("\\makecell[r]{Difference\\\\from SAA (\\%)}
         & \$$WPF_LInf_percentage_average_difference\\pm $WPF_LInf_percentage_sem_difference\$ \\\\")
 
 
+=#

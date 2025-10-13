@@ -50,6 +50,7 @@ if do_plots == true
             labels = labels,
             legend = :outerright,
             legendfonthalign = :center,
+            linetype = :steppost,
             color = colors,
             linewidth = 1,
             topmargin = 0pt, 
