@@ -324,6 +324,7 @@ ylims!((0,yl[2]))
 display(plt_probabilities)
 savefig(plt_probabilities, "figures/stock-returns-WPF-L1-probability-assigned.pdf")
 
+5
 
 #=
 d(ξ_i,ξ_j) = norm(ξ_i - ξ_j, 2)

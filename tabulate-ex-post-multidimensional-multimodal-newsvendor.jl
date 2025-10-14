@@ -9,8 +9,8 @@ Co = 1  # Overage cost.
 
 Random.seed!(42)
 
-Dimensions = [1,2,3]
-Modes = [1,2,3]
+Dimensions = [1,2,3,4]
+Modes = [1,2,3,4]
 
 percentage_average_differences = zeros((length(Dimensions), length(Modes)))
 percentage_sem_differences = zeros((length(Dimensions), length(Modes)))
@@ -27,18 +27,18 @@ for dimensions in Dimensions
             return [quantile([demands[t][i] for t in eachindex(demands)], Weights(weights), q) for i in 1:dimensions]
         end
 
-        repetitions = 300
-        history_length = 30
+        repetitions = 500
+        history_length = 100
 
         # Initial demand-distribution parameters. Mixture of axis-aligned normals.
         μ = [i*100 for i in 1:modes]
-        σ = 10
+        σ = 20
 
         # Demand-mode shift-distribution parameters.
         shift_distribution = [MvNormal(zeros(dimensions), (10^2) * I) for _ in 1:modes]
 
         demands = [[zeros(dimensions) for _ in 1:history_length] for _ in 1:repetitions]
-        final_demand = [[Vector{Float64}(undef, dimensions) for _ in 1:10000] for _ in 1:repetitions]
+        final_demand = [[Vector{Float64}(undef, dimensions) for _ in 1:1000] for _ in 1:repetitions]
 
         for repetition in 1:repetitions
 
@@ -75,14 +75,14 @@ for dimensions in Dimensions
             minimal_index = argmin(mean(costs))
             minimal_costs = [costs[repetition][minimal_index] for repetition in 1:repetitions]
 
-            display([solve_for_weights distance_function])
+            print("Method: $solve_for_weights, ")
 
             mean_minimal_costs = mean(minimal_costs)
             sem_minimal_costs = sem(minimal_costs)
             optimal_weight_parameter = weight_parameters[minimal_index]
 
-            println("Ex-post minimal average cost: $mean_minimal_costs ± $sem_minimal_costs")
-            println("Optimal weight parameter: $optimal_weight_parameter")
+            print("Ex-post cost: $(round(mean_minimal_costs, digits=3)) ± $(round(sem_minimal_costs, digits=3)), ")
+            println("Parameter: $(round(optimal_weight_parameter, digits=3)), ")
 
             return minimal_costs
         end
@@ -93,9 +93,10 @@ for dimensions in Dimensions
 
         L1(ξ, ζ) = norm(ξ - ζ, 1)
         WPF_L1_costs = parameter_fit(WPF_weights, [0; LinRange(1e-3,1e-2,10); LinRange(2e-2,1e-1,9); LinRange(2e-1,1e0,9); Inf], L1)
+        #WPF_L1_costs = parameter_fit(WPF_weights, [0; LinRange(1e-2,1e-1,10); LinRange(2e-1,1e-0,9); LinRange(2e-0,1e1,9); Inf], L1)
         percentage_average_difference = mean(WPF_L1_costs - smoothing_costs) / mean(smoothing_costs) * 100
         percentage_sem_difference = sem(WPF_L1_costs - smoothing_costs) / mean(smoothing_costs) * 100
-        println("WPF L1 difference from smoothing: $percentage_average_difference ± $percentage_sem_difference %")
+        print("Difference from smoothing: $(round(percentage_average_difference, digits=3)) ± $(round(percentage_sem_difference, digits=3)) %")
 
         percentage_average_differences[dimensions, modes] = percentage_average_difference
         percentage_sem_differences[dimensions, modes] = percentage_sem_difference
