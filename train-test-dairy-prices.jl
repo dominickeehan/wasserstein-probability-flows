@@ -115,7 +115,7 @@ function train_and_test_out_of_sample(parameters, solve_for_weights, d; save_cos
                 xscale = :log10,
                 xticks = [10, 100, 1000, 10000],
                 xlabel = "Shift penalty, \$λ\$", 
-                ylabel = "Average cost",
+                ylabel = "Average training cost",
                 legend = nothing,
                 legendfonthalign = :center,
                 color = :black,#palette(:tab10)[1],
@@ -229,7 +229,7 @@ plt_probabilities = plot(sample_indices[WPF_L1_sample_weights .>= 1e-3],
                 xlabel = "Time (year)",
         xticks = ([-5,3*12-5,6*12-5,9*12-5,12*12-5,14*12+6], ["2010","2013","2016","2019","2022","2025"]),
         xlims = (-5,14*1*12+6),
-                ylabel = "Probability", # at \$λ=$WPF_parameter\$",
+                ylabel = "Probability mass", # at \$λ=$WPF_parameter\$",
                 seriestype=:sticks,
                 linestyle=:solid,
                 linewidth = 1,
@@ -291,3 +291,7 @@ println("\\makecell[r]{Difference\\\\from SAA (\\%)}
 
 
 =#
+
+include("train-test-stock-returns.jl")
+
+5
