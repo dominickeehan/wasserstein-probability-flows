@@ -115,7 +115,7 @@ function train_and_test_out_of_sample(parameters, solve_for_weights, d; save_cos
                 xscale = :log10,
                 xticks = [10, 100, 1000, 10000],
                 xlabel = "Shift penalty, \$λ\$", 
-                ylabel = "Average training cost",
+                ylabel = "Average cost",
                 legend = nothing,
                 legendfonthalign = :center,
                 color = :black,#palette(:tab10)[1],

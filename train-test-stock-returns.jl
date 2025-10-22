@@ -169,7 +169,7 @@ function train_and_test_out_of_sample(parameters, weights, d; save_cost_plot_as 
                 xscale = :log10,
                 xticks = [1, 10, 100, 1000],
                 xlabel = "Shift penalty, \$λ\$", 
-                ylabel = "Risk-adjusted average training cost",
+                ylabel = "Risk-adjusted average cost",
                 legend = nothing,
                 legendfonthalign = :center,
                 color = :black,#palette(:tab10)[1],

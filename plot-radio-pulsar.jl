@@ -82,12 +82,12 @@ plt = plot(xlabel = "Time, t",
                         colorbar_title = "\nOut-of-sample performance difference")
 
 for t in 1:history_length
-        alpha = weights[t]+0.01
+        alpha = weights[t]+0.0075
 
         plot!([-pdf(MixtureModel(Normal, [(μs_history[t][i][1], σ) for i in 1:modes]), ξ) for ξ in Ξ].+horizontal_increment*t, 
                 Ξ,
                 color = palette(:tab10)[1],
-                linewidth = 1,
+                linewidth = 0.5,
                 alpha = 10*alpha,
                 fill = (0, alpha, palette(:tab10)[1]),
                 label = nothing)
@@ -100,7 +100,7 @@ for t in 1:history_length
                 #markerstrokealpha = 1, #10*weights[t],
                 markerstrokewidth = 0.0,
                 markercolor = palette(:tab10)[1],
-                alpha = 20*alpha,
+                alpha = 10*alpha,
                 label = nothing)
 
 end
@@ -127,7 +127,7 @@ plot!([horizontal_increment*(history_length+1+outer_increment); horizontal_incre
         linewidth = 1,
         linestyle = :dash,
         alpha = 1,
-        fill = (0, 0.5, palette(:tab10)[2]),
+        fill = (0, 0.268, palette(:tab10)[2]),
         label = nothing)
 
 xticks!([0+horizontal_increment*t for t in 0:10:history_length],["$i" for i in 0:10:history_length])
@@ -139,9 +139,9 @@ plot!([-100,-99],
         [100, 100], 
         label = "Underlying density",
         color = palette(:tab10)[1],
-        linewidth = 1,
-        alpha = 1,
-        fill = (0, 0.5, palette(:tab10)[1]))
+        linewidth = 0.5,
+        alpha = 0.75,
+        fill = (0, 0.268, palette(:tab10)[1]))
 scatter!([-100,-99], 
         [100, 100], 
         label = "Observation",#, \$ξ_t\$",
@@ -149,7 +149,7 @@ scatter!([-100,-99],
         markersize = 3,
         markerstrokewidth = 0.0,
         markercolor = palette(:tab10)[1],
-        markeralpha = 0.9,
+        markeralpha = 0.75,
         legend = :topleft)
 plot!([-100,-99], 
         [100, 100], 
@@ -158,7 +158,7 @@ plot!([-100,-99],
         linewidth = 1,
         linestyle = :dash,
         alpha = 1,
-        fill = (0, 0.5, palette(:tab10)[2]))
+        fill = (0, 0.268, palette(:tab10)[2]))
 
 display(plt)
 savefig(plt,"figures\\radio-pulsar.pdf")
