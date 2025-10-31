@@ -9,8 +9,8 @@ Co = 1  # Overage cost.
 
 Random.seed!(42)
 
-dimensions = 2
-modes = 3
+dimensions = 1
+modes = 1
 
 newsvendor_loss(order, demand) =
     sum(Cu * max(demand[i] - order[i], 0) + Co * max(order[i] - demand[i], 0) for i in eachindex(order))
@@ -22,17 +22,17 @@ function newsvendor_order(demands, weights)
 end
 
 repetitions = 300
-history_length = 60
+history_length = 100
 
 # Initial demand-distribution parameters. Mixture of axis-aligned normals.
 μ = [i*100 for i in 1:modes]
 σ = 20
 
 # Demand-mode shift-distribution parameters.
-shift_distribution = [MvNormal(zeros(dimensions), (20^2) * I) for _ in 1:modes]
+shift_distribution = [MvNormal(zeros(dimensions), (15^2) * I) for _ in 1:modes]
 
 demands = [[zeros(dimensions) for _ in 1:history_length] for _ in 1:repetitions]
-final_demand = [[Vector{Float64}(undef, dimensions) for _ in 1:10000] for _ in 1:repetitions]
+final_demand = [[Vector{Float64}(undef, dimensions) for _ in 1:1000] for _ in 1:repetitions]
 
 for repetition in 1:repetitions
 
@@ -88,20 +88,22 @@ LogRange(start, stop, len) = exp.(LinRange(log(start), log(stop), len))
 windowing_costs = parameter_fit(windowing_weights, unique(ceil.(Int, LogRange(1,history_length,30))), 0)
 smoothing_costs = parameter_fit(smoothing_weights, [[0]; LogRange(1e-3, 1, 30)], 0)
 
+WPF_parameters = [[0]; LinRange(1e-3,1e-2,10); LinRange(2e-2,1e-1,9); LinRange(2e-1,1e0,9); Inf] 
+
 L1(ξ, ζ) = norm(ξ - ζ, 1)
-WPF_L1_costs = parameter_fit(WPF_weights, [[0]; LogRange(1e-3, 1, 30); [Inf]], L1)
+WPF_L1_costs = parameter_fit(WPF_weights, WPF_parameters, L1)
 percentage_average_difference = mean(WPF_L1_costs - smoothing_costs) / mean(smoothing_costs) * 100
 percentage_sem_difference = sem(WPF_L1_costs - smoothing_costs) / mean(smoothing_costs) * 100
 println("WPF L1 difference from smoothing: $percentage_average_difference ± $percentage_sem_difference %")
 
 L2(ξ, ζ) = norm(ξ - ζ, 2)
-WPF_L2_costs = parameter_fit(WPF_weights, [[0]; LogRange(1e-3, 1, 30); [Inf]], L2)
+WPF_L2_costs = parameter_fit(WPF_weights, WPF_parameters, L2)
 percentage_average_difference = mean(WPF_L2_costs - smoothing_costs) / mean(smoothing_costs) * 100
 percentage_sem_difference = sem(WPF_L2_costs - smoothing_costs) / mean(smoothing_costs) * 100
 println("WPF L2 difference from smoothing: $percentage_average_difference ± $percentage_sem_difference %")
 
 LInf(ξ, ζ) = norm(ξ - ζ, Inf)
-WPF_LInf_costs = parameter_fit(WPF_weights, [[0]; LogRange(1e-3, 1, 30); [Inf]], LInf)
+WPF_LInf_costs = parameter_fit(WPF_weights, WPF_parameters, LInf)
 percentage_average_difference = mean(WPF_LInf_costs - smoothing_costs) / mean(smoothing_costs) * 100
 percentage_sem_difference = sem(WPF_LInf_costs - smoothing_costs) / mean(smoothing_costs) * 100
 println("WPF LInf difference from smoothing: $percentage_average_difference ± $percentage_sem_difference %")

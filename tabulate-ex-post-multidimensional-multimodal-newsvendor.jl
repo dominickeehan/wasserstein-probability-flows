@@ -9,8 +9,8 @@ Co = 1  # Overage cost.
 
 Random.seed!(42)
 
-Dimensions = [1,2,3]
-Modes = [1,2,3]
+Dimensions = [1,2,3,4]
+Modes = [1,2,3,4]
 
 percentage_average_differences = zeros((length(Dimensions), length(Modes)))
 percentage_sem_differences = zeros((length(Dimensions), length(Modes)))
@@ -27,15 +27,15 @@ for dimensions in Dimensions
             return [quantile([demands[t][i] for t in eachindex(demands)], Weights(weights), q) for i in 1:dimensions]
         end
 
-        repetitions = 300
-        history_length = 30
+        repetitions = 1000
+        history_length = 100
 
         # Initial demand-distribution parameters. Mixture of axis-aligned normals.
         μ = [i*100 for i in 1:modes]
         σ = 20
 
         # Demand-mode shift-distribution parameters.
-        shift_distribution = [MvNormal(zeros(dimensions), (20^2) * I) for _ in 1:modes]
+        shift_distribution = [MvNormal(zeros(dimensions), (15^2) * I) for _ in 1:modes]
 
         demands = [[zeros(dimensions) for _ in 1:history_length] for _ in 1:repetitions]
         final_demand = [[Vector{Float64}(undef, dimensions) for _ in 1:1000] for _ in 1:repetitions]
