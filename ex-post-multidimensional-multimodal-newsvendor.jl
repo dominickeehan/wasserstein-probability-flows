@@ -9,8 +9,8 @@ Co = 1  # Overage cost.
 
 Random.seed!(42)
 
-dimensions = 1
-modes = 1
+dimensions = 2
+modes = 3
 
 newsvendor_loss(order, demand) =
     sum(Cu * max(demand[i] - order[i], 0) + Co * max(order[i] - demand[i], 0) for i in eachindex(order))
@@ -21,7 +21,7 @@ function newsvendor_order(demands, weights)
     return [quantile([demands[t][i] for t in eachindex(demands)], Weights(weights), q) for i in 1:dimensions]
 end
 
-repetitions = 300
+repetitions = 1000
 history_length = 100
 
 # Initial demand-distribution parameters. Mixture of axis-aligned normals.
@@ -130,7 +130,7 @@ WPF_L2_percentage_sem_difference = round(sem(WPF_L2_costs - SAA_costs) / mean(SA
 WPF_LInf_percentage_average_difference = round(mean(WPF_LInf_costs - SAA_costs) / mean(SAA_costs) * 100, digits = digits)
 WPF_LInf_percentage_sem_difference = round(sem(WPF_LInf_costs - SAA_costs) / mean(SAA_costs) * 100, digits = digits)
 
-println("\\makecell[r]{Ex-post optimal\\\\average cost} 
+println("\\makecell[r]{Ex-post optimal\\\\expected cost} 
         & \$\\textcolor{white}{+}$SAA_average_cost\$ 
         & \$\\textcolor{white}{+}$windowing_average_cost\$ 
         & \$\\textcolor{white}{+}$smoothing_average_cost\$ 
