@@ -32,7 +32,7 @@ history_length = 100
 shift_distribution = [MvNormal(zeros(dimensions), (15^2) * I) for _ in 1:modes]
 
 demands = [[zeros(dimensions) for _ in 1:history_length] for _ in 1:repetitions]
-final_demand = [[Vector{Float64}(undef, dimensions) for _ in 1:1000] for _ in 1:repetitions]
+final_demand = [[Vector{Float64}(undef, dimensions) for _ in 1:10000] for _ in 1:repetitions]
 
 for repetition in 1:repetitions
 
@@ -86,7 +86,7 @@ SAA_costs = parameter_fit(windowing_weights, history_length, 0)
 LogRange(start, stop, len) = exp.(LinRange(log(start), log(stop), len))
 
 windowing_costs = parameter_fit(windowing_weights, unique(ceil.(Int, LogRange(1,history_length,30))), 0)
-smoothing_costs = parameter_fit(smoothing_weights, [[0]; LogRange(1e-3, 1, 30)], 0)
+smoothing_costs = parameter_fit(smoothing_weights, [[0]; LogRange(1e-4, 1, 30)], 0)
 
 WPF_parameters = [[0]; LinRange(1e-3,1e-2,10); LinRange(2e-2,1e-1,9); LinRange(2e-1,1e0,9); Inf] 
 

@@ -7,8 +7,6 @@ include("weights.jl")
 Cu = 4  # Underage cost.
 Co = 1  # Overage cost.
 
-Random.seed!(42)
-
 Dimensions = [1,2,3,4]
 Modes = [1,2,3,4]
 
@@ -17,6 +15,8 @@ percentage_sem_differences = zeros((length(Dimensions), length(Modes)))
 
 for dimensions in Dimensions
     for modes in Modes
+
+        Random.seed!(42)
 
         newsvendor_loss(order, demand) =
             sum(Cu * max(demand[i] - order[i], 0) + Co * max(order[i] - demand[i], 0) for i in eachindex(order))
@@ -38,7 +38,7 @@ for dimensions in Dimensions
         shift_distribution = [MvNormal(zeros(dimensions), (15^2) * I) for _ in 1:modes]
 
         demands = [[zeros(dimensions) for _ in 1:history_length] for _ in 1:repetitions]
-        final_demand = [[Vector{Float64}(undef, dimensions) for _ in 1:1000] for _ in 1:repetitions]
+        final_demand = [[Vector{Float64}(undef, dimensions) for _ in 1:10000] for _ in 1:repetitions]
 
         for repetition in 1:repetitions
 
