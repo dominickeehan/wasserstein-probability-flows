@@ -71,7 +71,7 @@ yl = (Ξ[1],Ξ[end])
 
 horizontal_increment = 0.001
 
-plt = plot(xlabel = "Time, t",
+plt = plot(xlabel = "Time, \$t\$",
                         ylabel = "Outcome space, \$Ξ\$", 
                         yformatter=_->"",
                         topmargin = 0pt, 
