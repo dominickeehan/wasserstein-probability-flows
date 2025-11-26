@@ -258,7 +258,7 @@ display(plt_probabilities)
 savefig(plt_probabilities, "figures/dairy-prices-WPF-L1-probability-assigned.pdf")
 
 
-#=
+
 
 d(ξ_i,ξ_j) = sqrt(norm(ξ_i[1] - ξ_j[1], 2)^2 + norm(ξ_i[2] - ξ_j[2], 2)^2)
 WPF_L2_average_cost, WPF_L2_percentage_average_difference, WPF_L2_percentage_sem_difference, _ = 
@@ -290,8 +290,6 @@ println("\\makecell[r]{Difference\\\\from SAA (\\%)}
 
 
 
-=#
 
-include("train-test-stock-returns.jl")
 
-5
+#include("train-test-stock-returns.jl")

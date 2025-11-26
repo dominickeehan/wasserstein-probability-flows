@@ -324,9 +324,8 @@ ylims!((0,yl[2]))
 display(plt_probabilities)
 savefig(plt_probabilities, "figures/stock-returns-WPF-L1-probability-assigned.pdf")
 
-5
 
-#=
+
 d(ξ_i,ξ_j) = norm(ξ_i - ξ_j, 2)
 WPF_L2_risk_adjusted_average_cost, WPF_L2_percentage_average_difference, WPF_L2_percentage_sem_difference, _ = 
     extract_results(WPF_parameters, WPF_weights, d)
@@ -355,5 +354,3 @@ println("\\makecell[r]{Difference\\\\from SAA (\\%)}
         & \$\\textcolor{white}{+}$WPF_L2_percentage_average_difference\\pm $WPF_L2_percentage_sem_difference\$
         & \$$WPF_LInf_percentage_average_difference\\pm $WPF_LInf_percentage_sem_difference\$ \\\\")
 
-
-=#
