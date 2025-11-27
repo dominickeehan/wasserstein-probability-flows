@@ -9,13 +9,11 @@ We study the problem of estimating a sequence of evolving probability distributi
 ## Description
 This repository provides implementations of our numerical tests and our reduced-form network-flow problem instance.
 
-For example, the following 
+The following image (Figure 3 of the paper) shows an example Wasserstein probability flow estimate.
 
-<img src="figures/radio-pulsar.pdf" width="343pt">
+<img src="figures/radio-pulsar.svg" width="515pt">
 
-#### Figure 3: Underlying Distributions, Observations, and Terminal Distribution Estimate
-
-Opacities reflect probabilities in the terminal estimate. Here the problem parameters are σ = 20, ρ = 4, and λ = 10. For full details, see Subsection 5.1 of the paper.
+For full details, see Subsection 5.1 of the paper.
 
 ## Dependencies
 You must install a recent version of Julia from http://julialang.org/downloads/. The paper uses Julia 1.9.
