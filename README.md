@@ -9,6 +9,8 @@ We study the problem of estimating a sequence of evolving probability distributi
 ## Description
 This repository provides implementations of our numerical tests and our reduced-form network-flow problem instance.
 
+For example, the following 
+
 <img src="figures/radio-pulsar.pdf" width="343pt">
 
 #### Figure 3: Underlying Distributions, Observations, and Terminal Distribution Estimate
@@ -22,15 +24,15 @@ A number of Julia packages are required. They can be added by commanding:
 
 `using Pkg, Pkg.add("Random, Distributions, Statistics, StatsBase, LinearAlgebra, JuMP, MathOptInterface, COPT, Ipopt, IterTools, ProgressBars, Plots, Measures, CSV")`.*
 
-*Note that a license for the COPT solver is also required; see https://www.shanshu.ai/copt. The paper uses COPT XXXX.X.
+*Note that a license for the COPT solver is also required; see https://www.shanshu.ai/copt. The paper uses COPT 7.2.
 
 ## Reproducing Output from the Paper
 You can reproduce the following tables and figures by running the following scripts:
-Figure 3 ---> `plot-radio-pulsar.jl`
-Table 2 ---> `ex-post-multi-modal-and-multi-dimensional-newsvendor.jl`
-Table 3 ---> `tabulate-ex-post-multi-modal-and-multi-dimensional-newsvendor.jl`
-Table 5 and Figures 4, 5, and 6 ---> `train-test-dairy-prices.jl`
-Table 7 and Figures 7, 8, and 9 ---> `train-test-stock-returns.jl`
+- Figure 3: `plot-radio-pulsar.jl`
+- Table 2: `ex-post-multi-modal-and-multi-dimensional-newsvendor.jl`
+- Table 3: `tabulate-ex-post-multi-modal-and-multi-dimensional-newsvendor.jl`
+- Table 5 and Figures 4, 5, and 6: `train-test-dairy-prices.jl`
+- Table 7 and Figures 7, 8, and 9: `train-test-stock-returns.jl`
 
 The script `weights.jl` provides an implementation of our reduced-form network-flow problem instance. For a vector of historical observations `observations`; a scalar shift penalty parameter `λ`; and a distance function on the outcome space of the observations `d`, commanding `WPF_weights(observations, λ, d)` returns the terminal Wasserstein probability flow probability distribution using the COPT solver. We also provide an open source alternative `Ipopt_WPF_weights(observations, λ, d)` using the Ipopt solver.
 
