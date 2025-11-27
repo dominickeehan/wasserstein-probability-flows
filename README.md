@@ -9,7 +9,7 @@ We study the problem of estimating a sequence of evolving probability distributi
 ## Description
 This repository provides implementations of our numerical tests and our reduced-form network-flow problem instance.
 
-The following image (Figure 3 of the paper) shows an example Wasserstein probability flow estimate.
+The following image (Figure 3 of the paper) shows an example Wasserstein Probability Flow estimate.
 
 <img src="figures/radio-pulsar.svg" width="515pt">
 
