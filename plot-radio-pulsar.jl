@@ -162,6 +162,7 @@ plot!([-100,-99],
 
 display(plt)
 savefig(plt,"figures\\radio-pulsar.pdf")
+savefig(plt,"figures\\radio-pulsar.svg")
 
 
 
