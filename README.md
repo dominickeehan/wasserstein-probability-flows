@@ -32,6 +32,6 @@ You can reproduce the following tables and figures by running the following&nbsp
 - Table&nbsp;5 and Figures&nbsp;4,&nbsp;5,&nbsp;and&nbsp;6: `train-test-dairy-prices.jl`
 - Table&nbsp;7 and Figures&nbsp;7,&nbsp;8,&nbsp;and&nbsp;9: `train-test-stock-returns.jl`
 
-The script `weights.jl` provides an implementation of our reduced-form network-flow problem instance. For a vector of historical observations `observations`; a scalar shift penalty parameter `λ`; and a distance function on the outcome space of the observations `d`, commanding `WPF_weights(observations, λ, d)` returns the terminal Wasserstein probability flow probability distribution using the COPT solver. We also provide an open source alternative `Ipopt_WPF_weights(observations, λ, d)` using the Ipopt&nbsp;solver.
+The script `weights.jl` provides an implementation of our reduced-form network-flow problem instance. For a vector of historical observations `observations`; a scalar shift penalty parameter `λ`; and a distance function on the outcome space of the observations `d`, commanding `WPF_weights(observations, λ, d)` returns the Wasserstein Probability Flow distribution estimate using the COPT solver. We also provide an open source alternative `Ipopt_WPF_weights(observations, λ, d)` using the Ipopt&nbsp;solver.
 
 ## Thank You :pray:
