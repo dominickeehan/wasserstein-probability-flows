@@ -17,7 +17,7 @@ For full details, see Subsection&nbsp;5.1 of the&nbsp;paper.
 
 ## Dependencies
 You must install a recent version of Julia from http://julialang.org/downloads/. The paper uses Julia 1.11.
-You must install a recent version of Julia from http://julialang.org/downloads/. The paper uses&nbsp;Julia&nbsp;1.9.
+You must install a recent version of Julia from http://julialang.org/downloads/. The paper uses&nbsp;Julia&nbsp;1.11.
 
 A number of Julia packages are required. They can be added by&nbsp;commanding:
 
@@ -27,17 +27,11 @@ A number of Julia packages are required. They can be added by&nbsp;commanding:
 
 ## Reproducing Output from the Paper
 You can reproduce the following tables and figures by commanding the following:
-- Figure 3: `include("plot-radio-pulsar.jl")`
-- Table 2: `include("ex-post-multi-modal-and-multi-dimensional-newsvendor.jl")`
-- Table 3: `include("tabulate-ex-post-multi-modal-and-multi-dimensional-newsvendor.jl")`
-- Table 5 and Figures 4, 5, and 6: `include("train-test-dairy-prices.jl")`
-- Table 7 and Figures 7, 8, and 9: `include("train-test-stock-returns.jl")`
-You can reproduce the following tables and figures by running the following&nbsp;scripts:
-- Figure&nbsp;3: `plot-radio-pulsar.jl`
-- Table&nbsp;2: `ex-post-multi-modal-and-multi-dimensional-newsvendor.jl`
-- Table&nbsp;3: `tabulate-ex-post-multi-modal-and-multi-dimensional-newsvendor.jl`
-- Table&nbsp;5 and Figures&nbsp;4,&nbsp;5,&nbsp;and&nbsp;6: `train-test-dairy-prices.jl`
-- Table&nbsp;7 and Figures&nbsp;7,&nbsp;8,&nbsp;and&nbsp;9: `train-test-stock-returns.jl`
+- Figure&nbsp;3: `include("plot-radio-pulsar.jl")`
+- Table&nbsp;2: `include("ex-post-multi-modal-and-multi-dimensional-newsvendor.jl")`
+- Table&nbsp;3: `include("tabulate-ex-post-multi-modal-and-multi-dimensional-newsvendor.jl")`
+- Table&nbsp;5 and Figures&nbsp;4,&nbsp;5, and&nbsp;6: `include("train-test-dairy-prices.jl")`
+- Table&nbsp;7 and Figures&nbsp;7,&nbsp;8, and&nbsp;9: `include("train-test-stock-returns.jl")`
 
 The script `weights.jl` provides an implementation of our reduced-form network-flow problem instance. For a vector of historical observations `observations`; a scalar shift penalty parameter `λ`; and a distance function on the outcome space of the observations `d`, commanding `WPF_weights(observations, λ, d)` returns the Wasserstein Probability Flow distribution estimate using the COPT solver. We also provide an open source alternative `Ipopt_WPF_weights(observations, λ, d)` using the Ipopt&nbsp;solver.
 
