@@ -20,7 +20,7 @@ You must install a recent version of Julia from http://julialang.org/downloads/.
 
 A number of Julia packages are required. They can be added by&nbsp;commanding:
 
-`using Pkg; Pkg.add("Random, Distributions, Statistics, StatsBase, LinearAlgebra, JuMP, MathOptInterface, COPT, Ipopt, IterTools, ProgressBars, Plots, Measures, CSV")`.*
+`using Pkg;  Pkg.add.(["Random"; "Distributions"; "Statistics"; "StatsBase"; "LinearAlgebra"; "JuMP"; "MathOptInterface"; "COPT"; "Ipopt"; "IterTools"; "ProgressBars"; "Plots"; "Measures"; "CSV"])`.*
 
 *Note that a license for the COPT solver is also required; see https://www.shanshu.ai/copt. The paper uses&nbsp;COPT&nbsp;7.2.
 
