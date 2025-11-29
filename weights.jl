@@ -67,13 +67,11 @@ function WPF_weights(observations, λ, d)
 		return weights
 
 	catch
+        return Ipopt_WPF_weights(observations, λ, d) # Use Ipopt Interior-Point Method if COPT Barrier Method fails.
 
-	end
-
-    return Ipopt_WPF_weights(observations, λ, d) # Use Ipopt Interior-Point Method if COPT Barrier Method fails.
+    end
 
 end
-
 
 function Ipopt_WPF_weights(observations, λ, d)
 
