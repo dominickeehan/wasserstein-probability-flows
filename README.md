@@ -1,5 +1,5 @@
 # Wasserstein Probability Flows
-Code repository accompanying the&nbsp;paper:
+Repository accompanying the&nbsp;paper:
 
 ***Nonstationary Distribution Estimation via Wasserstein Probability&nbsp;Flows***
 
