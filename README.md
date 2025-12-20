@@ -29,8 +29,8 @@ You can reproduce the following tables and figures by commanding the&nbsp;follow
 - Figure&nbsp;3: `include("plot-radio-pulsar.jl")`
 - Table&nbsp;2: `include("ex-post-multi-modal-and-multi-dimensional-newsvendor.jl")`
 - Table&nbsp;3: `include("tabulate-ex-post-multi-modal-and-multi-dimensional-newsvendor.jl")`
-- Table&nbsp;5 and Figures&nbsp;4,&nbsp;5, and&nbsp;6: `include("train-test-dairy-prices.jl")`
-- Table&nbsp;7 and Figures&nbsp;7,&nbsp;8, and&nbsp;9: `include("train-test-stock-returns.jl")`
+- Table&nbsp;5 and Figures&nbsp;4,&nbsp;5, and&nbsp;6: `include("train-and-test-dairy-prices.jl")`
+- Table&nbsp;7 and Figures&nbsp;7,&nbsp;8, and&nbsp;9: `include("train-and-test-stock-returns.jl")`
 
 The script `weights.jl` provides an implementation of our reduced-form network-flow problem instance. For a vector of historical observations `observations`; a scalar shift penalty parameter `λ`; and a distance function on the outcome space of the observations `d`, commanding `WPF_weights(observations, λ, d)` returns the Wasserstein Probability Flow distribution estimate using the COPT solver. We also provide an open source alternative `Ipopt_WPF_weights(observations, λ, d)` using the Ipopt&nbsp;solver.
 
