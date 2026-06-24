@@ -3,14 +3,16 @@ using LinearAlgebra
 using IterTools, ProgressBars
 
 include("weights.jl")
+include("DLBA-W2-weights.jl")
+include("w2-dro-newsvendor.jl")
 
 Cu = 4  # Underage cost.
 Co = 1  # Overage cost.
 
 Random.seed!(42)
 
-dimensions = 2
-modes = 3
+dimensions = 2 # 2
+modes = 3 # 3
 
 newsvendor_loss(order, demand) =
     sum(Cu * max(demand[i] - order[i], 0) + Co * max(order[i] - demand[i], 0) for i in eachindex(order))
@@ -21,15 +23,19 @@ function newsvendor_order(demands, weights)
     return [quantile([demands[t][i] for t in eachindex(demands)], Weights(weights), q) for i in 1:dimensions]
 end
 
-repetitions = 1000
+repetitions = 100 # 1000
 history_length = 100
+
 
 # Initial demand-distribution parameters. Mixture of axis-aligned normals.
 μ = [i*100 for i in 1:modes]
 σ = 20
 
 # Demand-mode shift-distribution parameters.
+#shift_distribution = [MvNormal(zeros(dimensions), (10^2) * I) for _ in 1:modes]
 shift_distribution = [MvNormal(zeros(dimensions), (15^2) * I) for _ in 1:modes]
+#shift_distribution = [MvNormal(zeros(dimensions), (20^2) * I) for _ in 1:modes]
+#shift_distribution = [MvNormal(zeros(dimensions), (100^2) * I) for _ in 1:modes]
 
 demands = [[zeros(dimensions) for _ in 1:history_length] for _ in 1:repetitions]
 final_demand = [[Vector{Float64}(undef, dimensions) for _ in 1:10000] for _ in 1:repetitions]
@@ -81,14 +87,48 @@ function parameter_fit(solve_for_weights, weight_parameters, distance_function)
     return minimal_costs
 end
 
+function order_parameter_fit(solve_for_order, order_parameters)
+    costs = [zeros(length(order_parameters)) for _ in 1:repetitions]
+
+    Threads.@threads for (order_parameter_index, repetition) in ProgressBar(collect(IterTools.product(eachindex(order_parameters), 1:repetitions)))
+        demand_samples = demands[repetition]
+        order = solve_for_order(demand_samples, order_parameters[order_parameter_index])
+
+        costs[repetition][order_parameter_index] = mean([
+            newsvendor_loss(order, final_demand[repetition][i]) for i in eachindex(final_demand[repetition])])
+
+    end
+
+    minimal_index = argmin(mean(costs))
+    minimal_costs = [costs[repetition][minimal_index] for repetition in 1:repetitions]
+
+    display(solve_for_order)
+
+    mean_minimal_costs = mean(minimal_costs)
+    sem_minimal_costs = sem(minimal_costs)
+    optimal_order_parameter = order_parameters[minimal_index]
+
+    println("Ex-post minimal average cost: $mean_minimal_costs ± $sem_minimal_costs")
+    println("Optimal order parameter: $optimal_order_parameter")
+
+    return minimal_costs
+end
+
 SAA_costs = parameter_fit(windowing_weights, history_length, 0)
 
 LogRange(start, stop, len) = exp.(LinRange(log(start), log(stop), len))
 
+function paired_parameter_grid(first_parameters, second_parameters)
+    return [(first_parameter, second_parameter) for first_parameter in first_parameters for second_parameter in second_parameters]
+end
+
 windowing_costs = parameter_fit(windowing_weights, unique(ceil.(Int, LogRange(1,history_length,30))), 0)
 smoothing_costs = parameter_fit(smoothing_weights, [[0]; LogRange(1e-4, 1, 30)], 0)
 
-WPF_parameters = [[0]; LinRange(1e-3,1e-2,10); LinRange(2e-2,1e-1,9); LinRange(2e-1,1e0,9); Inf] 
+WPF_parameters = [[0]; LogRange(1e-3,1e0,30); Inf]  # [[0]; LinRange(1e-3,1e-2,10); LinRange(2e-2,1e-1,9); LinRange(2e-1,1e0,9); Inf] 
+
+5
+
 
 L1(ξ, ζ) = norm(ξ - ζ, 1)
 WPF_L1_costs = parameter_fit(WPF_weights, WPF_parameters, L1)
@@ -96,6 +136,29 @@ percentage_average_difference = mean(WPF_L1_costs - smoothing_costs) / mean(smoo
 percentage_sem_difference = sem(WPF_L1_costs - smoothing_costs) / mean(smoothing_costs) * 100
 println("WPF L1 difference from smoothing: $percentage_average_difference ± $percentage_sem_difference %")
 
+DLBA_W2_rho_over_epsilon_parameters = [0; LogRange(1e-4, 1, 30)]
+W2_DRO_radius_parameters = unique(round.([0.0; [radius for i in 0:2 for radius in LinRange(10.0^i, 10.0^(i+1), 10)]], digits = 10))
+DLBA_W2_WDRO_parameters = paired_parameter_grid(DLBA_W2_rho_over_epsilon_parameters, W2_DRO_radius_parameters)
+
+DLBA_W2_weight_cache = Dict{Float64, Vector{Float64}}()
+for rho_over_epsilon in unique(first.(DLBA_W2_WDRO_parameters))
+    DLBA_W2_weight_cache[Float64(rho_over_epsilon)] = DLBA_W2_weights(1:history_length, rho_over_epsilon, 0)
+end
+
+function DLBA_W2_WDRO_order(demand_samples, parameter)
+    rho_over_epsilon, radius = parameter
+    weights = DLBA_W2_weight_cache[Float64(rho_over_epsilon)]
+
+    return W2_DRO_newsvendor_order(demand_samples, weights, radius; underage_cost = Cu, overage_cost = Co)
+end
+5
+
+DLBA_W2_WDRO_costs = order_parameter_fit(DLBA_W2_WDRO_order, DLBA_W2_WDRO_parameters)
+percentage_average_difference = mean(DLBA_W2_WDRO_costs - smoothing_costs) / mean(smoothing_costs) * 100
+percentage_sem_difference = sem(DLBA_W2_WDRO_costs - smoothing_costs) / mean(smoothing_costs) * 100
+println("DLBA W2 WDRO difference from smoothing: $percentage_average_difference ± $percentage_sem_difference %")
+
+#=
 L2(ξ, ζ) = norm(ξ - ζ, 2)
 WPF_L2_costs = parameter_fit(WPF_weights, WPF_parameters, L2)
 percentage_average_difference = mean(WPF_L2_costs - smoothing_costs) / mean(smoothing_costs) * 100
@@ -107,6 +170,7 @@ WPF_LInf_costs = parameter_fit(WPF_weights, WPF_parameters, LInf)
 percentage_average_difference = mean(WPF_LInf_costs - smoothing_costs) / mean(smoothing_costs) * 100
 percentage_sem_difference = sem(WPF_LInf_costs - smoothing_costs) / mean(smoothing_costs) * 100
 println("WPF LInf difference from smoothing: $percentage_average_difference ± $percentage_sem_difference %")
+=#
 
 digits = 1
 
@@ -114,8 +178,9 @@ SAA_average_cost = round(mean(SAA_costs), digits = digits)
 windowing_average_cost = round(mean(windowing_costs), digits = digits)
 smoothing_average_cost = round(mean(smoothing_costs), digits = digits)
 WPF_L1_average_cost = round(mean(WPF_L1_costs), digits = digits)
-WPF_L2_average_cost = round(mean(WPF_L2_costs), digits = digits)
-WPF_LInf_average_cost = round(mean(WPF_LInf_costs), digits = digits)
+DLBA_W2_WDRO_average_cost = round(mean(DLBA_W2_WDRO_costs), digits = digits)
+#WPF_L2_average_cost = round(mean(WPF_L2_costs), digits = digits)
+#WPF_LInf_average_cost = round(mean(WPF_LInf_costs), digits = digits)
 
 digits = 1
 
@@ -125,7 +190,9 @@ smoothing_percentage_average_difference = round(mean(smoothing_costs - SAA_costs
 smoothing_percentage_sem_difference = round(sem(smoothing_costs - SAA_costs) / mean(SAA_costs) * 100, digits = digits)
 WPF_L1_percentage_average_difference = round(mean(WPF_L1_costs - SAA_costs) / mean(SAA_costs) * 100, digits = digits)
 WPF_L1_percentage_sem_difference = round(sem(WPF_L1_costs - SAA_costs) / mean(SAA_costs) * 100, digits = digits)
-WPF_L2_percentage_average_difference = round(mean(WPF_L2_costs - SAA_costs) / mean(SAA_costs) * 100, digits = digits)
+DLBA_W2_WDRO_percentage_average_difference = round(mean(DLBA_W2_WDRO_costs - SAA_costs) / mean(SAA_costs) * 100, digits = digits)
+DLBA_W2_WDRO_percentage_sem_difference = round(sem(DLBA_W2_WDRO_costs - SAA_costs) / mean(SAA_costs) * 100, digits = digits)
+#=WPF_L2_percentage_average_difference = round(mean(WPF_L2_costs - SAA_costs) / mean(SAA_costs) * 100, digits = digits)
 WPF_L2_percentage_sem_difference = round(sem(WPF_L2_costs - SAA_costs) / mean(SAA_costs) * 100, digits = digits)
 WPF_LInf_percentage_average_difference = round(mean(WPF_LInf_costs - SAA_costs) / mean(SAA_costs) * 100, digits = digits)
 WPF_LInf_percentage_sem_difference = round(sem(WPF_LInf_costs - SAA_costs) / mean(SAA_costs) * 100, digits = digits)
@@ -146,6 +213,6 @@ println("\\makecell[r]{Difference\\\\from SAA (\\%)}
         & \$$smoothing_percentage_average_difference \\pm $smoothing_percentage_sem_difference\$
         & \$$WPF_L1_percentage_average_difference \\pm $WPF_L1_percentage_sem_difference\$
         & \$$WPF_L2_percentage_average_difference \\pm $WPF_L2_percentage_sem_difference\$
-        & \$$WPF_LInf_percentage_average_difference \\pm $WPF_LInf_percentage_sem_difference\$ \\\\")
+        & \$$WPF_LInf_percentage_average_difference \\pm $WPF_LInf_percentage_sem_difference\$ \\\\")=#
 
-
+5

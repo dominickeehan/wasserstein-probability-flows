@@ -3,7 +3,7 @@ using Statistics, StatsBase
 using ProgressBars, IterTools
 using Plots, Measures
 
-include("extract-stock-returns.jl")
+include("extract-stock-returns-100.jl")
 include("weights.jl")
 include("w1-dro-risk-averse-portfolio.jl")
 
@@ -397,14 +397,16 @@ default(framestyle = :box,
         tickfont = secondary_font,
         legendfont = legend_font)
 
-colors = [palette(:tab10)[1] palette(:tab10)[2] palette(:tab10)[3] palette(:tab10)[4] palette(:tab10)[5] palette(:tab10)[6] palette(:tab10)[7] palette(:tab10)[8] palette(:tab10)[9] palette(:tab10)[10]]
-linestyles = [:solid :solid :solid :solid :solid :solid :solid :solid :solid :solid]
+return_periods = length(extracted_data)
+asset_count = length(extracted_data[1])
+colors = permutedims([palette(:tab10)[mod1(i, 10)] for i in 1:asset_count])
+linestyles = permutedims(fill(:solid, asset_count))
 
-plt_extracted_data = plot(1:10*12, 
+plt_extracted_data = plot(1:return_periods, 
                         100*stack(extracted_data)', 
                         xformatter = :none,
                         xticks = (1:12:11*12),
-                        xlims = (1-4,10*12+4),
+                        xlims = (1-4,return_periods+4),
                         #ylims = (0,11.5),
                         ylabel = "Return (%)",
                         labels = nothing,
@@ -424,15 +426,15 @@ plt_extracted_data = plot(1:10*12,
                         bottommargin = 0pt, 
                         leftmargin = 5pt)
 
-sample_indices = 1:10*12
+sample_indices = 1:return_periods
 WPF_L1_parameter = round(Int,WPF_L1_parameter)
 println("\$λ\$ = $WPF_L1_parameter")
 
 plt_probabilities = plot(sample_indices[WPF_L1_sample_weights .>= 1e-3], 
                 WPF_L1_sample_weights[WPF_L1_sample_weights .>= 1e-3],
-                xlabel = "Time (year)",
-            xticks = (1:2*12:10*12+1, ["2014","2016","2018","2020","2022","2024"]),
-            xlims = (1-6,10*12+6+1),
+            xlabel = "Time (year)",
+            xticks = (1:2*12:return_periods+1, ["2014","2016","2018","2020","2022","2024"]),
+            xlims = (1-6,return_periods+6+1),
                 ylabel = "Probability mass", # at \$λ=$WPF_parameter\$",
                 seriestype=:sticks,
                 linestyle=:solid,

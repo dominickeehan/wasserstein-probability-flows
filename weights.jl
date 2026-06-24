@@ -150,8 +150,58 @@ function windowing_weights(observations, s, d)
     return weights
 end
 
+function _Ipopt_acceptable_termination_status(status)
+
+    return status in (
+        MathOptInterface.OPTIMAL,
+        MathOptInterface.LOCALLY_SOLVED,
+        MathOptInterface.ALMOST_OPTIMAL,
+        MathOptInterface.ALMOST_LOCALLY_SOLVED,
+    )
+end
+
+function dlba_wasserstein_weights(wasserstein_order, T, rho_over_epsilon; epsilon = 10.0, max_iter = 500)
+
+    if rho_over_epsilon == 0; weights = zeros(T); weights .= 1/T; return weights; end
+    if rho_over_epsilon >= 1; weights = zeros(T); weights[end] = 1; return weights; end
+    if rho_over_epsilon < 0; error("rho_over_epsilon must be nonnegative"); end
+
+    rho = rho_over_epsilon*epsilon
+    ages = [(T-t+1)^wasserstein_order for t in 1:T]
+
+    Problem = Model(optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0, "sb" => "yes", "max_iter" => max_iter))
+
+    @variables(Problem, begin
+                            1 >= weights[1:T] >= 0
+                      end)
+
+    @constraint(Problem, sum(weights) == 1)
+    @constraint(Problem, sum(weights[t]*ages[t] for t in 1:T)*rho^wasserstein_order <= epsilon^wasserstein_order)
+    @NLobjective(Problem, Max,
+        (1/sum(weights[t]^2 for t in 1:T))*
+            (epsilon - sum(weights[t]*ages[t] for t in 1:T)^(1/wasserstein_order)*rho)^(2*wasserstein_order)
+    )
+
+    for t in 1:T; set_start_value(weights[t], 1/T); end
+
+    optimize!(Problem)
+
+    status = termination_status(Problem)
+    if !_Ipopt_acceptable_termination_status(status)
+        error("Ipopt failed to solve DLBA weight model: termination_status=$status")
+    end
+
+    weights = max.(value.(weights),0)
+    weights = weights/sum(weights)
+
+    return weights
+end
+
+function DLBA_weights(observations, rho_over_epsilon, d)
+
+    return dlba_wasserstein_weights(1.0, length(observations), rho_over_epsilon)
+end
 
 #using LinearAlgebra
 #d(ξ, ζ) = norm(ξ - ζ, 2)
 #@assert sum(abs.(WPF_weights([6.13, 7.85, 6.47, 4.91, 5.54, 7.13], 4.0, d) - [0.0, 0.275, 0.021, 0.0, 0.325, 0.379])) <= 1e-3
-

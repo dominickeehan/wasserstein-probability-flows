@@ -5,6 +5,8 @@ using Plots, Measures
 
 include("extract-dairy-prices.jl")
 include("weights.jl")
+include("DLBA-W2-weights.jl")
+include("W2-DRO-regression.jl")
 
 
 function fit_weighted_AR1_model(time_series, weights)
@@ -25,9 +27,9 @@ end
 loss_function(x,ξ) = (norm(x-ξ, 2))^2
 
 
-training_testing_split = ceil(Int,0.7*length(extracted_data))
+training_testing_split = ceil(Int,0.5*length(extracted_data)) # 0.5 # ceil(Int,0.7*length(extracted_data))
 
-warm_up_period = ceil(Int,0.7*training_testing_split)-1 # Needs to be small enough to allow parameter_tuning_window after.
+warm_up_period = ceil(Int,0.5*training_testing_split)-1 # Needs to be small enough to allow parameter_tuning_window after.
 warm_up_data = extracted_data[1:warm_up_period]
 
 training_data = extracted_data[warm_up_period+1:training_testing_split]
@@ -36,23 +38,36 @@ training_T = length(training_data)
 testing_data = extracted_data[training_testing_split+1:end]
 testing_T = length(testing_data)
 
-parameter_tuning_window = 2*12 # 2*12
+parameter_tuning_window = 2*12 # 3 # 2*12
 
 LogRange(start, stop, len) = exp.(LinRange(log(start), log(stop), len))
 
 windowing_parameters = unique(ceil.(Int, LogRange(10,length(extracted_data),30))) # 12
 smoothing_parameters = [0; LogRange(1e-4,0.9,30)]
-WPF_parameters = [LinRange(10,100,10); LinRange(200,1000,9); LinRange(2000,10000,9); Inf] 
+kernel_parameters = LogRange(0.01,10.0,30)
+WPF_parameters = [LogRange(10,10000,30); Inf]  #[LinRange(10,100,10); LinRange(200,1000,9); LinRange(2000,10000,9); Inf] 
+DLBA_W2_parameters = [0; LogRange(1e-4,1e0,30)]
+W2_DRO_radius_parameters = [0; LinRange(0.0001,0.001,10); LinRange(0.002,0.01,9); LinRange(0.02,0.1,9)]  # 0.01*[0, 0.01, 0.05, 0.1, 0.5, 1] # [0; LinRange(0.0001,0.001,10); LinRange(0.002,0.01,9); LinRange(0.02,0.1,9)]
+DLBA_W2_DRO_parameters = vec(collect(IterTools.product(DLBA_W2_parameters, W2_DRO_radius_parameters)))
 
-function train_and_test_out_of_sample(parameters, solve_for_weights, d; save_cost_plot_as = nothing)
+5
+
+function train_and_test_out_of_sample(parameters, solve_for_weights, d; use_W2_DRO = false, save_cost_plot_as = nothing)
     
     parameter_costs_in_training_stages = zeros((training_T,length(parameters)))
     Threads.@threads for (t,i) in ProgressBar(collect(IterTools.product(training_T:-1:1, eachindex(parameters))))  
 
         local samples = [warm_up_data; training_data[1:t-1]]
         local paired_samples = [[samples[i], samples[i+1]] for i in 1:length(samples)-1]
-        local sample_weights = solve_for_weights(paired_samples, parameters[i], d)
-        local μ, A = fit_weighted_AR1_model(samples, sample_weights)
+        local μ, A
+        if !use_W2_DRO
+            local sample_weights = solve_for_weights(paired_samples, parameters[i], d)
+            μ, A = fit_weighted_AR1_model(samples, sample_weights)
+        else
+            local weight_parameter, radius = parameters[i]
+            local sample_weights = solve_for_weights(paired_samples, weight_parameter, d)
+            μ, A = fit_W2_DRO_weighted_AR1_model(samples, sample_weights, radius; optimizer = WPF_optimizer)
+        end
         local x = μ + A*samples[end]
 
         parameter_costs_in_training_stages[t,i] = loss_function(x, training_data[t])
@@ -63,8 +78,15 @@ function train_and_test_out_of_sample(parameters, solve_for_weights, d; save_cos
         
         local samples = [warm_up_data; training_data; testing_data[1:t-1]]
         local paired_samples = [[samples[i], samples[i+1]] for i in 1:length(samples)-1]
-        local sample_weights = solve_for_weights(paired_samples, parameters[i], d)
-        local μ, A = fit_weighted_AR1_model(samples, sample_weights)
+        local μ, A
+        if !use_W2_DRO
+            local sample_weights = solve_for_weights(paired_samples, parameters[i], d)
+            μ, A = fit_weighted_AR1_model(samples, sample_weights)
+        else
+            local weight_parameter, radius = parameters[i]
+            local sample_weights = solve_for_weights(paired_samples, weight_parameter, d)
+            μ, A = fit_W2_DRO_weighted_AR1_model(samples, sample_weights, radius; optimizer = WPF_optimizer)
+        end
         local x = μ + A*samples[end]
         
         parameter_costs_in_testing_stages[t,i] = loss_function(x, testing_data[t])
@@ -146,14 +168,14 @@ SAA_average_cost = mean(SAA_realised_costs)
 
 
 digits=4
-function extract_results(parameters, weights, d; save_cost_plot_as = nothing)
+function extract_results(parameters, weights, d; use_W2_DRO = false, save_cost_plot_as = nothing)
 
     if save_cost_plot_as === nothing
     
-        realised_costs, optimal_parameter = train_and_test_out_of_sample(parameters, weights, d)
+        realised_costs, optimal_parameter = train_and_test_out_of_sample(parameters, weights, d; use_W2_DRO = use_W2_DRO)
     else
     
-        realised_costs, optimal_parameter = train_and_test_out_of_sample(parameters, weights, d; save_cost_plot_as = save_cost_plot_as)
+        realised_costs, optimal_parameter = train_and_test_out_of_sample(parameters, weights, d; use_W2_DRO = use_W2_DRO, save_cost_plot_as = save_cost_plot_as)
     end
     
     average_cost = mean(realised_costs)
@@ -171,11 +193,26 @@ windowing_average_cost, windowing_percentage_average_difference, windowing_perce
 smoothing_average_cost, smoothing_percentage_average_difference, smoothing_percentage_sem_difference, _ = 
     extract_results(smoothing_parameters, smoothing_weights, d)
 
+include("kernel.jl")
+
+kernel_average_cost, kernel_percentage_average_difference, kernel_percentage_sem_difference, kernel_parameter =
+    extract_kernel_results(kernel_parameters)
+println("\$h\$ = $kernel_parameter")
+
+
 d(ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)
 WPF_L1_average_cost, WPF_L1_percentage_average_difference, WPF_L1_percentage_sem_difference, WPF_L1_parameter = 
-    extract_results(WPF_parameters, WPF_weights, d; save_cost_plot_as = "figures/dairy-prices-WPF-L1-parameter-costs.pdf")
+    extract_results(WPF_parameters, WPF_weights, d)#; save_cost_plot_as = "figures/dairy-prices-WPF-L1-parameter-costs.pdf")
 
-WPF_L1_sample_weights = WPF_weights([[extracted_data[i], extracted_data[i+1]] for i in 1:length(extracted_data)-1], WPF_L1_parameter, d)
+
+5
+
+#=
+DLBA_W2_DRO_average_cost, DLBA_W2_DRO_percentage_average_difference, DLBA_W2_DRO_percentage_sem_difference, DLBA_W2_DRO_parameter =
+    extract_results(DLBA_W2_DRO_parameters, DLBA_W2_weights, d; use_W2_DRO = true)
+=#
+
+#WPF_L1_sample_weights = WPF_weights([[extracted_data[i], extracted_data[i+1]] for i in 1:length(extracted_data)-1], WPF_L1_parameter, d)
 
 
 default() # Reset plot defaults.
@@ -255,11 +292,11 @@ ylims!((0,yl[2]))
 #display(figure)
 #savefig(figure, "figures/dairy-prices-WPF-L1-assigned-probability-to-historical-observations.pdf")
 display(plt_probabilities)
-savefig(plt_probabilities, "figures/dairy-prices-WPF-L1-probability-assigned.pdf")
+#savefig(plt_probabilities, "figures/dairy-prices-WPF-L1-probability-assigned.pdf")
 
 
 
-
+#=
 d(ξ_i,ξ_j) = sqrt(norm(ξ_i[1] - ξ_j[1], 2)^2 + norm(ξ_i[2] - ξ_j[2], 2)^2)
 WPF_L2_average_cost, WPF_L2_percentage_average_difference, WPF_L2_percentage_sem_difference, _ = 
     extract_results(WPF_parameters, WPF_weights, d)
@@ -274,6 +311,7 @@ println("\\makecell[r]{Average\\\\testing cost}
         & \$\\textcolor{white}{+}$SAA_average_cost\$ 
         & \$\\textcolor{white}{+}$windowing_average_cost\$ 
         & \$\\textcolor{white}{+}$smoothing_average_cost\$ 
+        & \$\\textcolor{white}{+}$kernel_average_cost\$
         & \$\\textcolor{white}{+}$WPF_L1_average_cost\$ 
         & \$\\textcolor{white}{+}$WPF_L2_average_cost\$ 
         & \$\\textcolor{white}{+}$WPF_LInf_average_cost\$ \\\\")
@@ -284,10 +322,11 @@ println("\\makecell[r]{Difference\\\\from SAA (\\%)}
         & \$ \$ 
         & \$\\textcolor{white}{+}$windowing_percentage_average_difference\\pm $windowing_percentage_sem_difference\$ 
         & \$\\textcolor{white}{+}$smoothing_percentage_average_difference\\pm $smoothing_percentage_sem_difference\$
+        & \$\\textcolor{white}{+}$kernel_percentage_average_difference\\pm $kernel_percentage_sem_difference\$
         & \$$WPF_L1_percentage_average_difference\\pm $WPF_L1_percentage_sem_difference\$
         & \$\\textcolor{white}{+}$WPF_L2_percentage_average_difference\\pm $WPF_L2_percentage_sem_difference\$
         & \$$WPF_LInf_percentage_average_difference\\pm $WPF_LInf_percentage_sem_difference\$ \\\\")
-
+=#
 
 
 

@@ -4,6 +4,11 @@ csv_file_path = "dairy-prices.csv"
 
 data = CSV.File(csv_file_path) # Units are in dollars per tonne.
 
+#dairy_prices = [(Float64.([row.AMF])) for row in Iterators.take(data, size(data)[1])]
+#dairy_prices = [(Float64.([row.BUT])) for row in Iterators.take(data, size(data)[1])]
+#dairy_prices = [(Float64.([row.BMP])) for row in Iterators.take(data, size(data)[1])]
+#dairy_prices = [(Float64.([row.SMP])) for row in Iterators.take(data, size(data)[1])]
+#dairy_prices = [(Float64.([row.WMP])) for row in Iterators.take(data, size(data)[1])]
 dairy_prices = [(Float64.([row.AMF, row.BUT, row.BMP, row.SMP, row.WMP])) for row in Iterators.take(data, size(data)[1])]
 log_dairy_prices = [log.(dairy_prices[t]) for t in eachindex(dairy_prices)]
 extracted_data = log_dairy_prices
@@ -59,6 +64,6 @@ if do_plots == true
             leftmargin = 7pt)
     
     display(plt)
-    savefig(plt, "figures/dairy-prices.pdf")
+    #savefig(plt, "figures/dairy-prices.pdf")
 
 end
