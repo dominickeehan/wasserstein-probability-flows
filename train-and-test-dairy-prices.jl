@@ -207,10 +207,9 @@ WPF_L1_average_cost, WPF_L1_percentage_average_difference, WPF_L1_percentage_sem
 
 5
 
-#=
-DLBA_W2_DRO_average_cost, DLBA_W2_DRO_percentage_average_difference, DLBA_W2_DRO_percentage_sem_difference, DLBA_W2_DRO_parameter =
-    extract_results(DLBA_W2_DRO_parameters, DLBA_W2_weights, d; use_W2_DRO = true)
-=#
+
+#=DLBA_W2_DRO_average_cost, DLBA_W2_DRO_percentage_average_difference, DLBA_W2_DRO_percentage_sem_difference, DLBA_W2_DRO_parameter =
+    extract_results(DLBA_W2_DRO_parameters, DLBA_W2_weights, d; use_W2_DRO = true)=#
 
 #WPF_L1_sample_weights = WPF_weights([[extracted_data[i], extracted_data[i+1]] for i in 1:length(extracted_data)-1], WPF_L1_parameter, d)
 

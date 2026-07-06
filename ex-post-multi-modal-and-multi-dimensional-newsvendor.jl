@@ -11,8 +11,8 @@ Co = 1  # Overage cost.
 
 Random.seed!(42)
 
-dimensions = 2 # 2
-modes = 3 # 3
+dimensions = 1 # 2
+modes = 1 # 3
 
 newsvendor_loss(order, demand) =
     sum(Cu * max(demand[i] - order[i], 0) + Co * max(order[i] - demand[i], 0) for i in eachindex(order))
