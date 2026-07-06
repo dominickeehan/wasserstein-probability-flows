@@ -26,11 +26,11 @@ LogRange(start, stop, len) = exp.(LinRange(log(start), log(stop), len))
 
 windowing_parameters = unique(ceil.(Int, LogRange(10,length(extracted_data),30))) # 12
 smoothing_parameters = [0; LogRange(1e-4,0.9,30)]
-WPF_parameters = [LogRange(10,10000,30); Inf]  #[LinRange(10,100,10); LinRange(200,1000,9); LinRange(2000,10000,9); Inf] 
+WPF_parameters = [LogRange(1e1,1e4,30); Inf]  #[LinRange(10,100,10); LinRange(200,1000,9); LinRange(2000,10000,9); Inf] 
 DLBA_W2_DRO_weight_parameters = [0; LogRange(1e-4,1e0,30)]
-DLBA_W2_DRO_radius_parameters = [0; LinRange(0.0001,0.001,10); LinRange(0.002,0.01,9); LinRange(0.02,0.1,9)]  # 0.01*[0, 0.01, 0.05, 0.1, 0.5, 1] # [0; LinRange(0.0001,0.001,10); LinRange(0.002,0.01,9); LinRange(0.02,0.1,9)]
+DLBA_W2_DRO_radius_parameters = [0; LinRange(1e-4,1e-3,10); LinRange(2e-3,1e-2,9); LinRange(2e-2,1e-1,9)]
 DLBA_W2_DRO_parameters = vec(collect(IterTools.product(DLBA_W2_DRO_weight_parameters, DLBA_W2_DRO_radius_parameters)))
-kernel_parameters = LogRange(0.01,10.0,30)
+kernel_parameters = LogRange(1e-2,1e1,30)
 
 
 function weighted_AR1_forecast(solve_for_weights; WPF_norm = nothing, use_W2_DRO = false)
@@ -169,11 +169,11 @@ println("Smoothing")
 smoothing_average_cost, smoothing_percentage_average_difference, smoothing_percentage_sem_difference, _ = 
     extract_results(smoothing_parameters, weighted_AR1_forecast(smoothing_weights))
 
-#=
+
 L1(ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)
 println("WPF L1")
 WPF_L1_average_cost, WPF_L1_percentage_average_difference, WPF_L1_percentage_sem_difference, WPF_L1_parameter = 
-    extract_results(WPF_parameters, weighted_AR1_forecast(WPF_weights; WPF_norm = L1); plot_parameter_costs = true)#; save_cost_plot_as = "figures/dairy-prices-WPF-L1-parameter-costs.pdf")=#
+    extract_results(WPF_parameters, weighted_AR1_forecast(WPF_weights; WPF_norm = L1); plot_parameter_costs = true)#; save_cost_plot_as = "figures/dairy-prices-WPF-L1-parameter-costs.pdf")
 
 println("DLBA W2 DRO")
 DLBA_W2_DRO_average_cost, DLBA_W2_DRO_percentage_average_difference, DLBA_W2_DRO_percentage_sem_difference, DLBA_W2_DRO_parameter =

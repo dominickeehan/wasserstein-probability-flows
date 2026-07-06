@@ -29,9 +29,9 @@ LogRange(start, stop, len) = exp.(LinRange(log(start), log(stop), len))
 
 windowing_parameters = unique(ceil.(Int, LogRange(1,length(extracted_data),30)))
 smoothing_parameters = [0; LogRange(1e-4,1e0,30)]
-WPF_parameters = [0; LogRange(1,1000,40); Inf]#[0; LinRange(1,10,10); LinRange(20,100,9); LinRange(200,1000,9); Inf]
-DLBA_W1_DRO_weight_parameters = [0; LogRange(1e-4,1e0,15)] # 30 
-DLBA_W1_DRO_radius_parameters = [0; LogRange(1e-4,1e0,15)]
+WPF_parameters = [0; LogRange(1e0,1e3,100); Inf]#[0; LinRange(1,10,10); LinRange(20,100,9); LinRange(200,1000,9); Inf]
+DLBA_W1_DRO_weight_parameters = [0; LogRange(1e-4,1e0,10)] # 30 
+DLBA_W1_DRO_radius_parameters = [0; LinRange(1e-4,1e-3,3); LinRange(2e-3,1e-2,3); LinRange(2e-2,1e-1,3)]
 DLBA_W1_DRO_parameters = vec(collect(IterTools.product(DLBA_W1_DRO_weight_parameters, DLBA_W1_DRO_radius_parameters)))
 
 

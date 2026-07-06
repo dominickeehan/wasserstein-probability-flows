@@ -14,7 +14,7 @@ for t in 1:length(stock_returns)+1 - 1
     wealth[t+1,:] .= wealth[t,:].*(ones(m)+stock_returns[t])
 end
 
-do_plots = true
+do_plots = false
 if do_plots == true
     using Plots, Measures
 

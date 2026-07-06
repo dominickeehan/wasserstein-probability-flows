@@ -13,7 +13,7 @@ dairy_prices = [(Float64.([row.AMF, row.BUT, row.BMP, row.SMP, row.WMP])) for ro
 log_dairy_prices = [log.(dairy_prices[t]) for t in eachindex(dairy_prices)]
 extracted_data = log_dairy_prices
 
-do_plots = true
+do_plots = false
 if do_plots == true
     using Plots, Measures
 
