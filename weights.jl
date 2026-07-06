@@ -16,7 +16,7 @@ d [function] : Metric defining distances between observations.
 Solve for the terminal probability distribution under the Wasserstein probability flow as represented with a hypographical formulation using the exponential cone. 
 Occasionaly this gets stuck; see Ipopt_WPF_weights for a slower but reliable alternative.
 """
-function WPF_weights(observations, λ, d)
+function WPF_weights(observations, λ, WPF_norm)
 
     Problem = Model(WPF_optimizer)
 
@@ -57,7 +57,7 @@ function WPF_weights(observations, λ, d)
     end
 
     @objective(Problem, Max,
-        sum(z[t] for t in 1:T) - λ*sum(d(observations[i],observations[j])*γ[i,j] for j in 1:T for i in 1:T))
+        sum(z[t] for t in 1:T) - λ*sum(WPF_norm(observations[i],observations[j])*γ[i,j] for j in 1:T for i in 1:T))
 
     optimize!(Problem)
 
@@ -67,13 +67,13 @@ function WPF_weights(observations, λ, d)
 		return weights
 
 	catch
-        return Ipopt_WPF_weights(observations, λ, d) # Use Ipopt Interior-Point Method if COPT Barrier Method fails.
+        return Ipopt_WPF_weights(observations, λ, WPF_norm) # Use Ipopt Interior-Point Method if COPT Barrier Method fails.
 
     end
 
 end
 
-function Ipopt_WPF_weights(observations, λ, d)
+function Ipopt_WPF_weights(observations, λ, WPF_norm)
 
     Problem = Model(optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0))
 
@@ -106,7 +106,7 @@ function Ipopt_WPF_weights(observations, λ, d)
 
     @objective(Problem, Max,
         sum(ifelse(p_diag[t] > 0, log(p_diag[t]), -Inf) for t in 1:T) - # Defining log(0) = -Inf seems to result in faster solves here.
-            λ*sum(d(observations[i],observations[j])*γ[i,j] for j in 1:T for i in 1:T))
+            λ*sum(WPF_norm(observations[i],observations[j])*γ[i,j] for j in 1:T for i in 1:T))
 
     optimize!(Problem)
 
@@ -117,7 +117,7 @@ function Ipopt_WPF_weights(observations, λ, d)
 
 end
 
-function smoothing_weights(observations, α, d)
+function smoothing_weights(observations, α, nothing)
 
     T = length(observations)
 
@@ -131,7 +131,7 @@ function smoothing_weights(observations, α, d)
 end
 
 
-function windowing_weights(observations, s, d)
+function windowing_weights(observations, s, nothing)
 
     T = length(observations)
 
@@ -150,56 +150,41 @@ function windowing_weights(observations, s, d)
     return weights
 end
 
-function _Ipopt_acceptable_termination_status(status)
+Ipoptimizer = optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0)
 
-    return status in (
-        MathOptInterface.OPTIMAL,
-        MathOptInterface.LOCALLY_SOLVED,
-        MathOptInterface.ALMOST_OPTIMAL,
-        MathOptInterface.ALMOST_LOCALLY_SOLVED,
-    )
-end
+function Wp_DRO_weights(p, T, ρ╱ε)
 
-function dlba_wasserstein_weights(wasserstein_order, T, rho_over_epsilon; epsilon = 10.0, max_iter = 500)
+    ε = 10.0
+    ρ = ρ╱ε * ε
 
-    if rho_over_epsilon == 0; weights = zeros(T); weights .= 1/T; return weights; end
-    if rho_over_epsilon >= 1; weights = zeros(T); weights[end] = 1; return weights; end
-    if rho_over_epsilon < 0; error("rho_over_epsilon must be nonnegative"); end
+    if ρ == 0.0; weights = zeros(T); weights .= 1/T; return weights; end
+    if ρ >= ε; weights = zeros(T); weights[T] = 1.0; return weights; end
 
-    rho = rho_over_epsilon*epsilon
-    ages = [(T-t+1)^wasserstein_order for t in 1:T]
+    Problem = Model(Ipoptimizer)
 
-    Problem = Model(optimizer_with_attributes(Ipopt.Optimizer, "print_level" => 0, "sb" => "yes", "max_iter" => max_iter))
+    @variable(Problem, 1.0 >= w[t=1:T] >= 0.0)
 
-    @variables(Problem, begin
-                            1 >= weights[1:T] >= 0
-                      end)
+    @constraint(Problem, sum(w[t] for t in 1:T) == 1.0)
+    @constraint(Problem, sum(w[t]*(T-t+1)^p for t in 1:T)*ρ^p <= ε^p)
 
-    @constraint(Problem, sum(weights) == 1)
-    @constraint(Problem, sum(weights[t]*ages[t] for t in 1:T)*rho^wasserstein_order <= epsilon^wasserstein_order)
-    @NLobjective(Problem, Max,
-        (1/sum(weights[t]^2 for t in 1:T))*
-            (epsilon - sum(weights[t]*ages[t] for t in 1:T)^(1/wasserstein_order)*rho)^(2*wasserstein_order)
-    )
-
-    for t in 1:T; set_start_value(weights[t], 1/T); end
+    @objective(Problem, Max,
+        (1/(sum(w[t]^2 for t in 1:T)))*
+            ((ε-(sum(w[t]*(T-t+1)^p for t in 1:T))^(1/p)*ρ)^(2*p)))
 
     optimize!(Problem)
 
-    status = termination_status(Problem)
-    if !_Ipopt_acceptable_termination_status(status)
-        error("Ipopt failed to solve DLBA weight model: termination_status=$status")
-    end
-
-    weights = max.(value.(weights),0)
+    weights = max.(value.(w),0.0)
     weights = weights/sum(weights)
 
     return weights
 end
 
-function DLBA_weights(observations, rho_over_epsilon, d)
+function DLBA_W1_DRO_weights(observations, ρ╱ε, nothing)
+    return Wp_DRO_weights(1, length(observations), ρ╱ε)
+end
 
-    return dlba_wasserstein_weights(1.0, length(observations), rho_over_epsilon)
+function DLBA_W2_DRO_weights(observations, ρ╱ε, nothing)
+    return Wp_DRO_weights(2, length(observations), ρ╱ε)
 end
 
 #using LinearAlgebra

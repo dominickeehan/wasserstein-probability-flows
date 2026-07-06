@@ -5,7 +5,6 @@ using Plots, Measures
 
 include("extract-stock-returns.jl")
 include("weights.jl")
-include("w1-dro-risk-averse-portfolio.jl")
 
 portfolio_optimizer = optimizer_with_attributes(COPT.Optimizer, "Logging" => 0, "LogToConsole" => 0,)
 
@@ -17,64 +16,7 @@ portfolio_optimizer = optimizer_with_attributes(COPT.Optimizer, "Logging" => 0, 
 ρ = 0.1 # 0.1 # 1 - risk aversion parameter.
 α = 0.05 # #0.06 (-4.3 ± 6.2) # 0.05 # CVaR (dis)-confidence level (in (0, 1]). 1 = Expectation.
 
-function solve_risk_averse_portfolio(sample_returns, sample_weights)
-    """
-    Solve the risk-averse portfolio optimization problem.
-
-    Inputs:
-    - 
-    - (1-ρ): Risk aversion parameter (non-negative scalar).
-    - α: CVaR confidence level (in (0, 1]).
-    Outputs:
-    - x: Optimal portfolio weights (vector of size m).
-    """
-
-    N = length(sample_returns) # Number of return samples.
-    m = length(sample_returns[1]) # Number of assets.
-
-    model = Model(portfolio_optimizer)  
-
-    @variables(model, begin
-                            x[i=1:m] >= 0 # Portfolio weights (non-negative).
-                            τ             # CVaR threshold.
-                            z[i=1:N] >= 0 # Slack variables for CVaR.
-                      end)
-
-    @constraint(model, sum(x) == 1) # Portfolio weights sum to 1
-
-    @objective(model, Min,
-        - ρ*sum(sample_weights[i]*dot(x, sample_returns[i]) for i in 1:N) + (1-ρ) * τ + (1-ρ) * sum(sample_weights[i]*(1/α)*z[i] for i in 1:N)
-    )
-
-    for i in 1:N; @constraint(model, z[i] >= -dot(x, sample_returns[i]) - τ); end # CVaR constraints.
-
-    optimize!(model)
-
-    return value.(x)
-end
-
-function unweighted_cvar(costs)
-
-    N = length(costs) # Number of cost samples.
-
-    model = Model(portfolio_optimizer)  
-
-    @variables(model, begin  
-                            τ             # CVaR threshold.
-                            z[i=1:N] >= 0 # Slack variables for CVaR.
-                      end)
-
-    @objective(model, Min, τ + sum((1/N)*(1/α)*z[i] for i in 1:N))
-
-    for i in 1:N; @constraint(model, z[i] >= costs[i] - τ); end # CVaR constraints.
-
-    optimize!(model)
-
-    return objective_value(model)
-end
-
-portfolio_return(portfolio, realised_return) = dot(portfolio, realised_return)
-
+include("risk-averse-portfolio-optimizations.jl")
 
 training_testing_split = ceil(Int,0.5*length(extracted_data))
 
@@ -91,38 +33,68 @@ parameter_tuning_window = 2*12
 
 LogRange(start, stop, len) = exp.(LinRange(log(start), log(stop), len))
 
-DRO_radius_parameters = [0; LogRange(1e-4,1e-0,30)]
 
 windowing_parameters = unique(ceil.(Int, LogRange(1,length(extracted_data),30)))
 DRO_windowing_parameters = unique(ceil.(Int, LogRange(1,length(extracted_data),5)))
 smoothing_parameters = [0; LogRange(1e-4,1e0,30)]
 DRO_smoothing_parameters = [0; LogRange(1e-3,1e0,5)]
 WPF_parameters = [0; LogRange(1,1000,30); Inf]#[0; LinRange(1,10,10); LinRange(20,100,9); LinRange(200,1000,9); Inf]
-DRO_WPF_parameters = [0; LogRange(1,1000,30); Inf] 
-DLBA_parameters = [0; LogRange(1e-4,1e0,30)]
+#DRO_WPF_parameters = [0; LogRange(1,1000,30); Inf] 
+#DLBA_parameters = [0; LogRange(1e-4,1e0,30)]
+
+
+DRO_radius_parameters = [0; LogRange(1e-4,1e-0,30)]
 DRO_DLBA_parameters = [0; LogRange(1e-4,1e0,30)]
 
 
-function train_and_test_out_of_sample(parameters, weights, d; save_cost_plot_as = nothing)
+function portfolio(samples, parameter, weights = nothing, d = 0; DRO = false, center_weights = nothing)
+    if weights === nothing
+        return fixed_mix_portfolio(samples, parameter)
+    end
+
+    if DRO
+        center_parameter, radius = parameter
+        sample_weights = center_weights === nothing ? weights(samples, center_parameter, d) : center_weights[center_parameter]
+
+        return solve_wasserstein_dro_portfolio(samples, sample_weights, radius)
+    end
+
+    sample_weights = weights(samples, parameter, d)
+    return solve_risk_averse_portfolio(samples, sample_weights)
+end
+
+function train_and_test_portfolio_out_of_sample(parameters, weights = nothing, d = 0; DRO = false, save_cost_plot_as = nothing, plot_parameter_costs = false)
 
     parameter_costs_in_training_stages = zeros((training_T,length(parameters)))
-    Threads.@threads for (t,i) in ProgressBar(collect(IterTools.product(training_T:-1:1, eachindex(parameters))))
+    Threads.@threads for t in ProgressBar(collect(training_T:-1:1))
 
         local samples = [warm_up_data; training_data[1:t-1]]
-        local sample_weights = weights(samples, parameters[i], d)
-        local x = solve_risk_averse_portfolio(samples, sample_weights)
+        local center_weights = nothing
+        if DRO
+            local center_parameters = unique(first.(parameters))
+            center_weights = Dict(center_parameter => weights(samples, center_parameter, d) for center_parameter in center_parameters)
+        end
 
-        parameter_costs_in_training_stages[t,i] = -portfolio_return(x, training_data[t])
+        for i in eachindex(parameters)
+            local x = portfolio(samples, parameters[i], weights, d; DRO = DRO, center_weights = center_weights)
+            parameter_costs_in_training_stages[t,i] = -portfolio_return(x, training_data[t])
+        end
     end
 
     parameter_costs_in_testing_stages = zeros((testing_T,length(parameters)))
-    Threads.@threads for (t,i) in ProgressBar(collect(IterTools.product(testing_T:-1:1, eachindex(parameters))))  
+    Threads.@threads for t in ProgressBar(collect(testing_T:-1:1))  
 
         local samples = [warm_up_data; training_data; testing_data[1:t-1]]
-        local sample_weights = weights(samples, parameters[i], d)
-        local x = solve_risk_averse_portfolio(samples, sample_weights)
+        local center_weights = nothing
+        if DRO
+            local center_parameters = unique(first.(parameters))
+            center_weights = Dict(center_parameter => weights(samples, center_parameter, d) for center_parameter in center_parameters)
+        end
 
-        parameter_costs_in_testing_stages[t,i] = -portfolio_return(x, testing_data[t])
+        for i in eachindex(parameters)
+            local x = portfolio(samples, parameters[i], weights, d; DRO = DRO, center_weights = center_weights)
+            parameter_costs_in_testing_stages[t,i] = -portfolio_return(x, testing_data[t])
+        end
     end
 
     parameter_costs = [parameter_costs_in_training_stages; parameter_costs_in_testing_stages]
@@ -169,7 +141,7 @@ function train_and_test_out_of_sample(parameters, weights, d; save_cost_plot_as 
             tickfont = secondary_font,
             legendfont = legend_font)
 
-    if weights == WPF_weights
+    if plot_parameter_costs || !(save_cost_plot_as === nothing)
 
         plt = plot([1e-1; parameters[2:end-1]; 1e4], 
                 average_parameter_costs_in_previous_stages[end],
@@ -193,122 +165,25 @@ function train_and_test_out_of_sample(parameters, weights, d; save_cost_plot_as 
         xlims!((parameters[2]-2e-1, parameters[end-1]+0.25e3))
 
         display(plt);
-    end
 
-    if !(save_cost_plot_as === nothing); savefig(plt, save_cost_plot_as); end
+        if !(save_cost_plot_as === nothing); savefig(plt, save_cost_plot_as); end
+    end
 
     return realised_costs, parameters[argmin(average_parameter_costs_in_previous_stages[end])]
 
 end
 
-function train_and_test_out_of_sample_dro(center_parameters, radius_parameters, weights, d)
-
-    parameters = [(center_parameter, radius) for center_parameter in center_parameters for radius in radius_parameters]
-
-    parameter_costs_in_training_stages = zeros((training_T,length(parameters)))
-    Threads.@threads for t in ProgressBar(collect(training_T:-1:1))
-
-        local samples = [warm_up_data; training_data[1:t-1]]
-        local center_weights = Dict(center_parameter => weights(samples, center_parameter, d) for center_parameter in center_parameters)
-
-        for i in eachindex(parameters)
-            local center_parameter, radius = parameters[i]
-            local x = solve_wasserstein_dro_portfolio(
-                samples,
-                center_weights[center_parameter],
-                radius;
-                optimizer = portfolio_optimizer,
-                risk_aversion = ρ,
-                cvar_alpha = α,
-            )
-
-            parameter_costs_in_training_stages[t,i] = -portfolio_return(x, training_data[t])
-        end
-    end
-
-    parameter_costs_in_testing_stages = zeros((testing_T,length(parameters)))
-    Threads.@threads for t in ProgressBar(collect(testing_T:-1:1))  
-
-        local samples = [warm_up_data; training_data; testing_data[1:t-1]]
-        local center_weights = Dict(center_parameter => weights(samples, center_parameter, d) for center_parameter in center_parameters)
-
-        for i in eachindex(parameters)
-            local center_parameter, radius = parameters[i]
-            local x = solve_wasserstein_dro_portfolio(
-                samples,
-                center_weights[center_parameter],
-                radius;
-                optimizer = portfolio_optimizer,
-                risk_aversion = ρ,
-                cvar_alpha = α,
-            )
-
-            parameter_costs_in_testing_stages[t,i] = -portfolio_return(x, testing_data[t])
-        end
-    end
-
-    parameter_costs = [parameter_costs_in_training_stages; parameter_costs_in_testing_stages]
-
-    average_parameter_costs_in_previous_stages = [zeros(length(parameters)) for _ in 1:testing_T]
-    for t in 1:testing_T
-
-        average_parameter_costs_in_previous_stages[t] = 
-            ρ*vec(mean(parameter_costs[training_T+(t-1)-(parameter_tuning_window-1):training_T+(t-1),:], dims=1)) + 
-                (1-ρ)*[unweighted_cvar(parameter_costs[training_T+(t-1)-(parameter_tuning_window-1):training_T+(t-1),i]) for i in eachindex(parameters)]
-    end
-
-    realised_costs = [parameter_costs_in_testing_stages[t,argmin(average_parameter_costs_in_previous_stages[t])] for t in 1:testing_T]
-    μ = ρ*mean(realised_costs) + (1-ρ)*unweighted_cvar(realised_costs)
-    s = sem(realised_costs)
-
-    wealth = 1; for i in eachindex(realised_costs); wealth *= 1-realised_costs[i]; end
-
-    display("Cost: $μ ± $s, Wealth: $wealth")
-
-    return realised_costs, parameters[argmin(average_parameter_costs_in_previous_stages[end])]
-end
-
-function test_fixed_mix_out_of_sample()
-
-    m = length(testing_data[1])
-    portfolio = zeros(m)
-    portfolio .= 1/m
-
-    realised_costs = [-portfolio_return(portfolio, testing_data[t]) for t in 1:testing_T]
-    μ = ρ*mean(realised_costs) + (1-ρ)*unweighted_cvar(realised_costs)
-    s = sem(realised_costs)
-
-    wealth = 1; for i in eachindex(realised_costs); wealth *= 1-realised_costs[i]; end
-
-    display("Cost: $μ ± $s, Wealth: $wealth")
-
-    return realised_costs
-end
-
-d(ξ_i,ξ_j) = 0
-
-SAA_realised_costs, _ = train_and_test_out_of_sample(length(extracted_data), windowing_weights, d)
+SAA_realised_costs, _ = train_and_test_portfolio_out_of_sample(length(extracted_data), windowing_weights)
 SAA_risk_adjusted_average_cost = ρ*mean(SAA_realised_costs) + (1-ρ)*unweighted_cvar(SAA_realised_costs)
 
-fixed_mix_realised_costs = test_fixed_mix_out_of_sample()
-fixed_mix_risk_adjusted_average_cost = ρ*mean(fixed_mix_realised_costs) + (1-ρ)*unweighted_cvar(fixed_mix_realised_costs)
-fixed_mix_percentage_average_difference = 
-    round((fixed_mix_risk_adjusted_average_cost - SAA_risk_adjusted_average_cost) / SAA_risk_adjusted_average_cost * 100, digits=1)
-fixed_mix_percentage_sem_difference = round(sem(fixed_mix_realised_costs - SAA_realised_costs) / SAA_risk_adjusted_average_cost * 100, digits=1)
-
-display("Fixed mix difference to SAA: $fixed_mix_percentage_average_difference ± $fixed_mix_percentage_sem_difference")
-
-
 digits=4
-function extract_results(parameters, weights, d; save_cost_plot_as = nothing)
+function extract_results(parameters, weights = nothing, d = 0; DRO = false, save_cost_plot_as = nothing, plot_parameter_costs = false)
 
-    if save_cost_plot_as === nothing
-
-        realised_costs, optimal_parameter = train_and_test_out_of_sample(parameters, weights, d)
-    else
-
-        realised_costs, optimal_parameter = train_and_test_out_of_sample(parameters, weights, d; save_cost_plot_as = save_cost_plot_as)
-    end
+    realised_costs, optimal_parameter = 
+        train_and_test_portfolio_out_of_sample(parameters, weights, d;
+            DRO = DRO,
+            save_cost_plot_as = save_cost_plot_as, 
+            plot_parameter_costs = plot_parameter_costs)
 
     risk_adjusted_average_cost = ρ*mean(realised_costs) + (1-ρ)*unweighted_cvar(realised_costs)
 
@@ -321,55 +196,47 @@ function extract_results(parameters, weights, d; save_cost_plot_as = nothing)
     return round(risk_adjusted_average_cost, digits=digits), percentage_average_difference, percentage_sem_difference, optimal_parameter
 end
 
-function extract_dro_results(center_parameters, radius_parameters, weights, d)
+paired_parameters(center_parameters, radius_parameters) = 
+    [(center_parameter, radius) for center_parameter in center_parameters for radius in radius_parameters]
 
-    realised_costs, optimal_parameter = train_and_test_out_of_sample_dro(center_parameters, radius_parameters, weights, d)
-    risk_adjusted_average_cost = ρ*mean(realised_costs) + (1-ρ)*unweighted_cvar(realised_costs)
-
-    percentage_average_difference = 
-        round((risk_adjusted_average_cost - SAA_risk_adjusted_average_cost) / SAA_risk_adjusted_average_cost * 100, digits=1)
-    percentage_sem_difference = round(sem(realised_costs - SAA_realised_costs) / SAA_risk_adjusted_average_cost * 100, digits=1)
-
-    display("difference to SAA: $percentage_average_difference ± $percentage_sem_difference")
-    
-    return round(risk_adjusted_average_cost, digits=digits), percentage_average_difference, percentage_sem_difference, optimal_parameter
-end
+fixed_mix_risk_adjusted_average_cost, fixed_mix_percentage_average_difference, fixed_mix_percentage_sem_difference, _ = 
+    extract_results([0])
 
 
 #SAA_DRO_risk_adjusted_average_cost, SAA_DRO_percentage_average_difference, SAA_DRO_percentage_sem_difference, SAA_DRO_parameter = 
- #   extract_dro_results([length(extracted_data)], DRO_radius_parameters, windowing_weights, d)
+ #   extract_results(paired_parameters([length(extracted_data)], DRO_radius_parameters), windowing_weights; DRO = true)
 
 windowing_risk_adjusted_average_cost, windowing_percentage_average_difference, windowing_percentage_sem_difference, _ = 
-    extract_results(windowing_parameters, windowing_weights, d)
+    extract_results(windowing_parameters, windowing_weights)
 
 #windowing_DRO_risk_adjusted_average_cost, windowing_DRO_percentage_average_difference, windowing_DRO_percentage_sem_difference, windowing_DRO_parameter = 
- #   extract_dro_results(DRO_windowing_parameters, DRO_radius_parameters, windowing_weights, d)
+ #   extract_results(paired_parameters(DRO_windowing_parameters, DRO_radius_parameters), windowing_weights; DRO = true)
 
 smoothing_risk_adjusted_average_cost, smoothing_percentage_average_difference, smoothing_percentage_sem_difference, _ = 
-    extract_results(smoothing_parameters, smoothing_weights, d)
+    extract_results(smoothing_parameters, smoothing_weights)
 
 #smoothing_DRO_risk_adjusted_average_cost, smoothing_DRO_percentage_average_difference, smoothing_DRO_percentage_sem_difference, smoothing_DRO_parameter = 
- #   extract_dro_results(DRO_smoothing_parameters, DRO_radius_parameters, smoothing_weights, d)
+ #   extract_results(paired_parameters(DRO_smoothing_parameters, DRO_radius_parameters), smoothing_weights; DRO = true)
 
 
-d(ξ_i,ξ_j) = norm(ξ_i - ξ_j, 1)
+L1(ξ_i,ξ_j) = norm(ξ_i - ξ_j, 1)
 WPF_L1_risk_adjusted_average_cost, WPF_L1_percentage_average_difference, WPF_L1_percentage_sem_difference, WPF_L1_parameter = 
-    extract_results(WPF_parameters, WPF_weights, d)#; save_cost_plot_as = "figures/stock-returns-WPF-L1-parameter-costs.pdf")
+    extract_results(WPF_parameters, WPF_weights, L1; plot_parameter_costs = true)#; save_cost_plot_as = "figures/stock-returns-WPF-L1-parameter-costs.pdf")
 
 
 #WPF_L1_DRO_risk_adjusted_average_cost, WPF_L1_DRO_percentage_average_difference, WPF_L1_DRO_percentage_sem_difference, WPF_L1_DRO_parameter = 
- #   extract_dro_results(DRO_WPF_parameters, DRO_radius_parameters, WPF_weights, d)
+ #   extract_results(paired_parameters(DRO_WPF_parameters, DRO_radius_parameters), WPF_weights, L1; DRO = true)
 
 5
 
 #DLBA_risk_adjusted_average_cost, DLBA_percentage_average_difference, DLBA_percentage_sem_difference, DLBA_parameter = 
- #   extract_results(DLBA_parameters, DLBA_weights, d) 
+ #   extract_results(DLBA_parameters, DLBA_weights) 
 
 DLBA_W1_DRO_risk_adjusted_average_cost, DLBA_W1_DRO_percentage_average_difference, DLBA_W1_DRO_percentage_sem_difference, DLBA_W1_DRO_parameter = 
-    extract_dro_results(DRO_DLBA_parameters, DRO_radius_parameters, DLBA_weights, d)   
+    extract_results(paired_parameters(DRO_DLBA_parameters, DRO_radius_parameters), DLBA_weights; DRO = true)   
 
 
-WPF_L1_sample_weights = WPF_weights(extracted_data, WPF_L1_parameter, d)
+WPF_L1_sample_weights = WPF_weights(extracted_data, WPF_L1_parameter, L1)
 
 
 default() # Reset plot defaults.
@@ -463,13 +330,13 @@ display(plt_probabilities)
 
 
 #=
-d(ξ_i,ξ_j) = norm(ξ_i - ξ_j, 2)
+L2(ξ_i,ξ_j) = norm(ξ_i - ξ_j, 2)
 WPF_L2_risk_adjusted_average_cost, WPF_L2_percentage_average_difference, WPF_L2_percentage_sem_difference, _ = 
-    extract_results(WPF_parameters, WPF_weights, d)
+    extract_results(WPF_parameters, WPF_weights, L2)
 
-d(ξ_i,ξ_j) = norm(ξ_i - ξ_j, Inf)
+LInf(ξ_i,ξ_j) = norm(ξ_i - ξ_j, Inf)
 WPF_LInf_risk_adjusted_average_cost, WPF_LInf_percentage_average_difference, WPF_LInf_percentage_sem_difference, _ = 
-    extract_results(WPF_parameters, WPF_weights, d)
+    extract_results(WPF_parameters, WPF_weights, LInf)
 
 SAA_risk_adjusted_average_cost = round(SAA_risk_adjusted_average_cost, digits=digits)
 

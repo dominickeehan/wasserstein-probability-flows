@@ -1,6 +1,6 @@
-# Conservative W2-DRO Regression
+# A Conservative View of W2-DRO Regression
 
-This note describes the regression problem solved by `W2-DRO-regression.jl`.
+This note describes the regression problem solved by `fit_W2_DRO_weighted_AR1_model.jl`.
 The goal is to fit a weighted AR(1) model
 
 ```math

@@ -5,24 +5,7 @@ using Plots, Measures
 
 include("extract-dairy-prices.jl")
 include("weights.jl")
-include("DLBA-W2-weights.jl")
-include("W2-DRO-regression.jl")
-
-
-function fit_weighted_AR1_model(time_series, weights)
-    m = length(time_series[1])
-
-    lagged_time_series = time_series[2:end]
-    time_series = time_series[1:end-1]
-
-    X = hcat(ones(length(time_series)), stack(time_series)') # Leading column of ones for the additive term.
-    weights = Diagonal(weights)
-    least_squares_solution = (X'*weights*X) \ (X'*weights*stack(lagged_time_series)')
-    
-    μ = least_squares_solution[1, :] # First row is the intercept vector.
-    A = least_squares_solution[2:end, :]' # Due to transposing these are ordered differently.
-    return μ, A
-end
+include("dairy-price-forecastings.jl")
 
 loss_function(x,ξ) = (norm(x-ξ, 2))^2
 
@@ -44,31 +27,38 @@ LogRange(start, stop, len) = exp.(LinRange(log(start), log(stop), len))
 
 windowing_parameters = unique(ceil.(Int, LogRange(10,length(extracted_data),30))) # 12
 smoothing_parameters = [0; LogRange(1e-4,0.9,30)]
-kernel_parameters = LogRange(0.01,10.0,30)
 WPF_parameters = [LogRange(10,10000,30); Inf]  #[LinRange(10,100,10); LinRange(200,1000,9); LinRange(2000,10000,9); Inf] 
-DLBA_W2_parameters = [0; LogRange(1e-4,1e0,30)]
-W2_DRO_radius_parameters = [0; LinRange(0.0001,0.001,10); LinRange(0.002,0.01,9); LinRange(0.02,0.1,9)]  # 0.01*[0, 0.01, 0.05, 0.1, 0.5, 1] # [0; LinRange(0.0001,0.001,10); LinRange(0.002,0.01,9); LinRange(0.02,0.1,9)]
-DLBA_W2_DRO_parameters = vec(collect(IterTools.product(DLBA_W2_parameters, W2_DRO_radius_parameters)))
+DLBA_W2_DRO_weight_parameters = [0; LogRange(1e-4,1e0,30)]
+DLBA_W2_DRO_radius_parameters = [0; LinRange(0.0001,0.001,10); LinRange(0.002,0.01,9); LinRange(0.02,0.1,9)]  # 0.01*[0, 0.01, 0.05, 0.1, 0.5, 1] # [0; LinRange(0.0001,0.001,10); LinRange(0.002,0.01,9); LinRange(0.02,0.1,9)]
+DLBA_W2_DRO_parameters = vec(collect(IterTools.product(DLBA_W2_DRO_weight_parameters, DLBA_W2_DRO_radius_parameters)))
+kernel_parameters = LogRange(0.01,10.0,30)
 
 5
 
-function train_and_test_out_of_sample(parameters, solve_for_weights, d; use_W2_DRO = false, save_cost_plot_as = nothing)
+function forecast(solve_for_weights; WPF_norm = nothing, use_W2_DRO = false)
+    return function(samples, parameter)
+        paired_samples = [[samples[i], samples[i+1]] for i in 1:length(samples)-1]
+
+        if use_W2_DRO
+            weight_parameter, radius_parameter = parameter
+            sample_weights = solve_for_weights(paired_samples, weight_parameter, WPF_norm)
+            μ, A = fit_W2_DRO_weighted_AR1_model(samples, sample_weights, radius_parameter)
+        else
+            sample_weights = solve_for_weights(paired_samples, parameter, WPF_norm)
+            μ, A = fit_weighted_AR1_model(samples, sample_weights)
+        end
+
+        return μ + A*samples[end]
+    end
+end
+
+function train_and_test_forecast_out_of_sample(parameters, forecast; plot_parameter_costs = false, save_cost_plot_as = nothing)
     
     parameter_costs_in_training_stages = zeros((training_T,length(parameters)))
     Threads.@threads for (t,i) in ProgressBar(collect(IterTools.product(training_T:-1:1, eachindex(parameters))))  
 
         local samples = [warm_up_data; training_data[1:t-1]]
-        local paired_samples = [[samples[i], samples[i+1]] for i in 1:length(samples)-1]
-        local μ, A
-        if !use_W2_DRO
-            local sample_weights = solve_for_weights(paired_samples, parameters[i], d)
-            μ, A = fit_weighted_AR1_model(samples, sample_weights)
-        else
-            local weight_parameter, radius = parameters[i]
-            local sample_weights = solve_for_weights(paired_samples, weight_parameter, d)
-            μ, A = fit_W2_DRO_weighted_AR1_model(samples, sample_weights, radius; optimizer = WPF_optimizer)
-        end
-        local x = μ + A*samples[end]
+        local x = forecast(samples, parameters[i])
 
         parameter_costs_in_training_stages[t,i] = loss_function(x, training_data[t])
     end
@@ -77,17 +67,7 @@ function train_and_test_out_of_sample(parameters, solve_for_weights, d; use_W2_D
     Threads.@threads for (t,i) in ProgressBar(collect(IterTools.product(testing_T:-1:1, eachindex(parameters))))  
         
         local samples = [warm_up_data; training_data; testing_data[1:t-1]]
-        local paired_samples = [[samples[i], samples[i+1]] for i in 1:length(samples)-1]
-        local μ, A
-        if !use_W2_DRO
-            local sample_weights = solve_for_weights(paired_samples, parameters[i], d)
-            μ, A = fit_weighted_AR1_model(samples, sample_weights)
-        else
-            local weight_parameter, radius = parameters[i]
-            local sample_weights = solve_for_weights(paired_samples, weight_parameter, d)
-            μ, A = fit_W2_DRO_weighted_AR1_model(samples, sample_weights, radius; optimizer = WPF_optimizer)
-        end
-        local x = μ + A*samples[end]
+        local x = forecast(samples, parameters[i])
         
         parameter_costs_in_testing_stages[t,i] = loss_function(x, testing_data[t])
     end
@@ -129,7 +109,7 @@ function train_and_test_out_of_sample(parameters, solve_for_weights, d; use_W2_D
             tickfont = Plots.font(fontfamily, pointsize = 10),
             legendfont = Plots.font(fontfamily, pointsize = 11))
     
-    if solve_for_weights == WPF_weights
+    if plot_parameter_costs
 
         plt = plot([parameters[1:end-1]; 100000], 
                 vec(sum(parameter_costs[end-(parameter_tuning_window-1):end,:], dims=1))/(parameter_tuning_window),
@@ -154,29 +134,23 @@ function train_and_test_out_of_sample(parameters, solve_for_weights, d; use_W2_D
 
         display(plt);
 
+        if !(save_cost_plot_as === nothing); savefig(plt, save_cost_plot_as); end
     end
-
-    if !(save_cost_plot_as === nothing); savefig(plt, save_cost_plot_as); end
 
     return realised_costs, parameters[argmin(vec(sum(parameter_costs[end-(parameter_tuning_window-1):end,:], dims=1))/(parameter_tuning_window))]
 
 end
 
-d(ξ_i,ξ_j) = 0
-SAA_realised_costs, _ = train_and_test_out_of_sample(length(extracted_data), windowing_weights, d)
+SAA_realised_costs, _ = train_and_test_forecast_out_of_sample(length(extracted_data), forecast(windowing_weights))
 SAA_average_cost = mean(SAA_realised_costs)
 
-
 digits=4
-function extract_results(parameters, weights, d; use_W2_DRO = false, save_cost_plot_as = nothing)
+function extract_results(parameters, forecast; save_cost_plot_as = nothing, plot_parameter_costs = false)
 
-    if save_cost_plot_as === nothing
-    
-        realised_costs, optimal_parameter = train_and_test_out_of_sample(parameters, weights, d; use_W2_DRO = use_W2_DRO)
-    else
-    
-        realised_costs, optimal_parameter = train_and_test_out_of_sample(parameters, weights, d; use_W2_DRO = use_W2_DRO, save_cost_plot_as = save_cost_plot_as)
-    end
+    realised_costs, optimal_parameter =
+        train_and_test_forecast_out_of_sample(parameters, forecast;
+            save_cost_plot_as = save_cost_plot_as,
+            plot_parameter_costs = plot_parameter_costs)
     
     average_cost = mean(realised_costs)
     percentage_average_difference = round((average_cost - SAA_average_cost) / SAA_average_cost * 100, digits = 1)
@@ -187,31 +161,29 @@ function extract_results(parameters, weights, d; use_W2_DRO = false, save_cost_p
     return round(average_cost, digits=digits), percentage_average_difference, percentage_sem_difference, optimal_parameter
 end
 
+println("Windowing")
 windowing_average_cost, windowing_percentage_average_difference, windowing_percentage_sem_difference, _ = 
-    extract_results(windowing_parameters, windowing_weights, d)
+    extract_results(windowing_parameters, forecast(windowing_weights))
 
+println("Smoothing")
 smoothing_average_cost, smoothing_percentage_average_difference, smoothing_percentage_sem_difference, _ = 
-    extract_results(smoothing_parameters, smoothing_weights, d)
+    extract_results(smoothing_parameters, forecast(smoothing_weights))
 
-include("kernel.jl")
-
-kernel_average_cost, kernel_percentage_average_difference, kernel_percentage_sem_difference, kernel_parameter =
-    extract_kernel_results(kernel_parameters)
-println("\$h\$ = $kernel_parameter")
-
-
-d(ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)
+#=
+L1(ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)
+println("WPF L1")
 WPF_L1_average_cost, WPF_L1_percentage_average_difference, WPF_L1_percentage_sem_difference, WPF_L1_parameter = 
-    extract_results(WPF_parameters, WPF_weights, d)#; save_cost_plot_as = "figures/dairy-prices-WPF-L1-parameter-costs.pdf")
+    extract_results(WPF_parameters, forecast(WPF_weights; WPF_norm = L1); plot_parameter_costs = true)#; save_cost_plot_as = "figures/dairy-prices-WPF-L1-parameter-costs.pdf")=#
 
+println("DLBA W2 DRO")
+DLBA_W2_DRO_average_cost, DLBA_W2_DRO_percentage_average_difference, DLBA_W2_DRO_percentage_sem_difference, DLBA_W2_DRO_parameter =
+    extract_results(DLBA_W2_DRO_parameters, forecast(DLBA_W2_DRO_weights; use_W2_DRO = true))
 
-5
+println("Kernel analog")
+kernel_average_cost, kernel_percentage_average_difference, kernel_percentage_sem_difference, kernel_parameter =
+    extract_results(kernel_parameters, kernel_analog_forecast)
 
-
-#=DLBA_W2_DRO_average_cost, DLBA_W2_DRO_percentage_average_difference, DLBA_W2_DRO_percentage_sem_difference, DLBA_W2_DRO_parameter =
-    extract_results(DLBA_W2_DRO_parameters, DLBA_W2_weights, d; use_W2_DRO = true)=#
-
-#WPF_L1_sample_weights = WPF_weights([[extracted_data[i], extracted_data[i+1]] for i in 1:length(extracted_data)-1], WPF_L1_parameter, d)
+#WPF_L1_sample_weights = WPF_weights([[extracted_data[i], extracted_data[i+1]] for i in 1:length(extracted_data)-1], WPF_L1_parameter, L1)
 
 
 default() # Reset plot defaults.
@@ -296,13 +268,15 @@ display(plt_probabilities)
 
 
 #=
-d(ξ_i,ξ_j) = sqrt(norm(ξ_i[1] - ξ_j[1], 2)^2 + norm(ξ_i[2] - ξ_j[2], 2)^2)
+L2(ξ_i,ξ_j) = sqrt(norm(ξ_i[1] - ξ_j[1], 2)^2 + norm(ξ_i[2] - ξ_j[2], 2)^2)
+println("WPF L2")
 WPF_L2_average_cost, WPF_L2_percentage_average_difference, WPF_L2_percentage_sem_difference, _ = 
-    extract_results(WPF_parameters, WPF_weights, d)
+    extract_results(WPF_parameters, forecast(WPF_weights, L2))
 
-d(ξ_i,ξ_j) = max(norm(ξ_i[1] - ξ_j[1], Inf), norm(ξ_i[2] - ξ_j[2], Inf))
+LInf(ξ_i,ξ_j) = max(norm(ξ_i[1] - ξ_j[1], Inf), norm(ξ_i[2] - ξ_j[2], Inf))
+println("WPF LInf")
 WPF_LInf_average_cost, WPF_LInf_percentage_average_difference, WPF_LInf_percentage_sem_difference, _ = 
-    extract_results(WPF_parameters, WPF_weights, d)
+    extract_results(WPF_parameters, forecast(WPF_weights, LInf))
 
 SAA_average_cost = round(SAA_average_cost, digits=digits)
 
