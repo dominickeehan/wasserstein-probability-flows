@@ -9,7 +9,6 @@ include("dairy-price-forecastings.jl")
 
 loss_function(x,ξ) = (norm(x-ξ, 2))^2
 
-
 training_testing_split = ceil(Int,0.5*length(extracted_data)) # 0.5 # ceil(Int,0.7*length(extracted_data))
 
 warm_up_period = ceil(Int,0.5*training_testing_split)-1 # Needs to be small enough to allow parameter_tuning_window after.
@@ -33,19 +32,20 @@ DLBA_W2_DRO_radius_parameters = [0; LinRange(0.0001,0.001,10); LinRange(0.002,0.
 DLBA_W2_DRO_parameters = vec(collect(IterTools.product(DLBA_W2_DRO_weight_parameters, DLBA_W2_DRO_radius_parameters)))
 kernel_parameters = LogRange(0.01,10.0,30)
 
-5
 
-function forecast(solve_for_weights; WPF_norm = nothing, use_W2_DRO = false)
+function weighted_AR1_forecast(solve_for_weights; WPF_norm = nothing, use_W2_DRO = false)
     return function(samples, parameter)
         paired_samples = [[samples[i], samples[i+1]] for i in 1:length(samples)-1]
 
-        if use_W2_DRO
+        if use_W2_DRO == true
             weight_parameter, radius_parameter = parameter
             sample_weights = solve_for_weights(paired_samples, weight_parameter, WPF_norm)
             μ, A = fit_W2_DRO_weighted_AR1_model(samples, sample_weights, radius_parameter)
+        
         else
             sample_weights = solve_for_weights(paired_samples, parameter, WPF_norm)
             μ, A = fit_weighted_AR1_model(samples, sample_weights)
+        
         end
 
         return μ + A*samples[end]
@@ -109,7 +109,7 @@ function train_and_test_forecast_out_of_sample(parameters, forecast; plot_parame
             tickfont = Plots.font(fontfamily, pointsize = 10),
             legendfont = Plots.font(fontfamily, pointsize = 11))
     
-    if plot_parameter_costs
+    if plot_parameter_costs == true
 
         plt = plot([parameters[1:end-1]; 100000], 
                 vec(sum(parameter_costs[end-(parameter_tuning_window-1):end,:], dims=1))/(parameter_tuning_window),
@@ -163,21 +163,21 @@ end
 
 println("Windowing")
 windowing_average_cost, windowing_percentage_average_difference, windowing_percentage_sem_difference, _ = 
-    extract_results(windowing_parameters, forecast(windowing_weights))
+    extract_results(windowing_parameters, weighted_AR1_forecast(windowing_weights))
 
 println("Smoothing")
 smoothing_average_cost, smoothing_percentage_average_difference, smoothing_percentage_sem_difference, _ = 
-    extract_results(smoothing_parameters, forecast(smoothing_weights))
+    extract_results(smoothing_parameters, weighted_AR1_forecast(smoothing_weights))
 
 #=
 L1(ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)
 println("WPF L1")
 WPF_L1_average_cost, WPF_L1_percentage_average_difference, WPF_L1_percentage_sem_difference, WPF_L1_parameter = 
-    extract_results(WPF_parameters, forecast(WPF_weights; WPF_norm = L1); plot_parameter_costs = true)#; save_cost_plot_as = "figures/dairy-prices-WPF-L1-parameter-costs.pdf")=#
+    extract_results(WPF_parameters, weighted_AR1_forecast(WPF_weights; WPF_norm = L1); plot_parameter_costs = true)#; save_cost_plot_as = "figures/dairy-prices-WPF-L1-parameter-costs.pdf")=#
 
 println("DLBA W2 DRO")
 DLBA_W2_DRO_average_cost, DLBA_W2_DRO_percentage_average_difference, DLBA_W2_DRO_percentage_sem_difference, DLBA_W2_DRO_parameter =
-    extract_results(DLBA_W2_DRO_parameters, forecast(DLBA_W2_DRO_weights; use_W2_DRO = true))
+    extract_results(DLBA_W2_DRO_parameters, weighted_AR1_forecast(DLBA_W2_DRO_weights; use_W2_DRO = true))
 
 println("Kernel analog")
 kernel_average_cost, kernel_percentage_average_difference, kernel_percentage_sem_difference, kernel_parameter =
