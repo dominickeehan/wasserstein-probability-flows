@@ -48,52 +48,26 @@ function solve_risk_averse_portfolio(sample_returns, sample_weights)
     return value.(x)
 end
 
-function solve_full_support_W1_DRO_risk_averse_portfolio(sample_returns, sample_weights, radius)
+
+
+
+"""
+    solve_W1_DRO_risk_averse_portfolio(sample_returns, sample_weights, radius)
+
+Restricted-support W1-DRO mean-CVaR portfolio via the Esfahani-Kuhn reformulation,
+with support fixed to the economically natural lower bound `return >= -100%`.
+
+For a lower-bound-only support the objective-minimizing support multipliers are
+`max(c*x[j] - λ, 0)`, independent of the sample, so the generic per-sample gamma[i,j]
+collapse to one shared correction h[j] per affine loss piece. This drops the O(N*m)
+support-dual variables and constraints of the generic polyhedral dual.
+"""
+function solve_W1_DRO_risk_averse_portfolio(sample_returns, sample_weights, radius)
 
     N = length(sample_returns)
     m = length(sample_returns[1])
 
     sample_weights = sample_weights/sum(sample_weights)
-    robust_lipschitz_coefficient = ρ + (1-ρ)/α
-
-    model = Model(portfolio_optimizer)
-
-    @variables(model, begin
-                            x[i=1:m] >= 0 # Portfolio weights (non-negative).
-                            τ             # CVaR threshold.
-                            z[i=1:N] >= 0 # Slack variables for CVaR.
-                            u >= 0        # L∞ norm of x, dual to the L1 ground metric.
-                      end)
-
-    @constraint(model, sum(x) == 1) # Portfolio weights sum to 1
-    @constraint(model, [i=1:m], x[i] <= u)
-
-    for i in 1:N; @constraint(model, z[i] >= -dot(x, sample_returns[i]) - τ); end # CVaR constraints.
-
-    # Full-support W1 DRO: no polyhedral support dual is used, so the Wasserstein
-    # term reduces to the Lipschitz penalty of the worst affine CVaR piece.
-    @objective(model, Min,
-        - ρ*sum(sample_weights[i]*dot(x, sample_returns[i]) for i in 1:N) +
-            (1-ρ)*τ +
-            (1-ρ)*sum(sample_weights[i]*(1/α)*z[i] for i in 1:N) +
-            radius*robust_lipschitz_coefficient*u
-    )
-
-    optimize!(model)
-
-    return value.(x)
-end
-
-function solve_polyhedral_support_W1_DRO_risk_averse_portfolio(sample_returns, sample_weights, radius; support_lower_bound = -1.0)
-
-    N = length(sample_returns)
-    m = length(sample_returns[1])
-
-    sample_weights = sample_weights/sum(sample_weights)
-    support_lower_bounds = fill(support_lower_bound, m)
-    if any(any(sample_returns[i] .< support_lower_bounds) for i in 1:N)
-        error("Sample return below W1-DRO support lower bound $support_lower_bound")
-    end
 
     mean_loss_coefficient = ρ
     cvar_loss_coefficient = ρ + (1-ρ)/α
@@ -105,27 +79,31 @@ function solve_polyhedral_support_W1_DRO_risk_averse_portfolio(sample_returns, s
                             τ             # CVaR threshold.
                             λ >= 0        # Wasserstein dual multiplier.
                             s[i=1:N]      # Worst-case loss epigraph variables.
-                            γ_mean[i=1:N, j=1:m] >= 0 # Support-dual variables for the mean-loss affine piece.
-                            γ_tail[i=1:N, j=1:m] >= 0 # Support-dual variables for the tail-loss affine piece.
+                            h_mean[j=1:m] >= 0 # Shared lower-support correction for the mean-loss affine piece.
+                            h_tail[j=1:m] >= 0 # Shared lower-support correction for the tail-loss affine piece.
                       end)
 
     @constraint(model, sum(x) == 1) # Portfolio weights sum to 1
 
-    # Esfahani-Kuhn support dual for the polyhedral return support ξ >= support_lower_bound.
+    # Support-dual reduction of the generic Esfahani-Kuhn polyhedral dual. That dual carries
+    # per-sample multipliers γ_mean[i,j], γ_tail[i,j] >= 0 with two-sided boxes |γ[i,j] - c*x[j]| <= λ.
+    # For the -100% lower-bound support the slacks (sample_returns[i] .+ 1.0) are nonnegative, so the
+    # objective drives every multiplier to its lower bound max(c*x[j] - λ, 0), independent of i. Hence
+    # (1) one shared h[j] per affine piece replaces the N per-sample multipliers, and (2) the upper-bound
+    # rows h[j] - c*x[j] <= λ are dropped: they never bind at the minimizing h, so only these lower
+    # bounds are kept.
+    @constraint(model, [j=1:m], h_mean[j] >= mean_loss_coefficient*x[j] - λ)
+    @constraint(model, [j=1:m], h_tail[j] >= cvar_loss_coefficient*x[j] - λ)
+
     for i in 1:N
-        support_slack = sample_returns[i] - support_lower_bounds
+        support_slack = sample_returns[i] .+ 1.0 # Slack against the -100% support lower bound.
 
         @constraint(model,
             (1-ρ)*τ - mean_loss_coefficient*dot(x, sample_returns[i]) +
-                sum(γ_mean[i,j]*support_slack[j] for j in 1:m) <= s[i])
+                sum(h_mean[j]*support_slack[j] for j in 1:m) <= s[i])
         @constraint(model,
             (1-ρ)*(1-1/α)*τ - cvar_loss_coefficient*dot(x, sample_returns[i]) +
-                sum(γ_tail[i,j]*support_slack[j] for j in 1:m) <= s[i])
-
-        @constraint(model, [j=1:m], γ_mean[i,j] - mean_loss_coefficient*x[j] <= λ)
-        @constraint(model, [j=1:m], mean_loss_coefficient*x[j] - γ_mean[i,j] <= λ)
-        @constraint(model, [j=1:m], γ_tail[i,j] - cvar_loss_coefficient*x[j] <= λ)
-        @constraint(model, [j=1:m], cvar_loss_coefficient*x[j] - γ_tail[i,j] <= λ)
+                sum(h_tail[j]*support_slack[j] for j in 1:m) <= s[i])
     end
 
     @objective(model, Min,
@@ -137,18 +115,15 @@ function solve_polyhedral_support_W1_DRO_risk_averse_portfolio(sample_returns, s
     return value.(x)
 end
 
-function solve_W1_DRO_risk_averse_portfolio(sample_returns, sample_weights, radius; support_lower_bound = -1.0)
 
-    # Comment out this return to use the easier full-support W1 DRO formulation below.
-    #return solve_polyhedral_support_W1_DRO_risk_averse_portfolio(sample_returns,sample_weights,radius;support_lower_bound = support_lower_bound,)
 
-    return solve_full_support_W1_DRO_risk_averse_portfolio(sample_returns, sample_weights, radius)
-end
 
-function fixed_mix_portfolio(sample_returns, parameter = 0)
+function fixed_mix_portfolio(sample_returns, nothing)
     m = length(sample_returns[1])
     portfolio = zeros(m)
     portfolio .= 1/m
 
     return portfolio
 end
+
+5

@@ -5,6 +5,8 @@ csv_file_path = "stock-returns-S&P-500-2014.csv"
 data = CSV.File(csv_file_path)
 rows = collect(data)
 
+5
+
 stock_return_column_names = collect(propertynames(data))[2:end]
 stock_return_tickers = String.(stock_return_column_names)
 stock_return_dates = [String(row[:Date]) for row in rows]
