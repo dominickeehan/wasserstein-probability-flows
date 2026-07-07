@@ -30,8 +30,8 @@ LogRange(start, stop, len) = exp.(LinRange(log(start), log(stop), len))
 windowing_parameters = unique(ceil.(Int, LogRange(1, length(extracted_data), 30)))
 smoothing_parameters = [0; LogRange(1e-4, 1e0, 30)]
 WPF_parameters = [0; LogRange(1e-1, 1e2, 30); Inf] #WPF_parameters = [0; LogRange(1e-1, 1e2, 30); Inf]
-DLBA_W1_DRO_weight_parameters = [0]#[0; LogRange(1e-4, 1e0, 30)]
-DLBA_W1_DRO_radius_parameters = [0; LogRange(1e-3, 1e0, 30)]#[0; LinRange(1e-2, 1e-1, 10); LinRange(2e-1, 1e-0, 10); LinRange(2e-0, 1e1, 10)]
+DLBA_W1_DRO_weight_parameters = [0]
+DLBA_W1_DRO_radius_parameters = [0; LogRange(1e-3, 1e0, 30)] #[0; LinRange(1e-2, 1e-1, 10); LinRange(2e-1, 1e-0, 10); LinRange(2e-0, 1e1, 10)]
 DLBA_W1_DRO_parameters = vec(collect(IterTools.product(DLBA_W1_DRO_weight_parameters, DLBA_W1_DRO_radius_parameters)))
 
 5
@@ -163,13 +163,14 @@ function extract_results(parameters, portfolio; save_cost_plot_as = nothing, plo
 end
 
 
-#=println("Windowing")
+println("Windowing")
 windowing_risk_adjusted_average_cost, windowing_percentage_average_difference, windowing_percentage_sem_difference, _ =
     extract_results(windowing_parameters, weighted_risk_averse_portfolio(windowing_weights))
 
 println("Smoothing")
 smoothing_risk_adjusted_average_cost, smoothing_percentage_average_difference, smoothing_percentage_sem_difference, _ =
-    extract_results(smoothing_parameters, weighted_risk_averse_portfolio(smoothing_weights))=#
+    extract_results(smoothing_parameters, weighted_risk_averse_portfolio(smoothing_weights))
+
 
 L1(ξ_i, ξ_j) = norm(ξ_i - ξ_j, 1)
 println("WPF L1")
@@ -183,7 +184,7 @@ DLBA_W1_DRO_risk_adjusted_average_cost, DLBA_W1_DRO_percentage_average_differenc
 
 println("Fixed mix")
 fixed_mix_risk_adjusted_average_cost, fixed_mix_percentage_average_difference, fixed_mix_percentage_sem_difference, _ =
-    extract_results([0], fixed_mix_portfolio)
+    extract_results([nothing], fixed_mix_portfolio)
 
 WPF_L1_sample_weights = WPF_weights(extracted_data, WPF_L1_parameter, L1)
 

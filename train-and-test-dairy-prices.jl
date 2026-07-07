@@ -26,12 +26,13 @@ LogRange(start, stop, len) = exp.(LinRange(log(start), log(stop), len))
 
 windowing_parameters = unique(ceil.(Int, LogRange(10,length(extracted_data),30))) # 12
 smoothing_parameters = [0; LogRange(1e-4,0.9,30)]
-WPF_parameters = [LogRange(1e1,1e4,40); Inf]  #[LinRange(10,100,10); LinRange(200,1000,9); LinRange(2000,10000,9); Inf] 
-DLBA_W2_DRO_weight_parameters = [0; LogRange(1e-4,1e0,30)]
-DLBA_W2_DRO_radius_parameters = [0; LinRange(1e-4,1e-3,10); LinRange(2e-3,1e-2,9); LinRange(2e-2,1e-1,9)]
+WPF_parameters = [LogRange(1e1,1e4,30); Inf]  #[LinRange(10,100,10); LinRange(200,1000,9); LinRange(2000,10000,9); Inf] 
+DLBA_W2_DRO_weight_parameters = [0; LogRange(1e-4,1e0,10)]
+DLBA_W2_DRO_radius_parameters = [0; LinRange(1e-4,1e-3,3); LinRange(2e-3,1e-2,3); LinRange(2e-2,1e-1,3)]
 DLBA_W2_DRO_parameters = vec(collect(IterTools.product(DLBA_W2_DRO_weight_parameters, DLBA_W2_DRO_radius_parameters)))
 kernel_parameters = LogRange(1e-2,1e1,30)
 
+5
 
 function weighted_AR1_forecast(solve_for_weights; WPF_norm = nothing, use_W2_DRO = false)
     return function(samples, parameter)
