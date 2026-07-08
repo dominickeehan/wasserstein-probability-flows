@@ -24,11 +24,11 @@ parameter_tuning_window = 2*12 # 3 # 2*12
 
 LogRange(start, stop, len) = exp.(LinRange(log(start), log(stop), len))
 
-windowing_parameters = unique(ceil.(Int, LogRange(10,length(extracted_data),30))) # 12
-smoothing_parameters = [0; LogRange(1e-4,0.9,30)]
-WPF_parameters = [LogRange(1e1,1e4,30); Inf]  #[LinRange(10,100,10); LinRange(200,1000,9); LinRange(2000,10000,9); Inf] 
+windowing_parameters = unique(ceil.(Int, LogRange(1,length(extracted_data),30))) # 12
+smoothing_parameters = [0; LogRange(1e-4,1.0,30)]
+WPF_parameters = [0; LogRange(1e1,1e4,30); Inf]  #[LinRange(10,100,10); LinRange(200,1000,9); LinRange(2000,10000,9); Inf] 
 DLBA_W2_DRO_weight_parameters = [0; LogRange(1e-4,1e0,30)]
-DLBA_W2_DRO_radius_parameters = [0; LinRange(1e-4,1e-3,10); LinRange(2e-3,1e-2,9); LinRange(2e-2,1e-1,9)]
+DLBA_W2_DRO_radius_parameters = 1000*[0; LinRange(1e-4,1e-3,10); LinRange(2e-3,1e-2,9); LinRange(2e-2,1e-1,9)] #1000
 DLBA_W2_DRO_parameters = vec(collect(IterTools.product(DLBA_W2_DRO_weight_parameters, DLBA_W2_DRO_radius_parameters)))
 kernel_parameters = LogRange(1e-2,1e1,30)
 
@@ -41,7 +41,7 @@ function weighted_AR1_forecast(solve_for_weights; WPF_norm = nothing, use_W2_DRO
         if use_W2_DRO == true
             weight_parameter, radius_parameter = parameter
             sample_weights = solve_for_weights(paired_samples, weight_parameter, WPF_norm)
-            μ, A = fit_W2_DRO_weighted_AR1_model_socp(samples, sample_weights, radius_parameter)
+            μ, A = fit_W2_DRO_weighted_AR1_model(samples, sample_weights, radius_parameter)
         
         else
             sample_weights = solve_for_weights(paired_samples, parameter, WPF_norm)
@@ -112,11 +112,11 @@ function train_and_test_forecast_out_of_sample(parameters, forecast; plot_parame
     
     if plot_parameter_costs == true
 
-        plt = plot([parameters[1:end-1]; 100000], 
-                vec(sum(parameter_costs[end-(parameter_tuning_window-1):end,:], dims=1))/(parameter_tuning_window),
-                ribbon = sem.([parameter_costs[end-(parameter_tuning_window-1):end,parameter] for parameter in eachindex(parameters)]),
+        plt = plot(parameters[2:end-1], 
+                (vec(sum(parameter_costs[end-(parameter_tuning_window-1):end,:], dims=1))/(parameter_tuning_window))[2:end-1],
+                #ribbon = sem.([parameter_costs[end-(parameter_tuning_window-1):end,parameter] for parameter in eachindex(parameters)]),
                 xscale = :log10,
-                xticks = [10, 100, 1000, 10000],
+                #xticks = [10, 100, 1000, 10000],
                 xlabel = "Shift penalty, \$λ\$", 
                 ylabel = "Average cost",
                 legend = nothing,
@@ -131,7 +131,7 @@ function train_and_test_forecast_out_of_sample(parameters, forecast; plot_parame
                 bottommargin = 6pt, 
                 leftmargin = 6pt)
 
-        xlims!((parameters[1], parameters[end-1]+2500))
+        #xlims!((parameters[1], parameters[end-1]+2500))
 
         display(plt);
 
@@ -170,15 +170,15 @@ println("Smoothing")
 smoothing_average_cost, smoothing_percentage_average_difference, smoothing_percentage_sem_difference, _ = 
     extract_results(smoothing_parameters, weighted_AR1_forecast(smoothing_weights))
 
-#=
+
 L1(ξ_i,ξ_j) = norm(ξ_i[1] - ξ_j[1], 1) + norm(ξ_i[2] - ξ_j[2], 1)
 println("WPF L1")
 WPF_L1_average_cost, WPF_L1_percentage_average_difference, WPF_L1_percentage_sem_difference, WPF_L1_parameter = 
-    extract_results(WPF_parameters, weighted_AR1_forecast(WPF_weights; WPF_norm = L1); plot_parameter_costs = true)#; save_cost_plot_as = "figures/dairy-prices-WPF-L1-parameter-costs.pdf")=#
+    extract_results(WPF_parameters, weighted_AR1_forecast(WPF_weights; WPF_norm = L1); plot_parameter_costs = true)#; save_cost_plot_as = "figures/dairy-prices-WPF-L1-parameter-costs.pdf")
 
-println("DLBA W2 DRO")
+#=println("DLBA W2 DRO")
 DLBA_W2_DRO_average_cost, DLBA_W2_DRO_percentage_average_difference, DLBA_W2_DRO_percentage_sem_difference, DLBA_W2_DRO_parameter =
-    extract_results(DLBA_W2_DRO_parameters, weighted_AR1_forecast(DLBA_W2_DRO_cached_weights; use_W2_DRO = true))
+    extract_results(DLBA_W2_DRO_parameters, weighted_AR1_forecast(DLBA_W2_DRO_cached_weights; use_W2_DRO = true))=#
 
 5
 

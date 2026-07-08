@@ -26,10 +26,11 @@ testing_T = length(testing_data)
 parameter_tuning_window = 2*12
 
 LogRange(start, stop, len) = exp.(LinRange(log(start), log(stop), len))
-
+5
 windowing_parameters = unique(ceil.(Int, LogRange(1,length(extracted_data),30)))
 smoothing_parameters = [0; LogRange(1e-4,1e0,30)]
-WPF_parameters = [0; LogRange(1e0,1e3,40); Inf]#[0; LinRange(1,10,10); LinRange(20,100,9); LinRange(200,1000,9); Inf]
+WPF_parameters = [0; LogRange(1e0,1e4,30); Inf]
+#WPF_parameters = [0; LinRange(1,10,10); LinRange(20,100,9); LinRange(200,1000,9); Inf]
 DLBA_W1_DRO_weight_parameters = [0; LogRange(1e-4,1e0,30)] # 30 
 DLBA_W1_DRO_radius_parameters = [0; LogRange(1e-3,1e0,30)] #[0; LinRange(1e-2,1e-1,10); LinRange(2e-1,1e-0,9); LinRange(2e-0,1e1,9)]
 DLBA_W1_DRO_parameters = vec(collect(IterTools.product(DLBA_W1_DRO_weight_parameters, DLBA_W1_DRO_radius_parameters)))
@@ -115,11 +116,11 @@ function train_and_test_portfolio_out_of_sample(parameters, portfolio; plot_para
 
     if plot_parameter_costs == true
 
-        plt = plot([1e-1; parameters[2:end-1]; 1e4], 
-                risk_adjusted_parameter_costs_in_previous_stages[end],
-                ribbon = sem.([parameter_costs[end-(parameter_tuning_window-1):end,parameter_index] for parameter_index in eachindex(parameters)]),
+        plt = plot(parameters[2:end-1], 
+                risk_adjusted_parameter_costs_in_previous_stages[end][2:end-1],
+                #ribbon = sem.([parameter_costs[end-(parameter_tuning_window-1):end,parameter_index] for parameter_index in eachindex(parameters)]),
                 xscale = :log10,
-                xticks = [1, 10, 100, 1000],
+                #xticks = [1, 10, 100, 1000],
                 xlabel = "Shift penalty, \$λ\$", 
                 ylabel = "Risk-adjusted average cost",
                 legend = nothing,
@@ -134,7 +135,7 @@ function train_and_test_portfolio_out_of_sample(parameters, portfolio; plot_para
                 bottommargin = 6pt, 
                 leftmargin = 6pt)
         
-        xlims!((parameters[2]-2e-1, parameters[end-1]+0.25e3))
+        #xlims!((parameters[2]-2e-1, parameters[end-1]+0.25e3))
 
         display(plt);
 
@@ -180,14 +181,19 @@ println("WPF L1")
 WPF_L1_risk_adjusted_average_cost, WPF_L1_percentage_average_difference, WPF_L1_percentage_sem_difference, WPF_L1_parameter = 
     extract_results(WPF_parameters, weighted_risk_averse_portfolio(WPF_weights; WPF_norm = L1); plot_parameter_costs = true)#; save_cost_plot_as = "figures/stock-returns-WPF-L1-parameter-costs.pdf")
 
-println("DLBA W1 DRO")
+#=println("DLBA W1 DRO")
 DLBA_W1_DRO_risk_adjusted_average_cost, DLBA_W1_DRO_percentage_average_difference, DLBA_W1_DRO_percentage_sem_difference, DLBA_W1_DRO_parameter = 
-    extract_results(DLBA_W1_DRO_parameters, weighted_risk_averse_portfolio(DLBA_W1_DRO_cached_weights; use_W1_DRO = true))
+    extract_results(DLBA_W1_DRO_parameters, weighted_risk_averse_portfolio(DLBA_W1_DRO_cached_weights; use_W1_DRO = true))=#
+
+println("W1 DRO")
+W1_DRO_risk_adjusted_average_cost, W1_DRO_percentage_average_difference, W1_DRO_percentage_sem_difference, W1_DRO_parameter = 
+    extract_results(vec(collect(IterTools.product([0], 10*DLBA_W1_DRO_radius_parameters))), weighted_risk_averse_portfolio(DLBA_W1_DRO_cached_weights; use_W1_DRO = true))
 
 println("Fixed mix")
 fixed_mix_risk_adjusted_average_cost, fixed_mix_percentage_average_difference, fixed_mix_percentage_sem_difference, _ = 
     extract_results([nothing], fixed_mix_portfolio)
 
+5
 
 WPF_L1_sample_weights = WPF_weights(extracted_data, WPF_L1_parameter, L1)
 

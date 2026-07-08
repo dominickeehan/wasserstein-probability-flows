@@ -22,10 +22,15 @@ function unweighted_cvar(costs)
     return objective_value(model)
 end
 
-function solve_risk_averse_portfolio(sample_returns, sample_weights)
+function solve_risk_averse_portfolio(returns, weights)
 
-    N = length(sample_returns) # Number of return samples.
-    m = length(sample_returns[1]) # Number of assets.
+    nonzero_weight_indices = weights .> 0.0
+    weights = weights[nonzero_weight_indices]
+    weights = weights/sum(weights)
+    returns = returns[nonzero_weight_indices]
+
+    N = length(returns) # Number of return samples.
+    m = length(returns[1]) # Number of assets.
 
     model = Model(portfolio_optimizer)  
 
@@ -38,10 +43,10 @@ function solve_risk_averse_portfolio(sample_returns, sample_weights)
     @constraint(model, sum(x) == 1) # Portfolio weights sum to 1
 
     @objective(model, Min,
-        - ρ*sum(sample_weights[i]*dot(x, sample_returns[i]) for i in 1:N) + (1-ρ) * τ + (1-ρ) * sum(sample_weights[i]*(1/α)*z[i] for i in 1:N)
+        - ρ*sum(weights[i]*dot(x, returns[i]) for i in 1:N) + (1-ρ) * τ + (1-ρ) * sum(weights[i]*(1/α)*z[i] for i in 1:N)
     )
 
-    for i in 1:N; @constraint(model, z[i] >= -dot(x, sample_returns[i]) - τ); end # CVaR constraints.
+    for i in 1:N; @constraint(model, z[i] >= -dot(x, returns[i]) - τ); end # CVaR constraints.
 
     optimize!(model)
 
@@ -52,7 +57,7 @@ end
 
 
 """
-    solve_W1_DRO_risk_averse_portfolio(sample_returns, sample_weights, radius)
+    solve_W1_DRO_risk_averse_portfolio(returns, weights, radius)
 
 Restricted-support W1-DRO mean-CVaR portfolio via the Esfahani-Kuhn reformulation,
 with support fixed to the economically natural lower bound `return >= -100%`.
@@ -61,13 +66,24 @@ For a lower-bound-only support the objective-minimizing support multipliers are
 `max(c*x[j] - λ, 0)`, independent of the sample, so the generic per-sample gamma[i,j]
 collapse to one shared correction h[j] per affine loss piece. This drops the O(N*m)
 support-dual variables and constraints of the generic polyhedral dual.
+
+References:
+- Mohajerin Esfahani & Kuhn (2018), Data-driven distributionally robust optimization
+  using the Wasserstein metric: performance guarantees and tractable reformulations,
+  Mathematical Programming 171(1-2). (Polyhedral W1 dual for piecewise affine losses;
+  the mean-CVaR portfolio application.)
 """
-function solve_W1_DRO_risk_averse_portfolio(sample_returns, sample_weights, radius)
+function solve_W1_DRO_risk_averse_portfolio(returns, weights, radius)
 
-    N = length(sample_returns)
-    m = length(sample_returns[1])
+    nonzero_weight_indices = weights .> 0.0
+    weights = weights[nonzero_weight_indices]
+    weights = weights/sum(weights)
+    returns = returns[nonzero_weight_indices]
 
-    sample_weights = sample_weights/sum(sample_weights)
+    N = length(returns)
+    m = length(returns[1])
+
+    weights = weights/sum(weights)
 
     mean_loss_coefficient = ρ
     cvar_loss_coefficient = ρ + (1-ρ)/α
@@ -87,7 +103,7 @@ function solve_W1_DRO_risk_averse_portfolio(sample_returns, sample_weights, radi
 
     # Support-dual reduction of the generic Esfahani-Kuhn polyhedral dual. That dual carries
     # per-sample multipliers γ_mean[i,j], γ_tail[i,j] >= 0 with two-sided boxes |γ[i,j] - c*x[j]| <= λ.
-    # For the -100% lower-bound support the slacks (sample_returns[i] .+ 1.0) are nonnegative, so the
+    # For the -100% lower-bound support the slacks (returns[i] .+ 1.0) are nonnegative, so the
     # objective drives every multiplier to its lower bound max(c*x[j] - λ, 0), independent of i. Hence
     # (1) one shared h[j] per affine piece replaces the N per-sample multipliers, and (2) the upper-bound
     # rows h[j] - c*x[j] <= λ are dropped: they never bind at the minimizing h, so only these lower
@@ -96,18 +112,18 @@ function solve_W1_DRO_risk_averse_portfolio(sample_returns, sample_weights, radi
     @constraint(model, [j=1:m], h_tail[j] >= cvar_loss_coefficient*x[j] - λ)
 
     for i in 1:N
-        support_slack = sample_returns[i] .+ 1.0 # Slack against the -100% support lower bound.
+        support_slack = returns[i] .+ 1.0 # Slack against the -100% support lower bound.
 
         @constraint(model,
-            (1-ρ)*τ - mean_loss_coefficient*dot(x, sample_returns[i]) +
+            (1-ρ)*τ - mean_loss_coefficient*dot(x, returns[i]) +
                 sum(h_mean[j]*support_slack[j] for j in 1:m) <= s[i])
         @constraint(model,
-            (1-ρ)*(1-1/α)*τ - cvar_loss_coefficient*dot(x, sample_returns[i]) +
+            (1-ρ)*(1-1/α)*τ - cvar_loss_coefficient*dot(x, returns[i]) +
                 sum(h_tail[j]*support_slack[j] for j in 1:m) <= s[i])
     end
 
     @objective(model, Min,
-        radius*λ + sum(sample_weights[i]*s[i] for i in 1:N)
+        radius*λ + sum(weights[i]*s[i] for i in 1:N)
     )
 
     optimize!(model)
@@ -118,8 +134,8 @@ end
 
 
 
-function fixed_mix_portfolio(sample_returns, nothing)
-    m = length(sample_returns[1])
+function fixed_mix_portfolio(returns, nothing)
+    m = length(returns[1])
     portfolio = zeros(m)
     portfolio .= 1/m
 
