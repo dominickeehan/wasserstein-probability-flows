@@ -190,3 +190,37 @@ end
 #using LinearAlgebra
 #d(ξ, ζ) = norm(ξ - ζ, 2)
 #@assert sum(abs.(WPF_weights([6.13, 7.85, 6.47, 4.91, 5.54, 7.13], 4.0, d) - [0.0, 0.275, 0.021, 0.0, 0.325, 0.379])) <= 1e-3
+
+DLBA_W1_DRO_cached_weights = let weights = Dict{Tuple{Int, Float64}, Vector{Float64}}(),
+                                 weights_lock = ReentrantLock()
+
+    function DLBA_W1_DRO_cached_weights(observations, ρ╱ε, nothing)
+        key = (length(observations), Float64(ρ╱ε))
+
+        lock(weights_lock)
+        try
+            return get!(weights, key) do
+                Wp_DRO_weights(1, length(observations), ρ╱ε)
+            end
+        finally
+            unlock(weights_lock)
+        end
+    end
+end
+
+DLBA_W2_DRO_cached_weights = let weights = Dict{Tuple{Int, Float64}, Vector{Float64}}(),
+                                 weights_lock = ReentrantLock()
+
+    function DLBA_W2_DRO_cached_weights(observations, ρ╱ε, nothing)
+        key = (length(observations), Float64(ρ╱ε))
+
+        lock(weights_lock)
+        try
+            return get!(weights, key) do
+                Wp_DRO_weights(2, length(observations), ρ╱ε)
+            end
+        finally
+            unlock(weights_lock)
+        end
+    end
+end

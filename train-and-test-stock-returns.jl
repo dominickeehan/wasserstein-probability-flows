@@ -182,7 +182,7 @@ WPF_L1_risk_adjusted_average_cost, WPF_L1_percentage_average_difference, WPF_L1_
 
 println("DLBA W1 DRO")
 DLBA_W1_DRO_risk_adjusted_average_cost, DLBA_W1_DRO_percentage_average_difference, DLBA_W1_DRO_percentage_sem_difference, DLBA_W1_DRO_parameter = 
-    extract_results(DLBA_W1_DRO_parameters, weighted_risk_averse_portfolio(DLBA_W1_DRO_weights; use_W1_DRO = true))
+    extract_results(DLBA_W1_DRO_parameters, weighted_risk_averse_portfolio(DLBA_W1_DRO_cached_weights; use_W1_DRO = true))
 
 println("Fixed mix")
 fixed_mix_risk_adjusted_average_cost, fixed_mix_percentage_average_difference, fixed_mix_percentage_sem_difference, _ = 

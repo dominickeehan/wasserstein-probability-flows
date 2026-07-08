@@ -30,8 +30,8 @@ LogRange(start, stop, len) = exp.(LinRange(log(start), log(stop), len))
 windowing_parameters = unique(ceil.(Int, LogRange(1, length(extracted_data), 30)))
 smoothing_parameters = [0; LogRange(1e-4, 1e0, 30)]
 WPF_parameters = [0; LogRange(1e-1, 1e2, 30); Inf] #WPF_parameters = [0; LogRange(1e-1, 1e2, 30); Inf]
-DLBA_W1_DRO_weight_parameters = [0]
-DLBA_W1_DRO_radius_parameters = [0; LogRange(1e-3, 1e0, 30)] #[0; LinRange(1e-2, 1e-1, 10); LinRange(2e-1, 1e-0, 10); LinRange(2e-0, 1e1, 10)]
+DLBA_W1_DRO_weight_parameters = [0; LogRange(1e-4, 1e0, 10)]
+DLBA_W1_DRO_radius_parameters = [0; LogRange(1e-3, 1e0, 10)] #[0; LinRange(1e-2, 1e-1, 10); LinRange(2e-1, 1e-0, 10); LinRange(2e-0, 1e1, 10)]
 DLBA_W1_DRO_parameters = vec(collect(IterTools.product(DLBA_W1_DRO_weight_parameters, DLBA_W1_DRO_radius_parameters)))
 
 5
@@ -172,15 +172,15 @@ smoothing_risk_adjusted_average_cost, smoothing_percentage_average_difference, s
     extract_results(smoothing_parameters, weighted_risk_averse_portfolio(smoothing_weights))
 
 
-L1(ξ_i, ξ_j) = norm(ξ_i - ξ_j, 1)
+#=L1(ξ_i, ξ_j) = norm(ξ_i - ξ_j, 1)
 println("WPF L1")
 WPF_L1_risk_adjusted_average_cost, WPF_L1_percentage_average_difference, WPF_L1_percentage_sem_difference, WPF_L1_parameter =
     extract_results(WPF_parameters, weighted_risk_averse_portfolio(WPF_weights; WPF_norm = L1);
-        plot_parameter_costs = true)#, save_cost_plot_as = "figures/stock-returns-S&P-500-2014-WPF-L1-parameter-costs.pdf")
+        plot_parameter_costs = true)#, save_cost_plot_as = "figures/stock-returns-S&P-500-2014-WPF-L1-parameter-costs.pdf")=#
 
 println("DLBA W1 DRO")
 DLBA_W1_DRO_risk_adjusted_average_cost, DLBA_W1_DRO_percentage_average_difference, DLBA_W1_DRO_percentage_sem_difference, DLBA_W1_DRO_parameter =
-    extract_results(DLBA_W1_DRO_parameters, weighted_risk_averse_portfolio(DLBA_W1_DRO_weights; use_W1_DRO = true))
+    extract_results(DLBA_W1_DRO_parameters, weighted_risk_averse_portfolio(DLBA_W1_DRO_cached_weights; use_W1_DRO = true))
 
 println("Fixed mix")
 fixed_mix_risk_adjusted_average_cost, fixed_mix_percentage_average_difference, fixed_mix_percentage_sem_difference, _ =
