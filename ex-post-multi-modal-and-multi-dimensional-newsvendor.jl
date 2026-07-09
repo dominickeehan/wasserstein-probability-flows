@@ -10,8 +10,8 @@ Co = 1  # Overage cost.
 
 Random.seed!(42)
 
-dimensions = 1 # 2
-modes = 1 # 3
+dimensions = 3 # 2
+modes = 3 # 3
 
 newsvendor_loss(order, demand) =
     sum(Cu * max(demand[i] - order[i], 0) + Co * max(order[i] - demand[i], 0) for i in eachindex(order))
@@ -141,7 +141,7 @@ DLBA_W2_WDRO_parameters = paired_parameter_grid(DLBA_W2_rho_over_epsilon_paramet
 
 DLBA_W2_weight_cache = Dict{Float64, Vector{Float64}}()
 for rho_over_epsilon in unique(first.(DLBA_W2_WDRO_parameters))
-    DLBA_W2_weight_cache[Float64(rho_over_epsilon)] = DLBA_W2_weights(1:history_length, rho_over_epsilon, 0)
+    DLBA_W2_weight_cache[Float64(rho_over_epsilon)] = DLBA_W2_DRO_weights(1:history_length, rho_over_epsilon, 0)
 end
 
 function DLBA_W2_WDRO_order(demand_samples, parameter)

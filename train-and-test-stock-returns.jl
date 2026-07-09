@@ -32,7 +32,7 @@ smoothing_parameters = [0; LogRange(1e-4,1e0,30)]
 WPF_parameters = [0; LogRange(1e0,1e4,30); Inf]
 #WPF_parameters = [0; LinRange(1,10,10); LinRange(20,100,9); LinRange(200,1000,9); Inf]
 DLBA_W1_DRO_weight_parameters = [0; LogRange(1e-4,1e0,30)] # 30 
-DLBA_W1_DRO_radius_parameters = [0; LogRange(1e-3,1e0,30)] #[0; LinRange(1e-2,1e-1,10); LinRange(2e-1,1e-0,9); LinRange(2e-0,1e1,9)]
+DLBA_W1_DRO_radius_parameters = 0.01*[0; LinRange(1e-3,1e-2,10); LinRange(2e-2,1e-1,9); LinRange(2e-1,1e0,9)] # turn these back to lin ranges
 DLBA_W1_DRO_parameters = vec(collect(IterTools.product(DLBA_W1_DRO_weight_parameters, DLBA_W1_DRO_radius_parameters)))
 
 
@@ -181,13 +181,13 @@ println("WPF L1")
 WPF_L1_risk_adjusted_average_cost, WPF_L1_percentage_average_difference, WPF_L1_percentage_sem_difference, WPF_L1_parameter = 
     extract_results(WPF_parameters, weighted_risk_averse_portfolio(WPF_weights; WPF_norm = L1); plot_parameter_costs = true)#; save_cost_plot_as = "figures/stock-returns-WPF-L1-parameter-costs.pdf")
 
-#=println("DLBA W1 DRO")
+println("DLBA W1 DRO")
 DLBA_W1_DRO_risk_adjusted_average_cost, DLBA_W1_DRO_percentage_average_difference, DLBA_W1_DRO_percentage_sem_difference, DLBA_W1_DRO_parameter = 
-    extract_results(DLBA_W1_DRO_parameters, weighted_risk_averse_portfolio(DLBA_W1_DRO_cached_weights; use_W1_DRO = true))=#
+    extract_results(DLBA_W1_DRO_parameters, weighted_risk_averse_portfolio(DLBA_W1_DRO_cached_weights; use_W1_DRO = true))
 
 println("W1 DRO")
 W1_DRO_risk_adjusted_average_cost, W1_DRO_percentage_average_difference, W1_DRO_percentage_sem_difference, W1_DRO_parameter = 
-    extract_results(vec(collect(IterTools.product([0], 10*DLBA_W1_DRO_radius_parameters))), weighted_risk_averse_portfolio(DLBA_W1_DRO_cached_weights; use_W1_DRO = true))
+    extract_results(vec(collect(IterTools.product([0], DLBA_W1_DRO_radius_parameters))), weighted_risk_averse_portfolio(DLBA_W1_DRO_cached_weights; use_W1_DRO = true))
 
 println("Fixed mix")
 fixed_mix_risk_adjusted_average_cost, fixed_mix_percentage_average_difference, fixed_mix_percentage_sem_difference, _ = 
