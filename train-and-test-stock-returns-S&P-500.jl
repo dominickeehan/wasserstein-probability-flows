@@ -6,7 +6,7 @@ using Plots, Measures
 include("extract-stock-returns-S&P-500.jl")
 include("weights.jl")
 ρ = 0.1 # 1 - risk aversion parameter.
-α = 0.05 # CVaR (dis)-confidence level (in (0, 1]). 1 = Expectation.
+α = 0.1 # CVaR (dis)-confidence level (in (0, 1]). 1 = Expectation.
 include("risk-averse-portfolio-optimizations.jl")
 
 portfolio_loss(x, ξ) = -dot(x, ξ)
@@ -32,7 +32,7 @@ smoothing_parameters = [0; LogRange(1e-4, 1e0, 30)]
 WPF_parameters = [0; LogRange(1e-1, 1e2, 30); Inf] #WPF_parameters = [0; LogRange(1e-1, 1e2, 30); Inf]
 #WPF_parameters = [0; LinRange(0.1,1,10); LinRange(2,10,9); LinRange(20,100,9); Inf]
 DLBA_W1_DRO_weight_parameters = [0; LogRange(1e-4, 1e0, 30)]
-DLBA_W1_DRO_radius_parameters = 0.001*[0; LinRange(1e-3, 1e-2, 10); LinRange(2e-2, 1e-1, 9); LinRange(2e-1, 1e0, 9)] #[0; LogRange(1e-3, 1e0, 30)] #[0; LinRange(1e-2, 1e-1, 10); LinRange(2e-1, 1e-0, 10); LinRange(2e-0, 1e1, 10)]
+DLBA_W1_DRO_radius_parameters = 0.1*[0; LinRange(1e-3, 1e-2, 10); LinRange(2e-2, 1e-1, 9); LinRange(2e-1, 1e0, 9)] #[0; LogRange(1e-3, 1e0, 30)] #[0; LinRange(1e-2, 1e-1, 10); LinRange(2e-1, 1e-0, 10); LinRange(2e-0, 1e1, 10)]
 DLBA_W1_DRO_parameters = vec(collect(IterTools.product(DLBA_W1_DRO_weight_parameters, DLBA_W1_DRO_radius_parameters)))
 
 5
@@ -173,11 +173,11 @@ smoothing_risk_adjusted_average_cost, smoothing_percentage_average_difference, s
     extract_results(smoothing_parameters, weighted_risk_averse_portfolio(smoothing_weights))
 
 
-#=L1(ξ_i, ξ_j) = norm(ξ_i - ξ_j, 1)
+L1(ξ_i, ξ_j) = norm(ξ_i - ξ_j, 1)
 println("WPF L1")
 WPF_L1_risk_adjusted_average_cost, WPF_L1_percentage_average_difference, WPF_L1_percentage_sem_difference, WPF_L1_parameter =
     extract_results(WPF_parameters, weighted_risk_averse_portfolio(WPF_weights; WPF_norm = L1);
-        plot_parameter_costs = true)#, save_cost_plot_as = "figures/stock-returns-S&P-500-2014-WPF-L1-parameter-costs.pdf")=#
+        plot_parameter_costs = true)#, save_cost_plot_as = "figures/stock-returns-S&P-500-2014-WPF-L1-parameter-costs.pdf")
 
 println("DLBA W1 DRO")
 DLBA_W1_DRO_risk_adjusted_average_cost, DLBA_W1_DRO_percentage_average_difference, DLBA_W1_DRO_percentage_sem_difference, DLBA_W1_DRO_parameter =
@@ -185,11 +185,13 @@ DLBA_W1_DRO_risk_adjusted_average_cost, DLBA_W1_DRO_percentage_average_differenc
 
 println("W1 DRO")
 W1_DRO_risk_adjusted_average_cost, W1_DRO_percentage_average_difference, W1_DRO_percentage_sem_difference, W1_DRO_parameter = 
-    extract_results(vec(collect(IterTools.product([0], DLBA_W1_DRO_radius_parameters))), weighted_risk_averse_portfolio(DLBA_W1_DRO_cached_weights; use_W1_DRO = true))
+    extract_results(vec(collect(IterTools.product([0], 0.01 * DLBA_W1_DRO_radius_parameters))), weighted_risk_averse_portfolio(DLBA_W1_DRO_cached_weights; use_W1_DRO = true))
 
 println("Fixed mix")
 fixed_mix_risk_adjusted_average_cost, fixed_mix_percentage_average_difference, fixed_mix_percentage_sem_difference, _ =
     extract_results([nothing], fixed_mix_portfolio)
+
+5
 
 WPF_L1_sample_weights = WPF_weights(extracted_data, WPF_L1_parameter, L1)
 

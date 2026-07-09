@@ -6,7 +6,7 @@ using Plots, Measures
 include("extract-stock-returns.jl")
 include("weights.jl")
 ρ = 0.1 # 0.1 # 1 - risk aversion parameter.
-α = 0.05 # #0.06 (-4.3 ± 6.2) # 0.05 # CVaR (dis)-confidence level (in (0, 1]). 1 = Expectation.
+α = 0.1 # #0.06 (-4.3 ± 6.2) # 0.05 # CVaR (dis)-confidence level (in (0, 1]). 1 = Expectation.
 include("risk-averse-portfolio-optimizations.jl")
 
 portfolio_loss(x,ξ) = -dot(x, ξ)
