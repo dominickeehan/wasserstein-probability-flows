@@ -176,9 +176,9 @@ println("WPF L1")
 WPF_L1_average_cost, WPF_L1_percentage_average_difference, WPF_L1_percentage_sem_difference, WPF_L1_parameter = 
     extract_results(WPF_parameters, weighted_AR1_forecast(WPF_weights; WPF_norm = L1); plot_parameter_costs = true)#; save_cost_plot_as = "figures/dairy-prices-WPF-L1-parameter-costs.pdf")
 
-#=println("DLBA W2 DRO")
+println("DLBA W2 DRO")
 DLBA_W2_DRO_average_cost, DLBA_W2_DRO_percentage_average_difference, DLBA_W2_DRO_percentage_sem_difference, DLBA_W2_DRO_parameter =
-    extract_results(DLBA_W2_DRO_parameters, weighted_AR1_forecast(DLBA_W2_DRO_cached_weights; use_W2_DRO = true))=#
+    extract_results(DLBA_W2_DRO_parameters, weighted_AR1_forecast(DLBA_W2_DRO_cached_weights; use_W2_DRO = true))
 
 5
 

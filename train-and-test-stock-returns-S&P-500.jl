@@ -6,7 +6,7 @@ using Plots, Measures
 include("extract-stock-returns-S&P-500.jl")
 include("weights.jl")
 ρ = 0.1 # 1 - risk aversion parameter.
-α = 0.1 # CVaR (dis)-confidence level (in (0, 1]). 1 = Expectation.
+α = 0.05 # CVaR (dis)-confidence level (in (0, 1]). 1 = Expectation.
 include("risk-averse-portfolio-optimizations.jl")
 
 portfolio_loss(x, ξ) = -dot(x, ξ)
@@ -179,9 +179,9 @@ WPF_L1_risk_adjusted_average_cost, WPF_L1_percentage_average_difference, WPF_L1_
     extract_results(WPF_parameters, weighted_risk_averse_portfolio(WPF_weights; WPF_norm = L1);
         plot_parameter_costs = true)#, save_cost_plot_as = "figures/stock-returns-S&P-500-2014-WPF-L1-parameter-costs.pdf")
 
-println("DLBA W1 DRO")
+#=println("DLBA W1 DRO")
 DLBA_W1_DRO_risk_adjusted_average_cost, DLBA_W1_DRO_percentage_average_difference, DLBA_W1_DRO_percentage_sem_difference, DLBA_W1_DRO_parameter =
-    extract_results(DLBA_W1_DRO_parameters, weighted_risk_averse_portfolio(DLBA_W1_DRO_cached_weights; use_W1_DRO = true))
+    extract_results(DLBA_W1_DRO_parameters, weighted_risk_averse_portfolio(DLBA_W1_DRO_cached_weights; use_W1_DRO = true))=#
 
 println("W1 DRO")
 W1_DRO_risk_adjusted_average_cost, W1_DRO_percentage_average_difference, W1_DRO_percentage_sem_difference, W1_DRO_parameter = 

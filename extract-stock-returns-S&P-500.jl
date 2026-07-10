@@ -15,7 +15,7 @@ stock_returns = [
     Float64[row[column_name] for column_name in stock_return_column_names]
     for row in rows
 ]
-#stock_return_indices = sort(randperm(length(stock_return_tickers))[1:10]); stock_return_tickers = stock_return_tickers[stock_return_indices]; stock_returns = [returns[stock_return_indices] for returns in stock_returns]
+stock_return_indices = sort(randperm(length(stock_return_tickers))[1:100]); stock_return_tickers = stock_return_tickers[stock_return_indices]; stock_returns = [returns[stock_return_indices] for returns in stock_returns]
 extracted_data = stock_returns
 
 m = length(stock_return_tickers)

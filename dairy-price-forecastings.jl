@@ -98,6 +98,8 @@ function fit_W2_DRO_weighted_AR1_model(time_series, weights, radius)
     inputs = time_series[1:end-1]
     outputs = time_series[2:end]
 
+    old_weights = weights
+
     nonzero_weight_indices = weights .> 0.0
     weights = weights[nonzero_weight_indices]
     weights = weights/sum(weights)
@@ -145,7 +147,7 @@ function fit_W2_DRO_weighted_AR1_model(time_series, weights, radius)
         return value.(μ), value.(A)
 
     catch
-        return fit_W2_DRO_weighted_AR1_model_conservative(time_series, weights, radius)
+        return fit_W2_DRO_weighted_AR1_model_conservative(time_series, old_weights, radius)
         
     end
 end
