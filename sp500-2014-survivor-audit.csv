@@ -1,0 +1,501 @@
+Ticker2014,Company2014,YahooPriceTicker,Included,Reason
+A,Agilent Technologies Inc,A,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AA,Alcoa Inc,AA,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AAPL,Apple Inc.,AAPL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ABBV,AbbVie,ABBV,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ABC,AmerisourceBergen Corp,COR,yes,Complete 120-month series obtained under successor ticker COR; output labelled with 2014 ticker
+ABT,Abbott Laboratories,ABT,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ACE,ACE Limited,ACE,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+ACN,Accenture plc,ACN,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ACT,Actavis plc,AGN,no,No distinct complete series: ACT later adopted AGN after acquiring the separate 2014 AGN constituent
+ADBE,Adobe Systems Inc,ADBE,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ADI,"Analog Devices, Inc.",ADI,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ADM,Archer-Daniels-Midland Co,ADM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ADP,Automatic Data Processing,ADP,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ADS,Alliance Data Systems,ADS,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+ADSK,Autodesk Inc,ADSK,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ADT,ADT Corp,ADT,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+AEE,Ameren Corp,AEE,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AEP,American Electric Power,AEP,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AES,AES Corp,AES,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AET,Aetna Inc,AET,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+AFL,AFLAC Inc,AFL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AGN,Allergan Inc,AGN,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+AIG,"American International Group, Inc.",AIG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AIV,Apartment Investment & Mgmt,AIV,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AIZ,Assurant Inc,AIZ,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AKAM,Akamai Technologies Inc,AKAM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ALL,Allstate Corp,ALL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ALLE,Allegion,ALLE,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ALTR,Altera Corp,ALTR,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+ALXN,Alexion Pharmaceuticals,ALXN,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+AMAT,Applied Materials Inc,AMAT,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AME,Ametek,AME,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AMGN,Amgen Inc,AMGN,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AMP,Ameriprise Financial,AMP,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AMT,American Tower Corp A,AMT,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AMZN,Amazon.com Inc,AMZN,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AN,AutoNation Inc,AN,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AON,Aon plc,AON,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+APA,Apache Corporation,APA,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+APC,Anadarko Petroleum Corp,APC,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+APD,Air Products & Chemicals Inc,APD,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+APH,Amphenol Corp A,APH,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ARG,Airgas Inc,ARG,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+ATI,Allegheny Technologies Inc,ATI,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AVB,"AvalonBay Communities, Inc.",AVB,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AVP,Avon Products,AVP,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+AVY,Avery Dennison Corp,AVY,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AXP,American Express Co,AXP,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+AZO,AutoZone Inc,AZO,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+BA,Boeing Company,BA,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+BAC,Bank of America Corp,BAC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+BAX,Baxter International Inc.,BAX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+BBBY,Bed Bath & Beyond,BBBY,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+BBT,BB&T Corporation,TFC,yes,Complete 120-month series obtained under successor ticker TFC; output labelled with 2014 ticker
+BBY,Best Buy Co. Inc.,BBY,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+BCR,Bard (C.R.) Inc.,BCR,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+BDX,Becton Dickinson,BDX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+BEAM,Beam Inc.,BEAM,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+BEN,Franklin Resources,BEN,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+BF.B,Brown-Forman Corporation,BF.B,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+BHI,Baker Hughes Inc,BHI,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+BIIB,BIOGEN IDEC Inc.,BIIB,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+BK,The Bank of New York Mellon Corp.,BNY,yes,Complete 120-month series obtained under successor ticker BNY; output labelled with 2014 ticker
+BLK,BlackRock,BLK,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+BLL,Ball Corp,BALL,yes,Complete 120-month series obtained under successor ticker BALL; output labelled with 2014 ticker
+BMS,Bemis Company,BMS,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+BMY,Bristol-Myers Squibb,BMY,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+BRCM,Broadcom Corporation,BRCM,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+BRK.B,Berkshire Hathaway,BRK.B,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+BSX,Boston Scientific,BSX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+BTU,Peabody Energy,BTU,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+BWA,BorgWarner,BWA,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+BXP,Boston Properties,BXP,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+C,Citigroup Inc.,C,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CA,"CA, Inc.",CA,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+CAG,ConAgra Foods Inc.,CAG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CAH,Cardinal Health Inc.,CAH,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CAM,Cameron International Corp.,CAM,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+CAT,Caterpillar Inc.,CAT,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CB,Chubb Corp.,CB,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CBG,CBRE Group,CBRE,yes,Complete 120-month series obtained under successor ticker CBRE; output labelled with 2014 ticker
+CBS,CBS Corp.,PSKY,yes,Complete 120-month series obtained under successor ticker PSKY; output labelled with 2014 ticker
+CCE,Coca-Cola Enterprises,CCE,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+CCI,Crown Castle International Corp.,CCI,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CCL,Carnival Corp.,CCL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CELG,Celgene Corp.,CELG,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+CERN,Cerner,CERN,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+CF,CF Industries Holdings Inc,CF,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CFN,Carefusion,CFN,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+CHK,Chesapeake Energy,CHK,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+CHRW,C. H. Robinson Worldwide,CHRW,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CI,CIGNA Corp.,CI,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CINF,Cincinnati Financial,CINF,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CL,Colgate-Palmolive,CL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CLF,Cliffs Natural Resources,CLF,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CLX,The Clorox Company,CLX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CMA,Comerica Inc.,CMA,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+CMCSA,Comcast Corp.,CMCSA,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CME,CME Group Inc.,CME,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CMG,Chipotle Mexican Grill,CMG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CMI,Cummins Inc.,CMI,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CMS,CMS Energy,CMS,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CNP,CenterPoint Energy,CNP,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CNX,CONSOL Energy Inc.,CNX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+COF,Capital One Financial,COF,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+COG,Cabot Oil & Gas,CTRA,yes,Complete 120-month series obtained under successor ticker CTRA; output labelled with 2014 ticker
+COH,Coach Inc.,TPR,yes,Complete 120-month series obtained under successor ticker TPR; output labelled with 2014 ticker
+COL,Rockwell Collins,COL,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+COP,ConocoPhillips,COP,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+COST,Costco Co.,COST,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+COV,Covidien plc,COV,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+CPB,Campbell Soup,CPB,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CRM,Salesforce.com,CRM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CSC,Computer Sciences Corp.,CSC,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+CSCO,Cisco Systems,CSCO,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CSX,CSX Corp.,CSX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CTAS,Cintas Corporation,CTAS,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CTL,CenturyLink Inc,LUMN,yes,Complete 120-month series obtained under successor ticker LUMN; output labelled with 2014 ticker
+CTSH,Cognizant Technology Solutions,CTSH,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CTXS,Citrix Systems,CTXS,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+CVC,Cablevision Systems Corp.,CVC,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+CVS,CVS Caremark Corp.,CVS,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+CVX,Chevron Corp.,CVX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+D,Dominion Resources,D,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+DAL,Delta Air Lines,DAL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+DD,Du Pont (E.I.),DD,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+DE,Deere & Co.,DE,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+DFS,Discover Financial Services,DFS,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+DG,Dollar General,DG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+DGX,Quest Diagnostics,DGX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+DHI,D. R. Horton,DHI,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+DHR,Danaher Corp.,DHR,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+DIS,The Walt Disney Company,DIS,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+DISCA,Discovery Communications,DISCA,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+DLPH,Delphi Automotive,APTV,yes,Complete 120-month series obtained under successor ticker APTV; output labelled with 2014 ticker
+DLTR,Dollar Tree,DLTR,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+DNB,Dun & Bradstreet,DNB,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+DNR,Denbury Resources Inc.,DNR,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+DO,Diamond Offshore Drilling,DO,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+DOV,Dover Corp.,DOV,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+DOW,Dow Chemical,DOW,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+DPS,Dr Pepper Snapple Group,DPS,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+DRI,Darden Restaurants,DRI,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+DTE,DTE Energy Co.,DTE,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+DTV,DirecTV,DTV,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+DUK,Duke Energy,DUK,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+DVA,DaVita Inc.,DVA,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+DVN,Devon Energy Corp.,DVN,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+EA,Electronic Arts,EA,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+EBAY,eBay Inc.,EBAY,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ECL,Ecolab Inc.,ECL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ED,Consolidated Edison,ED,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+EFX,Equifax Inc.,EFX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+EIX,Edison Int'l,EIX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+EL,Estee Lauder Cos.,EL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+EMC,EMC Corp.,EMC,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+EMN,Eastman Chemical,EMN,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+EMR,Emerson Electric,EMR,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+EOG,EOG Resources,EOG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+EQR,Equity Residential,EQR,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+EQT,EQT Corporation,EQT,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ESRX,Express Scripts,ESRX,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+ESV,Ensco plc,ESV,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+ETFC,E-Trade,ETFC,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+ETN,Eaton Corp.,ETN,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ETR,Entergy Corp.,ETR,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+EW,Edwards Lifesciences,EW,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+EXC,Exelon Corp.,EXC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+EXPD,Expeditors Int'l,EXPD,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+EXPE,Expedia Inc.,EXPE,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+F,Ford Motor,F,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+FAST,Fastenal Co,FAST,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+FB,Facebook,META,yes,Complete 120-month series obtained under successor ticker META; output labelled with 2014 ticker
+FCX,Freeport-McMoran Cp & Gld,FCX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+FDO,Family Dollar Stores,FDO,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+FDX,FedEx Corporation,FDX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+FE,FirstEnergy Corp,FE,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+FFIV,F5 Networks,FFIV,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+FIS,Fidelity National Information Services,FIS,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+FISV,Fiserv Inc,FISV,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+FITB,Fifth Third Bancorp,FITB,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+FLIR,FLIR Systems,FLIR,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+FLR,Fluor Corp.,FLR,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+FLS,Flowserve Corporation,FLS,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+FMC,FMC Corporation,FMC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+FOSL,"Fossil, Inc.",FOSL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+FOXA,Twenty-First Century Fox,FOXA,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+FRX,Forest Laboratories,FRX,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+FSLR,First Solar Inc,FSLR,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+FTI,FMC Technologies Inc.,FTI,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+FTR,Frontier Communications,FTR,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+GAS,AGL Resources Inc.,GAS,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+GCI,Gannett Co.,TGNA,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+GD,General Dynamics,GD,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+GE,General Electric,GE,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+GGP,General Growth Properties Inc.,GGP,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+GHC,Graham Holdings Company,GHC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+GILD,Gilead Sciences,GILD,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+GIS,General Mills,GIS,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+GLW,Corning Inc.,GLW,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+GM,General Motors,GM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+GME,GameStop Corp.,GME,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+GNW,Genworth Financial Inc.,GNW,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+GOOG,Google Inc.,GOOG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+GPC,Genuine Parts,GPC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+GPS,Gap (The),GPS,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+GRMN,Garmin Ltd.,GRMN,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+GS,Goldman Sachs Group,GS,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+GT,Goodyear Tire & Rubber,GT,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+GWW,Grainger (W.W.) Inc.,GWW,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+HAL,Halliburton Co.,HAL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+HAR,Harman Int'l Industries,HAR,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+HAS,Hasbro Inc.,HAS,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+HBAN,Huntington Bancshares,HBAN,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+HCBK,Hudson City Bancorp,HCBK,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+HCN,"Health Care REIT, Inc.",WELL,yes,Complete 120-month series obtained under successor ticker WELL; output labelled with 2014 ticker
+HCP,HCP Inc.,DOC,yes,Complete 120-month series obtained under successor ticker DOC; output labelled with 2014 ticker
+HD,Home Depot,HD,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+HES,Hess Corporation,HES,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+HIG,Hartford Financial Svc.Gp.,HIG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+HOG,Harley-Davidson,HOG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+HON,Honeywell Int'l Inc.,HON,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+HOT,Starwood Hotels & Resorts,HOT,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+HP,Helmerich & Payne,HP,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+HPQ,Hewlett-Packard,HPQ,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+HRB,Block H&R,HRB,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+HRL,Hormel Foods Corp.,HRL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+HRS,Harris Corporation,LHX,yes,Complete 120-month series obtained under successor ticker LHX; output labelled with 2014 ticker
+HSP,Hospira Inc.,HSP,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+HST,Host Hotels & Resorts,HST,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+HSY,The Hershey Company,HSY,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+HUM,Humana Inc.,HUM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+IBM,International Bus. Machines,IBM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ICE,IntercontinentalExchange Inc.,ICE,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+IFF,Intl Flavors & Fragrances,IFF,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+IGT,International Game Technology,IGT,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+INTC,Intel Corp.,INTC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+INTU,Intuit Inc.,INTU,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+IP,International Paper,IP,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+IPG,Interpublic Group,IPG,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+IR,Ingersoll-Rand PLC,TT,yes,Complete 120-month series obtained under successor ticker TT; output labelled with 2014 ticker
+IRM,Iron Mountain Incorporated,IRM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ISRG,Intuitive Surgical Inc.,ISRG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ITW,Illinois Tool Works,ITW,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+IVZ,Invesco Ltd.,IVZ,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+JBL,Jabil Circuit,JBL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+JCI,Johnson Controls,JCI,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+JEC,Jacobs Engineering Group,J,yes,Complete 120-month series obtained under successor ticker J; output labelled with 2014 ticker
+JNJ,Johnson & Johnson,JNJ,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+JNPR,Juniper Networks,JNPR,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+JOY,Joy Global Inc.,JOY,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+JPM,JPMorgan Chase & Co.,JPM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+JWN,Nordstrom,JWN,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+K,Kellogg Co.,K,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+KEY,KeyCorp,KEY,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+KIM,Kimco Realty,KIM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+KLAC,KLA-Tencor Corp.,KLAC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+KMB,Kimberly-Clark,KMB,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+KMI,Kinder Morgan,KMI,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+KMX,Carmax Inc,KMX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+KO,The Coca Cola Company,KO,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+KORS,Michael Kors,CPRI,yes,Complete 120-month series obtained under successor ticker CPRI; output labelled with 2014 ticker
+KR,Kroger Co.,KR,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+KRFT,Kraft Foods Group,KRFT,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+KSS,Kohl's Corp.,KSS,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+KSU,Kansas City Southern,KSU,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+L,Loews Corp.,L,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+LB,L Brands Inc.,BBWI,yes,Complete 120-month series obtained under successor ticker BBWI; output labelled with 2014 ticker
+LEG,Leggett & Platt,LEG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+LEN,Lennar Corp.,LEN,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+LH,Laboratory Corp. of America Holding,LH,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+LIFE,Life Technologies,LIFE,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+LLL,L-3 Communications Holdings,LLL,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+LLTC,Linear Technology Corp.,LLTC,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+LLY,Lilly (Eli) & Co.,LLY,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+LM,Legg Mason,LM,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+LMT,Lockheed Martin Corp.,LMT,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+LNC,Lincoln National,LNC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+LO,Lorillard Inc.,LO,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+LOW,Lowe's Cos.,LOW,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+LRCX,Lam Research,LRCX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+LSI,LSI Corporation,LSI,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+LUK,Leucadia National Corp.,JEF,yes,Complete 120-month series obtained under successor ticker JEF; output labelled with 2014 ticker
+LUV,Southwest Airlines,LUV,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+LYB,LyondellBasell,LYB,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+M,Macy's Inc.,M,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MA,Mastercard Inc.,MA,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MAC,Macerich,MAC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MAR,Marriott Int'l.,MAR,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MAS,Masco Corp.,MAS,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MAT,Mattel Inc.,MAT,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MCD,McDonald's Corp.,MCD,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MCHP,Microchip Technology,MCHP,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MCK,McKesson Corp.,MCK,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MCO,Moody's Corp,MCO,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MDLZ,Mondelez International,MDLZ,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MDT,Medtronic Inc.,MDT,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MET,MetLife Inc.,MET,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MHFI,McGraw Hill Financial,SPGI,yes,Complete 120-month series obtained under successor ticker SPGI; output labelled with 2014 ticker
+MHK,Mohawk Industries,MHK,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MJN,Mead Johnson,MJN,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+MKC,McCormick & Co.,MKC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MMC,Marsh & McLennan,MRSH,yes,Complete 120-month series obtained under successor ticker MRSH; output labelled with 2014 ticker
+MMM,3M Company,MMM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MNST,Monster Beverage,MNST,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MO,Altria Group Inc,MO,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MON,Monsanto Co.,MON,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+MOS,The Mosaic Company,MOS,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MPC,Marathon Petroleum,MPC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MRK,Merck & Co.,MRK,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MRO,Marathon Oil Corp.,MRO,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+MS,Morgan Stanley,MS,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MSFT,Microsoft Corp.,MSFT,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MSI,Motorola Solutions Inc.,MSI,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MTB,M&T Bank Corp.,MTB,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MU,Micron Technology,MU,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MUR,Murphy Oil,MUR,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+MWV,MeadWestvaco Corporation,SW,yes,Complete 120-month series obtained under successor ticker SW; output labelled with 2014 ticker
+MYL,Mylan Inc.,VTRS,yes,Complete 120-month series obtained under successor ticker VTRS; output labelled with 2014 ticker
+NBL,Noble Energy Inc,NBL,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+NBR,Nabors Industries Ltd.,NBR,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+NDAQ,NASDAQ OMX Group,NDAQ,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+NE,Noble Corp,NE,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+NEE,NextEra Energy Resources,NEE,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+NEM,Newmont Mining Corp. (Hldg. Co.),NEM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+NFLX,NetFlix Inc.,NFLX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+NFX,Newfield Exploration Co,NFX,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+NI,NiSource Inc.,NI,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+NKE,NIKE Inc.,NKE,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+NLSN,Nielsen Holdings,NLSN,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+NOC,Northrop Grumman Corp.,NOC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+NOV,National Oilwell Varco Inc.,NOV,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+NRG,NRG Energy,NRG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+NSC,Norfolk Southern Corp.,NSC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+NTAP,NetApp,NTAP,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+NTRS,Northern Trust Corp.,NTRS,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+NU,Northeast Utilities,ES,yes,Complete 120-month series obtained under successor ticker ES; output labelled with 2014 ticker
+NUE,Nucor Corp.,NUE,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+NVDA,Nvidia Corporation,NVDA,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+NWL,Newell Rubbermaid Co.,NWL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+NWSA,News Corporation,NWSA,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+OI,Owens-Illinois Inc,OI,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+OKE,ONEOK,OKE,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+OMC,Omnicom Group,OMC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ORCL,Oracle Corp.,ORCL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ORLY,O'Reilly Automotive,ORLY,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+OXY,Occidental Petroleum,OXY,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PAYX,Paychex Inc.,PAYX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PBCT,People's United Bank,PBCT,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+PBI,Pitney-Bowes,PBI,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PCAR,PACCAR Inc.,PCAR,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PCG,P G & E Corp.,PCG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PCL,Plum Creek Timber Co.,PCL,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+PCLN,Priceline.com Inc,BKNG,yes,Complete 120-month series obtained under successor ticker BKNG; output labelled with 2014 ticker
+PCP,Precision Castparts,PCP,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+PDCO,Patterson Companies,PDCO,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+PEG,Public Serv. Enterprise Inc.,PEG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PEP,PepsiCo Inc.,PEP,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PETM,"PetSmart, Inc.",PETM,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+PFE,Pfizer Inc.,PFE,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PFG,Principal Financial Group,PFG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PG,Procter & Gamble,PG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PGR,Progressive Corp.,PGR,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PH,Parker-Hannifin,PH,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PHM,Pulte Homes Inc.,PHM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PKI,PerkinElmer,RVTY,yes,Complete 120-month series obtained under successor ticker RVTY; output labelled with 2014 ticker
+PLD,Prologis,PLD,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PLL,Pall Corp.,PLL,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+PM,Philip Morris International,PM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PNC,PNC Financial Services,PNC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PNR,Pentair Ltd.,PNR,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PNW,Pinnacle West Capital,PNW,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+POM,Pepco Holdings Inc.,POM,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+PPG,PPG Industries,PPG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PPL,PPL Corp.,PPL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PRGO,Perrigo,PRGO,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PRU,Prudential Financial,PRU,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PSA,Public Storage,PSA,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PSX,Phillips 66,PSX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PVH,PVH Corp.,PVH,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PWR,Quanta Services Inc.,PWR,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+PX,Praxair Inc.,LIN,yes,Complete 120-month series obtained under successor ticker LIN; output labelled with 2014 ticker
+PXD,Pioneer Natural Resources,PXD,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+QCOM,QUALCOMM Inc.,QCOM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+QEP,QEP Resources,QEP,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+R,Ryder System,R,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+RAI,Reynolds American Inc.,RAI,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+RDC,Rowan Cos.,RDC,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+REGN,Regeneron,REGN,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+RF,Regions Financial Corp.,RF,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+RHI,Robert Half International,RHI,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+RHT,Red Hat Inc.,RHT,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+RIG,Transocean,RIG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+RL,Polo Ralph Lauren Corp.,RL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ROK,Rockwell Automation Inc.,ROK,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ROP,Roper Industries,ROP,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ROST,Ross Stores,ROST,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+RRC,Range Resources Corp.,RRC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+RSG,Republic Services Inc,RSG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+RTN,Raytheon Co.,RTN,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+SBUX,Starbucks Corp.,SBUX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+SCG,SCANA Corp,SCG,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+SCHW,Charles Schwab,SCHW,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+SE,Spectra Energy Corp.,SE,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+SEE,Sealed Air Corp.(New),SEE,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+SHW,Sherwin-Williams,SHW,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+SIAL,Sigma-Aldrich,SIAL,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+SJM,Smucker (J.M.),SJM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+SLB,Schlumberger Ltd.,SLB,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+SLM,SLM Corporation,SLM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+SNA,Snap-On Inc.,SNA,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+SNDK,SanDisk Corporation,SNDK,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+SNI,Scripps Networks Interactive Inc.,SNI,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+SO,Southern Co.,SO,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+SPG,Simon Property Group Inc,SPG,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+SPLS,Staples Inc.,SPLS,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+SRCL,Stericycle Inc,SRCL,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+SRE,Sempra Energy,SRE,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+STI,SunTrust Banks,STI,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+STJ,St Jude Medical,STJ,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+STT,State Street Corp.,STT,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+STX,Seagate Technology,STX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+STZ,Constellation Brands,STZ,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+SWK,Stanley Black & Decker,SWK,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+SWN,Southwestern Energy,SWN,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+SWY,Safeway Inc.,SWY,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+SYK,Stryker Corp.,SYK,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+SYMC,Symantec Corp.,GEN,yes,Complete 120-month series obtained under successor ticker GEN; output labelled with 2014 ticker
+SYY,Sysco Corp.,SYY,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+T,AT&T Inc,T,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+TAP,Molson Coors Brewing Company,TAP,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+TDC,Teradata Corp.,TDC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+TE,TECO Energy,TE,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+TEG,Integrys Energy Group Inc.,TEG,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+TEL,TE Connectivity Ltd.,TEL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+TGT,Target Corp.,TGT,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+THC,Tenet Healthcare Corp.,THC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+TIF,Tiffany & Co.,TIF,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+TJX,TJX Companies Inc.,TJX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+TMK,Torchmark Corp.,GL,yes,Complete 120-month series obtained under successor ticker GL; output labelled with 2014 ticker
+TMO,Thermo Fisher Scientific,TMO,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+TRIP,TripAdvisor,TRIP,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+TROW,T. Rowe Price Group,TROW,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+TRV,The Travelers Companies Inc.,TRV,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+TSN,Tyson Foods,TSN,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+TSO,Tesoro Petroleum Co.,ANDV,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+TSS,Total System Services,TSS,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+TWC,Time Warner Cable Inc.,TWC,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+TWX,Time Warner Inc.,TWX,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+TXN,Texas Instruments,TXN,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+TXT,Textron Inc.,TXT,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+TYC,Tyco International,TYC,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+UNH,United Health Group Inc.,UNH,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+UNM,Unum Group,UNM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+UNP,Union Pacific,UNP,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+UPS,United Parcel Service,UPS,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+URBN,Urban Outfitters,URBN,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+USB,U.S. Bancorp,USB,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+UTX,United Technologies,RTX,yes,Complete 120-month series obtained under successor ticker RTX; output labelled with 2014 ticker
+V,Visa Inc.,V,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+VAR,Varian Medical Systems,VAR,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+VFC,V.F. Corp.,VFC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+VIAB,Viacom Inc.,VIAB,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+VLO,Valero Energy,VLO,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+VMC,Vulcan Materials,VMC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+VNO,Vornado Realty Trust,VNO,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+VRSN,Verisign Inc.,VRSN,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+VRTX,Vertex Pharmaceuticals Inc,VRTX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+VTR,Ventas Inc,VTR,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+VZ,Verizon Communications,VZ,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+WAG,Walgreen Co.,WBA,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+WAT,Waters Corporation,WAT,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+WDC,Western Digital,WDC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+WEC,Wisconsin Energy Corporation,WEC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+WFC,Wells Fargo,WFC,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+WFM,Whole Foods Market,WFM,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+WHR,Whirlpool Corp.,WHR,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+WIN,Windstream Communications,WIN,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+WLP,WellPoint Inc.,ELV,yes,Complete 120-month series obtained under successor ticker ELV; output labelled with 2014 ticker
+WM,Waste Management Inc.,WM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+WMB,Williams Cos.,WMB,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+WMT,Wal-Mart Stores,WMT,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+WPX,"WPX Energy, Inc.",WPX,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+WU,Western Union Co,WU,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+WY,Weyerhaeuser Corp.,WY,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+WYN,Wyndham Worldwide,WYN,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+WYNN,Wynn Resorts Ltd,WYNN,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+X,United States Steel Corp.,X,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+XEL,Xcel Energy Inc,XEL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+XL,XL Capital,XL,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+XLNX,Xilinx Inc,XLNX,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+XOM,Exxon Mobil Corp.,XOM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+XRAY,Dentsply International,XRAY,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+XRX,Xerox Corp.,XRX,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+XYL,Xylem Inc.,XYL,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+YHOO,Yahoo Inc.,YHOO,no,No complete 120-month adjusted-close return series in the Yahoo-derived source data
+YUM,Yum! Brands Inc,YUM,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ZION,Zions Bancorp,ZION,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"
+ZMH,Zimmer Holdings,ZBH,yes,Complete 120-month series obtained under successor ticker ZBH; output labelled with 2014 ticker
+ZTS,Zoetis,ZTS,yes,"Complete 120-month adjusted-close return series, Jan 2014-Dec 2023"

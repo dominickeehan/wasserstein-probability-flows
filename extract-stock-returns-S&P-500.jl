@@ -1,6 +1,6 @@
 using CSV, Random
 
-csv_file_path = "stock-returns-S&P-500-2014.csv"
+csv_file_path = "stock-returns-S&P-500-2014-survivors.csv"
 
 data = CSV.File(csv_file_path)
 rows = collect(data)
@@ -15,7 +15,19 @@ stock_returns = [
     Float64[row[column_name] for column_name in stock_return_column_names]
     for row in rows
 ]
-stock_return_indices = sort(randperm(length(stock_return_tickers))[1:100]); stock_return_tickers = stock_return_tickers[stock_return_indices]; stock_returns = [returns[stock_return_indices] for returns in stock_returns]
+
+# Keep the historical 100-stock default, but make the sample reproducible and
+# configurable so performance and numerical comparisons use identical data.
+asset_count_setting = lowercase(get(ENV, "SP500_ASSET_COUNT", "100"))
+asset_count = asset_count_setting == "all" ? length(stock_return_tickers) : parse(Int, asset_count_setting)
+@assert 1 <= asset_count <= length(stock_return_tickers) "SP500_ASSET_COUNT must be between 1 and $(length(stock_return_tickers)), or 'all'."
+
+#stock_rng = MersenneTwister(parse(Int, get(ENV, "SP500_RANDOM_SEED", "1234")))
+stock_return_indices = asset_count == length(stock_return_tickers) ?
+    collect(eachindex(stock_return_tickers)) :
+    sort(randperm(length(stock_return_tickers))[1:asset_count])
+stock_return_tickers = stock_return_tickers[stock_return_indices]
+stock_returns = [returns[stock_return_indices] for returns in stock_returns]
 extracted_data = stock_returns
 
 m = length(stock_return_tickers)
@@ -25,7 +37,7 @@ for t in 1:length(stock_returns)
     wealth[t + 1, :] .= wealth[t, :] .* (ones(m) + stock_returns[t])
 end
 
-do_plots = true
+do_plots = lowercase(get(ENV, "SP500_PLOTS", "true")) in ("1", "true", "yes")
 if do_plots == true
     using Plots, Measures
 

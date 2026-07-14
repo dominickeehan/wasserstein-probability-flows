@@ -1,13 +1,23 @@
 using LinearAlgebra
 using Statistics, StatsBase
 using ProgressBars, IterTools
-using Plots, Measures
 
 include("extract-stock-returns-S&P-500.jl")
 include("weights.jl")
 ρ = 0.1 # 1 - risk aversion parameter.
 α = 0.05 # CVaR (dis)-confidence level (in (0, 1]). 1 = Expectation.
 include("risk-averse-portfolio-optimizations.jl")
+
+if Threads.nthreads() == 1
+    @info "WPF stages are using one Julia thread. Launch with --threads=auto for outer parallelism."
+end
+
+function ensure_plotting_loaded()
+    if !isdefined(@__MODULE__, :Plots) || !isdefined(@__MODULE__, :Measures)
+        @eval using Plots, Measures
+    end
+    return
+end
 
 portfolio_loss(x, ξ) = -dot(x, ξ)
 risk_adjusted_cost(costs) = ρ * mean(costs) + (1 - ρ) * unweighted_cvar(costs)
@@ -24,12 +34,19 @@ testing_data = extracted_data[(training_testing_split + 1):end]
 testing_T = length(testing_data)
 
 parameter_tuning_window = 2 * 12
+@assert 1 <= parameter_tuning_window <= training_T "The parameter tuning window must fit within the training data."
 
-LogRange(start, stop, len) = exp.(LinRange(log(start), log(stop), len))
+function LogRange(start, stop, len)
+    @assert len > 0 "A logarithmic range must contain at least one value."
+    return len == 1 ? [float(start)] : exp.(LinRange(log(start), log(stop), len))
+end
 
 windowing_parameters = unique(ceil.(Int, LogRange(1, length(extracted_data), 30)))
 smoothing_parameters = [0; LogRange(1e-4, 1e0, 30)]
-WPF_parameters = [0; LogRange(1e-1, 1e2, 30); Inf] #WPF_parameters = [0; LogRange(1e-1, 1e2, 30); Inf]
+WPF_grid_size = parse(Int, get(ENV, "WPF_GRID_SIZE", "30"))
+@assert WPF_grid_size > 0 "WPF_GRID_SIZE must be positive."
+WPF_parameters = [0; LogRange(1e-1, 1e2, WPF_grid_size); Inf]
+#WPF_parameters = [0; LogRange(1e-1, 1e3, WPF_grid_size); Inf]
 #WPF_parameters = [0; LinRange(0.1,1,10); LinRange(2,10,9); LinRange(20,100,9); Inf]
 DLBA_W1_DRO_weight_parameters = [0; LogRange(1e-4, 1e0, 30)]
 DLBA_W1_DRO_radius_parameters = 0.1*[0; LinRange(1e-3, 1e-2, 10); LinRange(2e-2, 1e-1, 9); LinRange(2e-1, 1e0, 9)] #[0; LogRange(1e-3, 1e0, 30)] #[0; LinRange(1e-2, 1e-1, 10); LinRange(2e-1, 1e-0, 10); LinRange(2e-0, 1e1, 10)]
@@ -52,31 +69,83 @@ function weighted_risk_averse_portfolio(solve_for_weights; WPF_norm = nothing, u
     end
 end
 
-function train_and_test_portfolio_out_of_sample(parameters, portfolio; plot_parameter_costs = false, save_cost_plot_as = nothing)
-    parameter_costs_in_training_stages = zeros((training_T, length(parameters)))
-    Threads.@threads for (t, i) in ProgressBar(collect(IterTools.product(training_T:-1:1, eachindex(parameters))))
-        local samples = [warm_up_data; training_data[1:(t - 1)]]
-        local x = portfolio(samples, parameters[i])
-        parameter_costs_in_training_stages[t, i] = portfolio_loss(x, training_data[t])
+function batched_weighted_risk_averse_portfolio(solve_for_weights_batch; WPF_norm, distances)
+    return function(samples, parameters)
+        sample_weights = solve_for_weights_batch(samples, parameters, WPF_norm; distances = distances)
+        return [solve_risk_averse_portfolio(samples, weights) for weights in sample_weights]
+    end
+end
+
+function train_and_test_portfolio_out_of_sample(parameters, portfolio;
+        portfolio_batch = nothing,
+        plot_parameter_costs = false,
+        save_cost_plot_as = nothing)
+    parameter_values = parameters isa Number || isnothing(parameters) ? [parameters] : collect(parameters)
+    number_of_parameters = length(parameter_values)
+    @assert number_of_parameters > 0 "At least one parameter is required."
+
+    parameter_costs_in_training_stages = zeros((training_T, number_of_parameters))
+
+    # Earlier stages can never enter the first rolling tuning window. A
+    # one-parameter portfolio needs no training-stage parameter selection.
+    first_training_stage = number_of_parameters == 1 ? training_T + 1 :
+        max(1, training_T - parameter_tuning_window + 1)
+
+    if first_training_stage <= training_T
+        Threads.@threads :greedy for t in ProgressBar(training_T:-1:first_training_stage)
+            samples = @view extracted_data[1:(warm_up_period + t - 1)]
+            if isnothing(portfolio_batch)
+                for i in eachindex(parameter_values)
+                    x = portfolio(samples, parameter_values[i])
+                    parameter_costs_in_training_stages[t, i] = portfolio_loss(x, training_data[t])
+                end
+            else
+                portfolios = portfolio_batch(samples, parameter_values)
+                @assert length(portfolios) == number_of_parameters
+                for i in eachindex(parameter_values)
+                    parameter_costs_in_training_stages[t, i] = portfolio_loss(portfolios[i], training_data[t])
+                end
+            end
+        end
     end
 
-    parameter_costs_in_testing_stages = zeros((testing_T, length(parameters)))
-    Threads.@threads for (t, i) in ProgressBar(collect(IterTools.product(testing_T:-1:1, eachindex(parameters))))
-        local samples = [warm_up_data; training_data; testing_data[1:(t - 1)]]
-        local x = portfolio(samples, parameters[i])
-        parameter_costs_in_testing_stages[t, i] = portfolio_loss(x, testing_data[t])
+    parameter_costs_in_testing_stages = zeros((testing_T, number_of_parameters))
+    Threads.@threads :greedy for t in ProgressBar(testing_T:-1:1)
+        samples = @view extracted_data[1:(training_testing_split + t - 1)]
+        if isnothing(portfolio_batch)
+            for i in eachindex(parameter_values)
+                x = portfolio(samples, parameter_values[i])
+                parameter_costs_in_testing_stages[t, i] = portfolio_loss(x, testing_data[t])
+            end
+        else
+            portfolios = portfolio_batch(samples, parameter_values)
+            @assert length(portfolios) == number_of_parameters
+            for i in eachindex(parameter_values)
+                parameter_costs_in_testing_stages[t, i] = portfolio_loss(portfolios[i], testing_data[t])
+            end
+        end
     end
 
     parameter_costs = [parameter_costs_in_training_stages; parameter_costs_in_testing_stages]
 
-    risk_adjusted_parameter_costs_in_previous_stages = [zeros(length(parameters)) for _ in 1:testing_T]
-    for t in 1:testing_T
-        parameter_tuning_indices = training_T + (t - 1) - (parameter_tuning_window - 1):training_T + (t - 1)
-        risk_adjusted_parameter_costs_in_previous_stages[t] =
-            [risk_adjusted_cost(parameter_costs[parameter_tuning_indices, i]) for i in eachindex(parameters)]
-    end
+    if number_of_parameters == 1
+        realised_costs = vec(parameter_costs_in_testing_stages)
+        optimal_parameter = only(parameter_values)
+        final_parameter_costs = nothing
+    else
+        risk_adjusted_parameter_costs_in_previous_stages = zeros((testing_T, number_of_parameters))
+        for t in 1:testing_T
+            parameter_tuning_indices = training_T + (t - 1) - (parameter_tuning_window - 1):training_T + (t - 1)
+            for i in eachindex(parameter_values)
+                risk_adjusted_parameter_costs_in_previous_stages[t, i] =
+                    risk_adjusted_cost(@view parameter_costs[parameter_tuning_indices, i])
+            end
+        end
 
-    realised_costs = [parameter_costs_in_testing_stages[t, argmin(risk_adjusted_parameter_costs_in_previous_stages[t])] for t in 1:testing_T]
+        realised_costs = [parameter_costs_in_testing_stages[t, argmin(@view risk_adjusted_parameter_costs_in_previous_stages[t, :])] for t in 1:testing_T]
+        final_parameter_costs = @view risk_adjusted_parameter_costs_in_previous_stages[end, :]
+        optimal_parameter = parameter_values[argmin(final_parameter_costs)]
+    end
     μ = risk_adjusted_cost(realised_costs)
     s = sem(realised_costs)
 
@@ -87,32 +156,34 @@ function train_and_test_portfolio_out_of_sample(parameters, portfolio; plot_para
 
     display("Cost: $μ ± $s, Wealth: $wealth")
 
-    default() # Reset plot defaults.
-
-    gr(size = (275 + 6, 183 + 6 + 6) .* sqrt(3))
-
-    font_family = "Computer Modern"
-    primary_font = Plots.font(font_family, pointsize = 12)
-    secondary_font = Plots.font(font_family, pointsize = 10)
-    legend_font = Plots.font(font_family, pointsize = 11)
-
-    default(framestyle = :box,
-            grid = true,
-            gridalpha = 0.075,
-            minorgrid = true,
-            minorgridalpha = 0.075,
-            minorgridlinestyle = :dash,
-            tick_direction = :in,
-            xminorticks = 9,
-            yminorticks = 0,
-            fontfamily = font_family,
-            guidefont = primary_font,
-            tickfont = secondary_font,
-            legendfont = legend_font)
-
     if plot_parameter_costs == true
-        plt = plot(parameters[2:end-1],
-                risk_adjusted_parameter_costs_in_previous_stages[end][2:end-1],
+        @assert number_of_parameters > 2 "Parameter-cost plots require endpoint and interior parameters."
+        ensure_plotting_loaded()
+
+        default() # Reset plot defaults.
+        gr(size = (275 + 6, 183 + 6 + 6) .* sqrt(3))
+
+        font_family = "Computer Modern"
+        primary_font = Plots.font(font_family, pointsize = 12)
+        secondary_font = Plots.font(font_family, pointsize = 10)
+        legend_font = Plots.font(font_family, pointsize = 11)
+
+        default(framestyle = :box,
+                grid = true,
+                gridalpha = 0.075,
+                minorgrid = true,
+                minorgridalpha = 0.075,
+                minorgridlinestyle = :dash,
+                tick_direction = :in,
+                xminorticks = 9,
+                yminorticks = 0,
+                fontfamily = font_family,
+                guidefont = primary_font,
+                tickfont = secondary_font,
+                legendfont = legend_font)
+
+        plt = plot(parameter_values[2:end-1],
+                final_parameter_costs[2:end-1],
                 #ribbon = sem.([parameter_costs[end-(parameter_tuning_window-1):end, parameter_index] for parameter_index in eachindex(parameters)]),
                 xscale = :log10,
                 #xticks = [1, 10, 100, 1000],
@@ -139,16 +210,20 @@ function train_and_test_portfolio_out_of_sample(parameters, portfolio; plot_para
         end
     end
 
-    return realised_costs, parameters[argmin(risk_adjusted_parameter_costs_in_previous_stages[end])]
+    return realised_costs, optimal_parameter
 end
 
-SAA_realised_costs, _ = train_and_test_portfolio_out_of_sample(length(extracted_data), weighted_risk_averse_portfolio(windowing_weights))
+SAA_realised_costs, _ = train_and_test_portfolio_out_of_sample([length(extracted_data)], weighted_risk_averse_portfolio(windowing_weights))
 SAA_risk_adjusted_average_cost = risk_adjusted_cost(SAA_realised_costs)
 
 digits = 4
-function extract_results(parameters, portfolio; save_cost_plot_as = nothing, plot_parameter_costs = false)
+function extract_results(parameters, portfolio;
+        portfolio_batch = nothing,
+        save_cost_plot_as = nothing,
+        plot_parameter_costs = false)
     realised_costs, optimal_parameter =
         train_and_test_portfolio_out_of_sample(parameters, portfolio;
+            portfolio_batch = portfolio_batch,
             save_cost_plot_as = save_cost_plot_as,
             plot_parameter_costs = plot_parameter_costs)
 
@@ -173,15 +248,27 @@ smoothing_risk_adjusted_average_cost, smoothing_percentage_average_difference, s
     extract_results(smoothing_parameters, weighted_risk_averse_portfolio(smoothing_weights))
 
 
-L1(ξ_i, ξ_j) = norm(ξ_i - ξ_j, 1)
+5
+
+L1(ξ_i, ξ_j) = sum(abs(ξ_i[k] - ξ_j[k]) for k in eachindex(ξ_i, ξ_j))
+WPF_L1_distances = WPF_distance_matrix(extracted_data, L1)
+WPF_L1_portfolio = weighted_risk_averse_portfolio(WPF_weights; WPF_norm = L1)
+WPF_L1_portfolio_batch = batched_weighted_risk_averse_portfolio(
+    WPF_weights_batch;
+    WPF_norm = L1,
+    distances = WPF_L1_distances,
+)
+
 println("WPF L1")
 WPF_L1_risk_adjusted_average_cost, WPF_L1_percentage_average_difference, WPF_L1_percentage_sem_difference, WPF_L1_parameter =
-    extract_results(WPF_parameters, weighted_risk_averse_portfolio(WPF_weights; WPF_norm = L1);
-        plot_parameter_costs = true)#, save_cost_plot_as = "figures/stock-returns-S&P-500-2014-WPF-L1-parameter-costs.pdf")
+    extract_results(WPF_parameters, WPF_L1_portfolio;
+        portfolio_batch = WPF_L1_portfolio_batch,
+        plot_parameter_costs = do_plots)#, save_cost_plot_as = "figures/stock-returns-S&P-500-2014-WPF-L1-parameter-costs.pdf")
 
-#=println("DLBA W1 DRO")
+#=
+println("DLBA W1 DRO")
 DLBA_W1_DRO_risk_adjusted_average_cost, DLBA_W1_DRO_percentage_average_difference, DLBA_W1_DRO_percentage_sem_difference, DLBA_W1_DRO_parameter =
-    extract_results(DLBA_W1_DRO_parameters, weighted_risk_averse_portfolio(DLBA_W1_DRO_cached_weights; use_W1_DRO = true))=#
+    extract_results(DLBA_W1_DRO_parameters, weighted_risk_averse_portfolio(DLBA_W1_DRO_cached_weights; use_W1_DRO = true))
 
 println("W1 DRO")
 W1_DRO_risk_adjusted_average_cost, W1_DRO_percentage_average_difference, W1_DRO_percentage_sem_difference, W1_DRO_parameter = 
@@ -189,13 +276,14 @@ W1_DRO_risk_adjusted_average_cost, W1_DRO_percentage_average_difference, W1_DRO_
 
 println("Fixed mix")
 fixed_mix_risk_adjusted_average_cost, fixed_mix_percentage_average_difference, fixed_mix_percentage_sem_difference, _ =
-    extract_results([nothing], fixed_mix_portfolio)
+    extract_results([nothing], fixed_mix_portfolio)=#
 
 5
 
-WPF_L1_sample_weights = WPF_weights(extracted_data, WPF_L1_parameter, L1)
+if do_plots
+    WPF_L1_sample_weights = WPF_weights(extracted_data, WPF_L1_parameter, L1; distances = WPF_L1_distances)
 
-default() # Reset plot defaults.
+    default() # Reset plot defaults.
 
 gr(size = (317 + 6 + 6, 159 + 7) .* sqrt(3))
 
@@ -262,10 +350,11 @@ plt_probabilities = plot(sample_indices[WPF_L1_sample_weights .>= 1e-3],
 yl = ylims(plt_probabilities)
 ylims!((0, yl[2]))
 
-figure = plot(plt_extracted_data, plt_probabilities, layout = @layout([a; b]))
+figure = plot(plt_extracted_data, plt_probabilities, layout = (2, 1))
 display(figure)
-savefig(figure, "figures/stock-returns-S&P-500-2014-WPF-L1-assigned-probability-to-historical-observations.pdf")
-savefig(plt_probabilities, "figures/stock-returns-S&P-500-2014-WPF-L1-probability-assigned.pdf")
+    savefig(figure, "figures/stock-returns-S&P-500-2014-WPF-L1-assigned-probability-to-historical-observations.pdf")
+    savefig(plt_probabilities, "figures/stock-returns-S&P-500-2014-WPF-L1-probability-assigned.pdf")
+end
 
 #=
 L2(ξ_i, ξ_j) = norm(ξ_i - ξ_j, 2)

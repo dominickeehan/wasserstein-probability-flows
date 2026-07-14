@@ -1,25 +1,36 @@
 using JuMP, LinearAlgebra, COPT
 
-portfolio_optimizer = optimizer_with_attributes(COPT.Optimizer, "Logging" => 0, "LogToConsole" => 0,)
+portfolio_optimizer = let attributes = Pair{String, Int}[
+        "Logging" => 0,
+        "LogToConsole" => 0,
+    ]
+    copt_threads = get(ENV, "COPT_THREADS", Threads.nthreads() > 1 ? "1" : "")
+    if !isempty(copt_threads)
+        number_of_copt_threads = parse(Int, copt_threads)
+        @assert number_of_copt_threads > 0 "COPT_THREADS must be positive."
+        push!(attributes, "Threads" => number_of_copt_threads)
+    end
+    optimizer_with_attributes(COPT.Optimizer, attributes...)
+end
 
 function unweighted_cvar(costs)
+    N = length(costs) # Number of equally weighted cost samples.
+    @assert N > 0 "CVaR requires at least one cost sample."
+    @assert 0 < α <= 1 "CVaR tail probability α must be in (0, 1]."
 
-    N = length(costs) # Number of cost samples.
+    tail_mass = α * N
+    full_tail_samples = floor(Int, tail_mass)
+    tail_samples = ceil(Int, tail_mass)
 
-    model = Model(portfolio_optimizer)  
+    # CVaR is the mean of the largest α*N samples, with fractional weight on
+    # the boundary sample when α*N is not an integer.
+    largest_costs = partialsort(costs, 1:tail_samples; rev = true)
+    tail_sum = sum(@view largest_costs[1:full_tail_samples])
+    if full_tail_samples < tail_samples
+        tail_sum += (tail_mass - full_tail_samples)*largest_costs[tail_samples]
+    end
 
-    @variables(model, begin  
-                            τ             # CVaR threshold.
-                            z[i=1:N] >= 0 # Slack variables for CVaR.
-                      end)
-
-    @objective(model, Min, τ + sum((1/N)*(1/α)*z[i] for i in 1:N))
-
-    for i in 1:N; @constraint(model, z[i] >= costs[i] - τ); end # CVaR constraints.
-
-    optimize!(model)
-
-    return objective_value(model)
+    return tail_sum / tail_mass
 end
 
 function solve_risk_averse_portfolio(returns, weights)
