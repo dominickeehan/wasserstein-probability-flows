@@ -168,6 +168,8 @@ function extract_results(parameters, portfolio; save_cost_plot_as = nothing, plo
     return round(risk_adjusted_average_cost, digits=digits), percentage_average_difference, percentage_sem_difference, optimal_parameter
 end
 
+5
+
 println("Windowing")
 windowing_risk_adjusted_average_cost, windowing_percentage_average_difference, windowing_percentage_sem_difference, _ = 
     extract_results(windowing_parameters, weighted_risk_averse_portfolio(windowing_weights))

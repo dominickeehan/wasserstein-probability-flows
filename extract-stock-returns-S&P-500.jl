@@ -18,7 +18,7 @@ stock_returns = [
 
 # Keep the historical 100-stock default, but make the sample reproducible and
 # configurable so performance and numerical comparisons use identical data.
-asset_count_setting = lowercase(get(ENV, "SP500_ASSET_COUNT", "100"))
+asset_count_setting = lowercase(get(ENV, "SP500_ASSET_COUNT", "all"))
 asset_count = asset_count_setting == "all" ? length(stock_return_tickers) : parse(Int, asset_count_setting)
 @assert 1 <= asset_count <= length(stock_return_tickers) "SP500_ASSET_COUNT must be between 1 and $(length(stock_return_tickers)), or 'all'."
 

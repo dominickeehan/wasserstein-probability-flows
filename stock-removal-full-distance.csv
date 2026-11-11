@@ -1,0 +1,2 @@
+removed_ticker,distance_geometry,remaining_assets,saa_cost,wpf_cost,difference_from_saa_pct,mean_loss_difference,cvar_difference,saa_wealth,wpf_wealth,block_bootstrap_low_pct,block_bootstrap_high_pct,final_lambda,distinct_chosen_lambdas,saa_tail_months,wpf_tail_months
+SJM,original_379_stocks,378,0.07635801713984729,0.08863883877980884,16.083211822367804,0.0050753489273375665,0.013081429719141995,2.1652713624753015,1.6285428999719314,-13.518439299831687,65.27997591822566,1.37382,7,Mar-22;Jan-20;Feb-20,May-22;Mar-22;Feb-20
