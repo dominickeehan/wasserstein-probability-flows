@@ -12,8 +12,8 @@ import urllib.parse
 import urllib.request
 
 
-AUDIT_PATH = os.environ.get("PILOT_AUDIT_CSV", "sp500-2014-survivor-audit.csv")
-OUTPUT_PATH = os.environ.get("PILOT_DAILY_CSV", "stock-returns-daily-pilot.csv")
+AUDIT_PATH = os.environ.get("PILOT_AUDIT_CSV", "data/sp500-2014-survivor-audit.csv")
+OUTPUT_PATH = os.environ.get("PILOT_DAILY_CSV", "data/stock-returns-daily-pilot.csv")
 TARGET_ASSETS = int(os.environ.get("PILOT_UNIVERSE_SIZE", "50"))
 SEED = int(os.environ.get("PILOT_UNIVERSE_SEED", "20260810"))
 START_DATE = dt.date.fromisoformat(os.environ.get("PILOT_START_DATE", "2019-01-01"))

@@ -1,6 +1,6 @@
 using CSV
 
-csv_file_path = "stock-returns.csv"
+csv_file_path = "data/stock-returns.csv"
 
 data = CSV.File(csv_file_path)
 

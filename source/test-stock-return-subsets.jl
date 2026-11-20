@@ -30,7 +30,7 @@ function parse_seeds(value)
     return unique(seeds)
 end
 
-const csv_file_path = get(ENV, "SP500_RETURNS_CSV", "stock-returns-S&P-500-2014-survivors.csv")
+const csv_file_path = get(ENV, "SP500_RETURNS_CSV", "data/stock-returns-S&P-500-2014-survivors.csv")
 const rows = collect(CSV.File(csv_file_path))
 const return_column_names = collect(propertynames(first(rows)))[2:end]
 const all_tickers = String.(return_column_names)
@@ -43,7 +43,7 @@ const subset_size = parse(Int, get(ENV, "SP500_SUBSET_SIZE", "100"))
 const subset_seeds = parse_seeds(get(ENV, "SP500_SUBSET_SEEDS", "1:10"))
 const grid_size = parse(Int, get(ENV, "WPF_GRID_SIZE", "10"))
 const bootstrap_repetitions = parse(Int, get(ENV, "SP500_BOOTSTRAPS", "1000"))
-const output_path = get(ENV, "SP500_SUBSET_OUTPUT", "stock-subset-results.csv")
+const output_path = get(ENV, "SP500_SUBSET_OUTPUT", "data/stock-subset-results.csv")
 
 @assert 1 <= subset_size <= number_of_assets
 @assert !isempty(subset_seeds)

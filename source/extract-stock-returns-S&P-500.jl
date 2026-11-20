@@ -1,6 +1,6 @@
 using CSV, Random
 
-csv_file_path = "stock-returns-S&P-500-2014-survivors.csv"
+csv_file_path = "data/stock-returns-S&P-500-2014-survivors.csv"
 
 data = CSV.File(csv_file_path)
 rows = collect(data)

@@ -10,8 +10,8 @@ using StatsBase
 include("weights.jl")
 
 const mean_loss_weight = 0.1
-const daily_csv_path = get(ENV, "PILOT_DAILY_CSV", "stock-returns-daily-pilot.csv")
-const output_path = get(ENV, "PILOT_RESULTS_CSV", "stock-daily-pilot-results.csv")
+const daily_csv_path = get(ENV, "PILOT_DAILY_CSV", "data/stock-returns-daily-pilot.csv")
+const output_path = get(ENV, "PILOT_RESULTS_CSV", "data/stock-daily-pilot-results.csv")
 const subset_size = parse(Int, get(ENV, "PILOT_SUBSET_SIZE", "20"))
 const subset_seeds = parse.(Int, split(get(ENV, "PILOT_SUBSET_SEEDS", join(1:20, ',')), ','))
 const estimation_window = parse(Int, get(ENV, "PILOT_ESTIMATION_DAYS", "126"))

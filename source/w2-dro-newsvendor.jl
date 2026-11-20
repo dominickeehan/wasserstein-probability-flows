@@ -1,14 +1,22 @@
 using Statistics, StatsBase
 
+# Order the smallest demand whose cumulative weight reaches the critical ratio underage_cost / (underage_cost + overage_cost)
+# in each dimension. This is the newsvendor order of the weighted sample. StatsBase's weighted
+# quantile is not used because its interpolation jumps when a weight changes between zero and tiny.
 function weighted_newsvendor_order(demands, weights, underage_cost, overage_cost)
     weights = weights / sum(weights)
     dimensions = length(demands[1])
     quantile_level = underage_cost / (underage_cost + overage_cost)
 
-    return [
-        quantile([demands[t][i] for t in eachindex(demands)], Weights(weights), quantile_level)
-        for i in 1:dimensions
-    ]
+    order = zeros(dimensions)
+    for i in 1:dimensions
+        sorted = sortperm([demands[t][i] for t in eachindex(demands)])
+        cumulative_weights = cumsum(weights[sorted])
+        order[i] = demands[sorted[findfirst(>=(quantile_level * sum(weights)), cumulative_weights)]][i]
+
+    end
+
+    return order
 end
 
 function W2_DRO_newsvendor_dual_value(demands, weights, order, lambda, radius, underage_cost, overage_cost)

@@ -3,9 +3,11 @@ using LinearAlgebra
 using IterTools, ProgressBars
 
 include("weights.jl")
+include("interior-point-WPF-weights.jl")
 
-Cu = 4  # Underage cost.
-Co = 1  # Overage cost.
+# Constant costs keep newsvendor_loss fast over the 10,000 future samples.
+const Cu = 4  # Underage cost.
+const Co = 1  # Overage cost.
 
 Dimensions = [1,2,3,4]
 Modes = [1,2,3,4]
@@ -21,10 +23,21 @@ for dimensions in Dimensions
         newsvendor_loss(order, demand) =
             sum(Cu * max(demand[i] - order[i], 0) + Co * max(order[i] - demand[i], 0) for i in eachindex(order))
 
+        # Order the smallest demand whose cumulative weight reaches the critical ratio Cu / (Cu + Co) in
+        # each dimension. This is the newsvendor order of the weighted sample. StatsBase's weighted quantile
+        # is not used because its interpolation jumps when a weight changes between zero and tiny.
         function newsvendor_order(demands, weights)
             q = Cu / (Cu + Co)
-            
-            return [quantile([demands[t][i] for t in eachindex(demands)], Weights(weights), q) for i in 1:dimensions]
+
+            order = zeros(dimensions)
+            for i in 1:dimensions
+                sorted = sortperm([demands[t][i] for t in eachindex(demands)])
+                cumulative_weights = cumsum(weights[sorted])
+                order[i] = demands[sorted[findfirst(>=(q * sum(weights)), cumulative_weights)]][i]
+
+            end
+
+            return order
         end
 
         repetitions = 1000
@@ -69,7 +82,7 @@ for dimensions in Dimensions
 
                 costs[repetition][weight_parameter_index] = mean([
                     newsvendor_loss(order, final_demand[repetition][i]) for i in eachindex(final_demand[repetition])])
-            
+
             end
 
             minimal_index = argmin(mean(costs))
@@ -92,8 +105,8 @@ for dimensions in Dimensions
         smoothing_costs = parameter_fit(smoothing_weights, [0; LogRange(1e-4, 1, 30)], 0)
 
         L1(ξ, ζ) = norm(ξ - ζ, 1)
-        WPF_L1_costs = parameter_fit(WPF_weights, [0; LinRange(1e-3,1e-2,10); LinRange(2e-2,1e-1,9); LinRange(2e-1,1e0,9); Inf], L1)
-        #WPF_L1_costs = parameter_fit(WPF_weights, [0; LinRange(1e-2,1e-1,10); LinRange(2e-1,1e-0,9); LinRange(2e-0,1e1,9); Inf], L1)
+        WPF_L1_costs = parameter_fit(interior_point_WPF_weights, [0; LinRange(1e-3,1e-2,10); LinRange(2e-2,1e-1,9); LinRange(2e-1,1e0,9); Inf], L1)
+        #WPF_L1_costs = parameter_fit(interior_point_WPF_weights, [0; LinRange(1e-2,1e-1,10); LinRange(2e-1,1e-0,9); LinRange(2e-0,1e1,9); Inf], L1)
         percentage_average_difference = mean(WPF_L1_costs - smoothing_costs) / mean(smoothing_costs) * 100
         percentage_sem_difference = sem(WPF_L1_costs - smoothing_costs) / mean(smoothing_costs) * 100
         print("Difference from smoothing: $(round(percentage_average_difference, digits=3)) ± $(round(percentage_sem_difference, digits=3)) %")

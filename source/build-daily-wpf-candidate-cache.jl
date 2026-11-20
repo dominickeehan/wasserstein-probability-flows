@@ -5,7 +5,7 @@ include("test-daily-stock-return-subsets-pilot.jl")
 const candidate_cache_path = get(
     ENV,
     "WPF_CANDIDATE_CACHE",
-    "stock-daily-extended-candidate-losses.jls",
+    "data/stock-daily-extended-candidate-losses.jls",
 )
 const development_start_date = Date(get(ENV, "WPF_DEVELOPMENT_START", "2022-01-01"))
 const maximum_candidate_tuning_window = parse(

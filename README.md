@@ -25,13 +25,15 @@ A number of Julia packages are required. They can be added by&nbsp;commanding:
 *Note that a license for the COPT solver is also required; see https://www.shanshu.ai/copt. The paper uses&nbsp;COPT&nbsp;7.2.
 
 ## Reproducing Output from the Paper
-You can reproduce the following tables and figures by commanding the&nbsp;following:
-- Figure&nbsp;3: `include("plot-radio-pulsar.jl")`
-- Table&nbsp;2: `include("ex-post-multi-modal-and-multi-dimensional-newsvendor.jl")`
-- Table&nbsp;3: `include("tabulate-ex-post-multi-modal-and-multi-dimensional-newsvendor.jl")`
-- Table&nbsp;5 and Figures&nbsp;4,&nbsp;5, and&nbsp;6: `include("train-and-test-dairy-prices.jl")`
-- Table&nbsp;7 and Figures&nbsp;7,&nbsp;8, and&nbsp;9: `include("train-and-test-stock-returns.jl")`
+You can reproduce the following tables and figures by commanding the following from the root of this&nbsp;repository:
+- Figure&nbsp;3: `include("source/plot-radio-pulsar.jl")`
+- Table&nbsp;2: `include("source/ex-post-multi-modal-and-multi-dimensional-newsvendor.jl")`
+- Table&nbsp;3: `include("source/tabulate-ex-post-multi-modal-and-multi-dimensional-newsvendor.jl")`
+- Table&nbsp;5 and Figures&nbsp;4,&nbsp;5, and&nbsp;6: `include("source/train-and-test-dairy-prices.jl")`
+- Table&nbsp;7 and Figures&nbsp;7,&nbsp;8, and&nbsp;9: `include("source/train-and-test-stock-returns.jl")`
 
-The script `weights.jl` provides an implementation of our reduced-form network-flow problem instance. For a vector of historical observations `observations`; a scalar shift penalty parameter `λ`; and a distance function on the outcome space of the observations `d`, commanding `WPF_weights(observations, λ, d)` returns the Wasserstein Probability Flow distribution estimate using the COPT solver. We also provide an open source alternative `Ipopt_WPF_weights(observations, λ, d)` using the Ipopt&nbsp;solver.
+The scripts are in `source/`, the data they read and write are in `data/`, and the figures they save are in&nbsp;`figures/`.
+
+The script `source/weights.jl` provides an implementation of our reduced-form network-flow problem instance. For a vector of historical observations `observations`; a scalar shift penalty parameter `λ`; and a distance function on the outcome space of the observations `d`, commanding `WPF_weights(observations, λ, d)` returns the Wasserstein Probability Flow distribution estimate using the COPT solver. We also provide an open source alternative `Ipopt_WPF_weights(observations, λ, d)` using the Ipopt&nbsp;solver.
 
 ## Thank You :pray:

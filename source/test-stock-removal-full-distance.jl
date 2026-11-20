@@ -51,7 +51,7 @@ row = (
 full_distance_output_path = get(
     ENV,
     "SP500_REMOVAL_FULL_DISTANCE_OUTPUT",
-    "stock-removal-full-distance.csv",
+    "data/stock-removal-full-distance.csv",
 )
 CSV.write(full_distance_output_path, [row])
 println(

@@ -1,6 +1,6 @@
 using CSV
 
-csv_file_path = "dairy-prices.csv"
+csv_file_path = "data/dairy-prices.csv"
 
 data = CSV.File(csv_file_path) # Units are in dollars per tonne.
 

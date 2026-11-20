@@ -8,12 +8,12 @@ using StatsBase
 const candidate_cache_path = get(
     ENV,
     "WPF_CANDIDATE_CACHE",
-    "stock-daily-extended-candidate-losses.jls",
+    "data/stock-daily-extended-candidate-losses.jls",
 )
 const setting_results_path = get(
     ENV,
     "WPF_SETTING_RESULTS",
-    "stock-daily-heldout-setting-results.csv",
+    "data/stock-daily-heldout-setting-results.csv",
 )
 const development_start = Date(2022, 1, 1)
 const development_end = Date(2023, 12, 31)

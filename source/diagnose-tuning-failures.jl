@@ -110,5 +110,5 @@ for seed in diagnostic_seeds
             "non-SAA=$(round(100 * results_row.non_saa_share, digits = 1))%",
         )
     end
-    CSV.write("stock-tuning-guardrail-diagnostics.csv", results)
+    CSV.write("data/stock-tuning-guardrail-diagnostics.csv", results)
 end

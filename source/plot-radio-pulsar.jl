@@ -161,8 +161,8 @@ plot!([-100,-99],
         fill = (0, 0.268, palette(:tab10)[2]))
 
 display(plt)
-savefig(plt,"figures\\radio-pulsar.pdf")
-savefig(plt,"figures\\radio-pulsar.svg")
+savefig(plt,"figures/radio-pulsar.pdf")
+savefig(plt,"figures/radio-pulsar.svg")
 
 
 

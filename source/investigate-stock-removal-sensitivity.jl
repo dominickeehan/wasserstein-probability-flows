@@ -5,12 +5,12 @@ include("test-stock-return-subsets.jl")
 const influence_output_path = get(
     ENV,
     "SP500_INFLUENCE_OUTPUT",
-    "stock-removal-influence-ranking.csv",
+    "data/stock-removal-influence-ranking.csv",
 )
 const removal_output_path = get(
     ENV,
     "SP500_REMOVAL_OUTPUT",
-    "stock-removal-sensitivity.csv",
+    "data/stock-removal-sensitivity.csv",
 )
 const random_control_count = parse(Int, get(ENV, "SP500_REMOVAL_RANDOM_CONTROLS", "4"))
 
